@@ -9,9 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-three/drei": "^9.112.0",
+    "@react-three/fiber": "^8.17.6",
+    "@react-three/postprocessing": "^2.16.2",
+    "next": "14.2.7",
+    "r3f-perf": "^7.2.2",
+    "raw-loader": "^4.0.2",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.7"
+    "shopify-buy": "^2.22.0",
+    "simplex-noise": "3.0.1",
+    "three": "^0.168.0"
   },
   "devDependencies": {
     "postcss": "^8",
