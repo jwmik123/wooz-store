@@ -5,7 +5,6 @@ export default function Home() {
   return (
     <main className="h-screen">
       <Experience />
-      <ProductsClientComponent />
     </main>
   );
 }
