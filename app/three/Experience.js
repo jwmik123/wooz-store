@@ -5,6 +5,8 @@ import { OrbitControls } from "@react-three/drei";
 import Studio from "./Studio";
 import { Stage, Environment, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
+import Ground from "./Ground";
+import GrassComponent from "./GrassComponent";
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useThree } from "@react-three/fiber";
@@ -36,9 +38,14 @@ export default function Experience() {
         backgroundRotation={[0, Math.PI / 2, 0]}
         // ground={{ height: 1, radius: 10, scale: 10 }} TODO: find a solution to ground the studio on the floor.
       />
+
       <Center>
         <Studio />
+        {/* <Ground scale={50} patchiness={0.7} /> */}
+        {/* <Ground /> */}
+        {/* <GrassComponent scale={10} /> */}
       </Center>
+      <ambientLight intensity={1} />
       <Rig />
     </Canvas>
   );

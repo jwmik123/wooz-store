@@ -16,6 +16,8 @@ import {
   poloConfig,
 } from "./assets/productConfigurations";
 
+import collectionStore from "../stores/collectionStore";
+
 export default function Studio(props) {
   const { nodes } = useGLTF("/models/studio.glb");
   const [hoveredItem, setHoveredItem] = useState({ type: null, id: null });
@@ -24,10 +26,10 @@ export default function Studio(props) {
   const { camera, mouse } = useThree();
   const cameraPositions = {
     polo: {
-      x: 0.5898568407579924,
+      x: 0.4898568407579924,
       y: -0.6973355377258545,
       z: 0.444403827686815,
-      lookAt: [0.053, 1, -1.486],
+      lookAt: [5, -2, -5],
     },
     splatter: {
       x: -1,
@@ -39,7 +41,7 @@ export default function Studio(props) {
       x: 0.21924441389375993,
       z: -0.7401673558933446,
       y: -0.20296872786811337,
-      lookAt: [-0.569, 1, 1.45],
+      lookAt: [-1, -1, -2],
     },
   };
 
@@ -76,6 +78,10 @@ export default function Studio(props) {
   const [initialPosition, setInitialPosition] = useState(null);
   const [initialLookAt, setInitialLookAt] = useState(null);
 
+  const setSelectedCollection = collectionStore(
+    (state) => state.setSelectedCollection
+  );
+
   const handleCollectionClick = (type) => {
     const position = cameraPositions[type];
     if (position) {
@@ -83,6 +89,7 @@ export default function Studio(props) {
       setInitialLookAt(lookVec.clone()); // Set initial lookAt direction
       setTargetPosition(position);
       setLookAtTarget(position.lookAt); // Set lookAt target when clicked
+      setSelectedCollection(type);
     }
   };
 
@@ -133,10 +140,10 @@ export default function Studio(props) {
             onPointerOut={handlePointerOut}
             onClick={() => handleCollectionClick("polo")}
           >
-            <mesh position={[0.053, 1, -1.486]}>
+            {/* <mesh position={[0.053, 1, -1.486]}>
               <sphereGeometry args={[0.2, 16, 16]} />
               <meshStandardMaterial color="blue" />
-            </mesh>
+            </mesh> */}
             {poloConfig.map(({ color, position, rotation }, index) => (
               <mesh
                 key={color}
@@ -172,10 +179,10 @@ export default function Studio(props) {
             onPointerOut={handlePointerOut}
             onClick={() => handleCollectionClick("longsleeve")}
           >
-            <mesh position={[-0.569, 1, 1.45]}>
+            {/* <mesh position={[-0.569, 1, 1.45]}>
               <sphereGeometry args={[0.2, 16, 16]} />
               <meshStandardMaterial color="red" />
-            </mesh>
+            </mesh> */}
             {longSleeveConfig.map(({ color, position, rotation }, index) => (
               <mesh
                 key={color}
