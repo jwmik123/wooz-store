@@ -34,12 +34,12 @@ export default function Experience() {
       //enableZoom={false}
       //enablePan={false}
       />
-      <Environment
+      {/* <Environment
         files={["/hdr/1.hdr"]}
         background
         backgroundBlurriness={0.05}
         backgroundRotation={[0, Math.PI / 2, 0]}
-      />
+      /> */}
       <Center>
         <Studio />
       </Center>
