@@ -13,9 +13,9 @@ module.exports = {
         "light-grey": "#f5f5f5",
       },
       fontFamily: {
-        libre: ['"Libre Baskerville"', "serif"],
+        libre: ["Libre Baskerville", "serif"],
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwind-scrollbar")],
 };

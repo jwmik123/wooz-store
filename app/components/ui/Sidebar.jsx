@@ -13,11 +13,11 @@ export const Sidebar = () => {
   return (
     <>
       {sidebarOpen && (
-        <div className="absolute top-0 right-0 w-[450px] h-full overflow-y-scroll overflow-x-hidden bg-white">
+        <div className="absolute top-0 right-0 w-[500px] h-full overflow-y-scroll scrollbar scrollbar-thumb-green-800 scrollbar-track-light-grey overflow-x-hidden bg-white">
           <ProductsClientComponent />
-          <div className="sidebar-close" onClick={setSidebarClose}>
+          {/* <div className="sidebar-close" onClick={setSidebarClose}>
             <p className="text-black cursor-pointer">Close</p>
-          </div>
+          </div> */}
         </div>
       )}
     </>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 
@@ -55,14 +56,14 @@ export default function ProductsClientComponent() {
       )}
 
       {/* Complete Checkout button */}
-      {checkout && checkout.webUrl && (
+      {/* {checkout && checkout.webUrl && (
         <button
           onClick={() => (window.location.href = checkout.webUrl)}
           className="p-4 mt-4 text-white bg-green-500"
         >
           Complete Checkout
         </button>
-      )}
+      )} */}
     </div>
   );
 }
@@ -117,97 +118,121 @@ function ProductItem({ product, addToCart }) {
   };
 
   return (
-    <div className="flex flex-col items-center my-10 space-y-4 overflow-x-hidden overflow-y-scroll">
-      <Image
-        src={product.images[0].src}
-        alt={product.title}
-        className="object-cover w-48 h-48"
-        height={192}
-        width={192}
-        priority={true}
-      />
-      <h2 className="text-3xl font-libre">{product.title}</h2>
-      <h3 className="text-xl font-bold text-green-800">
-        €{product.variants[0].price.amount.replace("$", "")}0
-      </h3>
-      {/* Color selection */}
-      <div className="w-full px-10">
-        <label htmlFor="color" className="text-xs font-light">
-          Choose color:
-        </label>
-        <div className="flex space-x-4">
-          {colors.map((color) => {
-            const colorClass = {
-              Black: "bg-black",
-              "Light Grey": "bg-light-grey",
-              Green: "bg-green-300",
-              Navy: "bg-navy",
-              White: "bg-white",
-              "Ice Blue": "bg-blue-300",
-            }[color];
+    <div className="relative">
+      <div className="relative flex flex-col items-center w-full space-y-4 font-libre">
+        {product.variants.map((variant) => (
+          <link
+            key={variant.id}
+            rel="preload"
+            as="image"
+            href={variant.image.src}
+          />
+        ))}
+        <Image
+          src={
+            selectedColor
+              ? product.variants.find(
+                  (variant) =>
+                    variant.selectedOptions.find((opt) => opt.name === "Color")
+                      ?.value === selectedColor
+                )?.image.src
+              : "https://cdn.shopify.com/s/files/1/0586/5727/6113/files/IMG_1197.jpg?v=1702159234"
+          }
+          alt={product.title}
+          className="object-contain w-[90%]"
+          quality={100}
+          height={1024}
+          width={1024}
+          priority={true}
+        />
+        <h2 className="text-3xl font-libre">{product.title}</h2>
+        <h3 className="text-xl font-bold text-green-800">
+          €{product.variants[0].price.amount.replace("$", "")}0
+        </h3>
+        {/* Color selection */}
+        <div className="w-full px-10">
+          <label htmlFor="color" className="text-xs font-light">
+            Color: {selectedColor}
+          </label>
+          <div className="flex mt-1 space-x-4">
+            {colors.map((color) => {
+              const colorClass = {
+                Black: "bg-black",
+                "Light grey": "bg-light-grey",
+                Green: "bg-green-300",
+                Navy: "bg-navy",
+                White: "bg-white",
+                "Ice Blue": "bg-blue-300",
+              }[color];
 
-            const selectedColorClass =
-              selectedColor === color ? colorClass : `${colorClass}`;
-            return (
-              <label key={color} className={`flex items-center`}>
+              const selectedColorClass =
+                selectedColor === color ? colorClass : `${colorClass}`;
+              return (
+                <label key={color} className={`flex items-center`}>
+                  <input
+                    type="radio"
+                    name="color"
+                    value={color}
+                    checked={selectedColor === color}
+                    onChange={(e) => setSelectedColor(e.target.value)}
+                    className="hidden"
+                  />
+                  <span
+                    className={`p-4 border-2 cursor-pointer ${selectedColorClass} hover:border-green-800 ${
+                      selectedColor === color ? "border-green-800" : ""
+                    }`}
+                  ></span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Size selection */}
+        <div className="w-full px-10">
+          <label htmlFor="size" className="text-xs font-light">
+            Size: {selectedSize}
+          </label>
+          <div className="grid w-full grid-cols-2 gap-2 mt-1">
+            {sizes.map((size) => (
+              <label key={size} className="w-full">
                 <input
                   type="radio"
-                  name="color"
-                  value={color}
-                  checked={selectedColor === color}
-                  onChange={(e) => setSelectedColor(e.target.value)}
+                  name="size"
+                  value={size}
+                  checked={selectedSize === size}
+                  onChange={(e) => setSelectedSize(e.target.value)}
                   className="hidden"
                 />
                 <span
-                  className={`p-4 border cursor-pointer ${selectedColorClass} border hover:border-green-800 ${
-                    selectedColor === color ? "border-green-800" : ""
+                  className={`block w-full p-2 border-2 cursor-pointer hover:border-green-800 ${
+                    selectedSize === size ? "border-green-800" : ""
                   }`}
-                ></span>
+                >
+                  {size}
+                </span>
               </label>
-            );
-          })}
+            ))}
+          </div>
+          <div className="my-24">
+            <h3 className="text-lg font-bold">Description:</h3>
+            <p className="text-sm">{product.description}</p>
+          </div>
         </div>
       </div>
-
-      {/* Size selection */}
-      <div className="w-full px-10">
-        <label htmlFor="size">Size:</label>
-        <div className="grid w-full grid-cols-2 gap-2">
-          {sizes.map((size) => (
-            <label key={size} className="w-full">
-              <input
-                type="radio"
-                name="size"
-                value={size}
-                checked={selectedSize === size}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                className="hidden"
-              />
-              <span
-                className={`block w-full p-2 border cursor-pointer hover:border-green-800 ${
-                  selectedSize === size ? "border-green-800" : ""
-                }`}
-              >
-                {size}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* Add to cart button */}
-      <button
-        onClick={handleAddToCart}
-        className={`p-2 mt-2 text-white bg-green-800 ${
-          !selectedColor || !selectedSize ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={!selectedColor || !selectedSize}
-      >
-        Add to Cart
-      </button>
-
-      <div className="px-10 mt-10">
-        <p className="text-sm">{product.description}</p>
+      <div className="sticky bottom-0 w-full p-5">
+        <button
+          onClick={handleAddToCart}
+          className={`w-full text-white bg-green-800 p-4 font-libre text-lg ${
+            !selectedColor || !selectedSize
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={!selectedColor || !selectedSize}
+        >
+          Add to Cart
+        </button>
       </div>
     </div>
   );
