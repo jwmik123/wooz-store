@@ -9,6 +9,7 @@ import { Perf } from "r3f-perf";
 import { useState } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import Effects from "./Effects";
 
 export default function Experience() {
   function Rig() {

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
@@ -61,7 +62,7 @@ export default function Studio(props) {
   };
 
   // Create a shader material to apply the baked texture
-  const bakedFinalTexture = useLoader(THREE.TextureLoader, "/baked.jpg");
+  const bakedFinalTexture = useLoader(THREE.TextureLoader, "/assets/baked.jpg");
   bakedFinalTexture.colorSpace = THREE.SRGBColorSpace;
   bakedFinalTexture.flipY = false;
 
@@ -145,6 +146,7 @@ export default function Studio(props) {
         material={studioMaterial}
         position={[0, 1.5, 0]}
       ></mesh>
+
       <Selection>
         <Select enabled={hoveredItem.type === "polo"}>
           <group
@@ -183,7 +185,6 @@ export default function Studio(props) {
             ))}
           </group>
         </Select>
-
         <Select enabled={hoveredItem.type === "longsleeve"}>
           <group
             onPointerOver={() => handlePointerOver("longsleeve")}
@@ -201,6 +202,7 @@ export default function Studio(props) {
             ))}
           </group>
         </Select>
+        {/* Outline effect */}
         <Effects />
       </Selection>
     </group>

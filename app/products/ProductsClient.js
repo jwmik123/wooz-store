@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 
@@ -20,10 +21,9 @@ export default function ProductsClientComponent() {
     async function createCheckout() {
       const checkout = await client.checkout.create();
       setCheckout(checkout); // Correctly setting the checkout state
-      console.log(checkout); // TODO: remove
     }
     createCheckout();
-  }, []);
+  }, [productHandle, setProduct, setCheckout]);
 
   const addToCart = async (variantId) => {
     if (!checkout) {
@@ -117,52 +117,82 @@ function ProductItem({ product, addToCart }) {
   };
 
   return (
-    <div className="mb-6">
-      <h3>{product.title}</h3>
-      <img
+    <div className="flex flex-col items-center my-10 space-y-4 overflow-x-hidden overflow-y-scroll">
+      <Image
         src={product.images[0].src}
         alt={product.title}
         className="object-cover w-48 h-48"
+        height={192}
+        width={192}
+        priority={true}
       />
-
+      <h2 className="text-3xl font-libre">{product.title}</h2>
+      <h3 className="text-xl font-bold text-green-800">
+        €{product.variants[0].price.amount.replace("$", "")}0
+      </h3>
       {/* Color selection */}
-      <div>
-        <label htmlFor="color">Color:</label>
-        <select
-          id="color"
-          value={selectedColor || ""}
-          onChange={(e) => setSelectedColor(e.target.value)}
-          className="p-2 border"
-        >
-          <option value="" disabled>
-            Select Color
-          </option>
-          {colors.map((color) => (
-            <option key={color} value={color}>
-              {color}
-            </option>
-          ))}
-        </select>
+      <div className="w-full px-10">
+        <label htmlFor="color" className="text-xs font-light">
+          Choose color:
+        </label>
+        <div className="flex space-x-4">
+          {colors.map((color) => {
+            const colorClass = {
+              Black: "bg-black",
+              "Light Grey": "bg-light-grey",
+              Green: "bg-green-300",
+              Navy: "bg-navy",
+              White: "bg-white",
+              "Ice Blue": "bg-blue-300",
+            }[color];
+
+            const selectedColorClass =
+              selectedColor === color ? colorClass : `${colorClass}`;
+            return (
+              <label key={color} className={`flex items-center`}>
+                <input
+                  type="radio"
+                  name="color"
+                  value={color}
+                  checked={selectedColor === color}
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  className="hidden"
+                />
+                <span
+                  className={`p-4 border cursor-pointer ${selectedColorClass} border hover:border-green-800 ${
+                    selectedColor === color ? "border-green-800" : ""
+                  }`}
+                ></span>
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       {/* Size selection */}
-      <div>
+      <div className="w-full px-10">
         <label htmlFor="size">Size:</label>
-        <select
-          id="size"
-          value={selectedSize || ""}
-          onChange={(e) => setSelectedSize(e.target.value)}
-          className="p-2 border"
-        >
-          <option value="" disabled>
-            Select Size
-          </option>
+        <div className="grid w-full grid-cols-2 gap-2">
           {sizes.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
+            <label key={size} className="w-full">
+              <input
+                type="radio"
+                name="size"
+                value={size}
+                checked={selectedSize === size}
+                onChange={(e) => setSelectedSize(e.target.value)}
+                className="hidden"
+              />
+              <span
+                className={`block w-full p-2 border cursor-pointer hover:border-green-800 ${
+                  selectedSize === size ? "border-green-800" : ""
+                }`}
+              >
+                {size}
+              </span>
+            </label>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Add to cart button */}
@@ -175,6 +205,10 @@ function ProductItem({ product, addToCart }) {
       >
         Add to Cart
       </button>
+
+      <div className="px-10 mt-10">
+        <p className="text-sm">{product.description}</p>
+      </div>
     </div>
   );
 }
