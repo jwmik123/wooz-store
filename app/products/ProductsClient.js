@@ -121,15 +121,6 @@ function ProductItem({ product, addToCart }) {
   return (
     <div className="relative">
       <div className="relative flex flex-col items-center w-full space-y-4 font-libre">
-        {/* {product.variants.map((variant) => (
-          <Link
-            key={variant.id}
-            rel="preload"
-            as="image"
-            className="hidden"
-            href={variant.image.src}
-          ></Link>
-        ))} */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
