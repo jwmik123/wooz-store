@@ -2,23 +2,25 @@
 
 import { useEffect, useState } from "react";
 import client from "@/lib/shopify";
+import collectionStore from "../stores/collectionStore";
 
 export default function ProductsClientComponent() {
-  const [products, setProducts] = useState([]);
+  const [product, setProduct] = useState();
   const [checkout, setCheckout] = useState(null);
+  const { productHandle } = collectionStore();
 
   useEffect(() => {
     async function fetchProducts() {
-      const products = await client.product.fetchAll();
-      setProducts(products);
-      console.log(products);
+      const product = await client.product.fetchByHandle(productHandle);
+      setProduct(product);
+      console.log(product); // TODO: remove
     }
     fetchProducts();
 
     async function createCheckout() {
       const checkout = await client.checkout.create();
       setCheckout(checkout); // Correctly setting the checkout state
-      console.log(checkout);
+      console.log(checkout); // TODO: remove
     }
     createCheckout();
   }, []);
@@ -48,9 +50,9 @@ export default function ProductsClientComponent() {
 
   return (
     <div>
-      {products.map((product) => (
+      {product && (
         <ProductItem key={product.id} product={product} addToCart={addToCart} />
-      ))}
+      )}
 
       {/* Complete Checkout button */}
       {checkout && checkout.webUrl && (
@@ -166,7 +168,9 @@ function ProductItem({ product, addToCart }) {
       {/* Add to cart button */}
       <button
         onClick={handleAddToCart}
-        className="p-2 mt-2 text-white bg-blue-500"
+        className={`p-2 mt-2 text-white bg-green-800 ${
+          !selectedColor || !selectedSize ? "opacity-50 cursor-not-allowed" : ""
+        }`}
         disabled={!selectedColor || !selectedSize}
       >
         Add to Cart

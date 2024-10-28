@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
 import { ShaderMaterial, Uniform } from "three";
@@ -24,6 +24,9 @@ export default function Studio(props) {
   const [vec] = useState(() => new THREE.Vector3());
   const [lookVec] = useState(() => new THREE.Vector3()); // Separate vector for lookAt
   const { camera, mouse } = useThree();
+
+  const splatterGroup = useRef(null);
+
   const cameraPositions = {
     polo: {
       x: 0.4898568407579924,
@@ -44,14 +47,14 @@ export default function Studio(props) {
       lookAt: [-1, -1, -2],
     },
   };
+  const { setSidebarOpen, setSidebarClosed } = collectionStore();
 
-  // Handle pointer over
+  // Handles mouse over
   const handlePointerOver = (type, id) => {
     setHoveredItem({ type, id });
     document.body.style.cursor = "pointer";
   };
 
-  // Handle pointer out
   const handlePointerOut = () => {
     setHoveredItem({ type: null, id: null });
     document.body.style.cursor = "auto";
@@ -71,6 +74,7 @@ export default function Studio(props) {
     side: THREE.DoubleSide,
   });
 
+  /* Camera Controls */
   const [targetPosition, setTargetPosition] = useState(null);
   const [lookAtTarget, setLookAtTarget] = useState(null); // State for lookAt target
 
@@ -81,6 +85,7 @@ export default function Studio(props) {
   const setSelectedCollection = collectionStore(
     (state) => state.setSelectedCollection
   );
+  const setProductHandle = collectionStore((state) => state.setProductHandle);
 
   const handleCollectionClick = (type) => {
     const position = cameraPositions[type];
@@ -90,6 +95,7 @@ export default function Studio(props) {
       setTargetPosition(position);
       setLookAtTarget(position.lookAt); // Set lookAt target when clicked
       setSelectedCollection(type);
+      setProductHandle(type);
     }
   };
 
@@ -98,20 +104,26 @@ export default function Studio(props) {
       // Smoothly move the camera to the target position
       camera.position.lerp(
         vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
-        0.01
+        0.04
       );
+      // Open sidebar when camera is close to target position
+      if (camera.position.distanceTo(vec) < 0.1) {
+        setSidebarOpen(true);
+      }
 
       if (lookAtTarget) {
         // Make the camera look at the specified target (separate vector)
-
         camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
       }
+    } else if (setSidebarClosed) {
+      camera.position.lerp(vec.set(0, 0, 5), 0.05);
     } else {
       // Default behavior for mouse-controlled camera movement
       camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
     }
   });
 
+  // TODO: Remove useEffect on production launch
   useEffect(() => {
     const handleKeyPress = (event) => {
       if (event.key === "u") {
@@ -140,10 +152,6 @@ export default function Studio(props) {
             onPointerOut={handlePointerOut}
             onClick={() => handleCollectionClick("polo")}
           >
-            {/* <mesh position={[0.053, 1, -1.486]}>
-              <sphereGeometry args={[0.2, 16, 16]} />
-              <meshStandardMaterial color="blue" />
-            </mesh> */}
             {poloConfig.map(({ color, position, rotation }, index) => (
               <mesh
                 key={color}
@@ -157,9 +165,12 @@ export default function Studio(props) {
         </Select>
         <Select enabled={hoveredItem.type === "splatter"}>
           <group
+            ref={splatterGroup}
             onPointerOver={() => handlePointerOver("splatter")}
             onPointerOut={handlePointerOut}
-            onClick={() => handleCollectionClick("splatter")}
+            onClick={() => {
+              handleCollectionClick("splatter");
+            }}
           >
             {splatterConfig.map(({ color, position, rotation }, index) => (
               <mesh
@@ -179,10 +190,6 @@ export default function Studio(props) {
             onPointerOut={handlePointerOut}
             onClick={() => handleCollectionClick("longsleeve")}
           >
-            {/* <mesh position={[-0.569, 1, 1.45]}>
-              <sphereGeometry args={[0.2, 16, 16]} />
-              <meshStandardMaterial color="red" />
-            </mesh> */}
             {longSleeveConfig.map(({ color, position, rotation }, index) => (
               <mesh
                 key={color}
