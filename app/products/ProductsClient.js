@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 
@@ -117,17 +116,25 @@ function ProductItem({ product, addToCart }) {
     }
   };
 
+  const [loading, setLoading] = useState(true);
+
   return (
     <div className="relative">
       <div className="relative flex flex-col items-center w-full space-y-4 font-libre">
-        {product.variants.map((variant) => (
-          <link
+        {/* {product.variants.map((variant) => (
+          <Link
             key={variant.id}
             rel="preload"
             as="image"
+            className="hidden"
             href={variant.image.src}
-          />
-        ))}
+          ></Link>
+        ))} */}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
+          </div>
+        )}
         <Image
           src={
             selectedColor
@@ -140,10 +147,12 @@ function ProductItem({ product, addToCart }) {
           }
           alt={product.title}
           className="object-contain w-[90%]"
-          quality={100}
-          height={1024}
-          width={1024}
-          priority={true}
+          quality={75}
+          height={500}
+          width={500}
+          placeholder="empty"
+          priority
+          onLoadingComplete={() => setLoading(false)}
         />
         <h2 className="text-3xl font-libre">{product.title}</h2>
         <h3 className="text-xl font-bold text-green-800">
