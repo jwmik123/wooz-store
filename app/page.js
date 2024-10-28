@@ -1,12 +1,9 @@
-import ProductsClientComponent from "./products/ProductsClient";
 import Experience from "./three/Experience";
-import ShowCollection from "./ShowCollection";
-import Sidebar from "./ui/sidebar";
+import Sidebar from "./ui/Sidebar";
 export default function Home() {
   return (
     <main className="h-screen">
       <Experience />
-      {/* <ShowCollection /> */}
       <Sidebar />
     </main>
   );
