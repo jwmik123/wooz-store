@@ -6,11 +6,11 @@ function Effects() {
   const { size } = useThree();
   return (
     <EffectComposer
-      stencilBuffer
-      disableNormalPass
+      // stencilBuffer
+      disableNormalPass={true}
       autoClear={false}
-      multisampling={4}
-      antialias
+      // multisampling={4}
+      // antialias
     >
       <Outline
         visibleEdgeColor="white"

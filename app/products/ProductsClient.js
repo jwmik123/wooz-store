@@ -53,9 +53,9 @@ export default function ProductsClientComponent() {
       {product && (
         <ProductItem key={product.id} product={product} addToCart={addToCart} />
       )}
-
       {/* Complete Checkout button */}
-      {/* {checkout && checkout.webUrl && (
+      {/*
+      {checkout && checkout.webUrl && (
         <button
           onClick={() => (window.location.href = checkout.webUrl)}
           className="p-4 mt-4 text-white bg-green-500"
@@ -118,9 +118,11 @@ function ProductItem({ product, addToCart }) {
 
   const [loading, setLoading] = useState(true);
 
+  const [clicker, setClicker] = useState(0);
+
   return (
-    <div className="relative">
-      <div className="relative flex flex-col items-center w-full space-y-4 font-libre">
+    <>
+      <div className="relative flex flex-col items-center w-full pt-5 space-y-4 text-green-100 font-libre">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
@@ -137,7 +139,7 @@ function ProductItem({ product, addToCart }) {
               : "https://cdn.shopify.com/s/files/1/0586/5727/6113/files/IMG_1197.jpg?v=1702159234"
           }
           alt={product.title}
-          className="object-contain w-[90%]"
+          className="object-contain w-[70%] rounded-2xl shadow-lg mb-5"
           quality={75}
           height={500}
           width={500}
@@ -146,9 +148,10 @@ function ProductItem({ product, addToCart }) {
           onLoadingComplete={() => setLoading(false)}
         />
         <h2 className="text-3xl font-libre">{product.title}</h2>
-        <h3 className="text-xl font-bold text-green-800">
+        <h3 className="text-2xl font-bold text-green-500">
           €{product.variants[0].price.amount.replace("$", "")}0
         </h3>
+
         {/* Color selection */}
         <div className="w-full px-10">
           <label htmlFor="color" className="text-xs font-light">
@@ -178,8 +181,10 @@ function ProductItem({ product, addToCart }) {
                     className="hidden"
                   />
                   <span
-                    className={`p-4 border-2 cursor-pointer ${selectedColorClass} hover:border-green-800 ${
-                      selectedColor === color ? "border-green-800" : ""
+                    className={`p-4 border-2  rounded-full cursor-pointer ${selectedColorClass} hover:border-green-100 ${
+                      selectedColor === color
+                        ? "border-green-100"
+                        : "border-green-600"
                     }`}
                   ></span>
                 </label>
@@ -205,8 +210,10 @@ function ProductItem({ product, addToCart }) {
                   className="hidden"
                 />
                 <span
-                  className={`block w-full p-2 border-2 cursor-pointer hover:border-green-800 ${
-                    selectedSize === size ? "border-green-800" : ""
+                  className={`block w-full text-center rounded-lg p-2 border-2  cursor-pointer hover:border-green-100 ${
+                    selectedSize === size
+                      ? "border-green-100"
+                      : "border-green-600"
                   }`}
                 >
                   {size}
@@ -216,7 +223,7 @@ function ProductItem({ product, addToCart }) {
           </div>
           <div className="my-24">
             <h3 className="text-lg font-bold">Description:</h3>
-            <p className="text-sm">{product.description}</p>
+            <p className="text-base">{product.description}</p>
           </div>
         </div>
       </div>
@@ -224,16 +231,18 @@ function ProductItem({ product, addToCart }) {
       <div className="sticky bottom-0 w-full p-5">
         <button
           onClick={handleAddToCart}
-          className={`w-full text-white bg-green-800 p-4 font-libre text-lg ${
+          className={`w-full text-white bg-green-800 hover:bg-green-600 border-2 border-green-600 p-4 font-libre text-lg ${
             !selectedColor || !selectedSize
               ? "opacity-50 cursor-not-allowed"
               : ""
           }`}
           disabled={!selectedColor || !selectedSize}
         >
-          Add to Cart
+          {!selectedColor || !selectedSize
+            ? "Select color and size"
+            : "Add to Cart"}
         </button>
       </div>
-    </div>
+    </>
   );
 }
