@@ -1,47 +1,35 @@
 "use client";
-
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Sky } from "@react-three/drei";
-import Studio from "./Studio";
-// import Studio1 from "./Studio1";
-import StudioOld from "./StudioOld";
-import { Stage, Center } from "@react-three/drei";
-import { Perf } from "r3f-perf";
-
-import { useState } from "react";
-import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import Effects from "./Effects";
-import Studio1 from "./Studio1";
+import { OrbitControls, Sky, Center } from "@react-three/drei";
+import { Perf } from "r3f-perf";
+import { useState } from "react";
+import { useThree, Canvas } from "@react-three/fiber";
+import { Model } from "./Studio31okt";
 
+import Studio from "./Studio";
 export default function Experience() {
-  function Rig() {
-    const [vec] = useState(() => new THREE.Vector3());
-    const { camera, mouse } = useThree();
-
-    return null;
-  }
-
   return (
     <Canvas
       style={{ width: "100%", height: "100%" }}
       camera={{ position: [0, 0, 5], fov: 55 }}
+      gl={{
+        toneMapping: THREE.ACESFilmicToneMapping,
+
+        antialias: true,
+        depth: true,
+      }}
     >
       <Perf position="top-left" />
       <OrbitControls
-      //enableRotate={false}
-      //enableZoom={false}
-      //enablePan={false}
+      // enableRotate={false}
+      // enableZoom={false}
+      // enablePan={false}
       />
       <Center>
-        {/* <Studio1 /> */}
-        {/* <StudioOld /> */}
         <Studio />
+        {/* <Model /> */}
       </Center>
-      {/* <mesh
-        rotation={[-Math.PI / 2, Math.PI / 24, Math.PI / 4]}
-        position={[-10, -3, 0]}
-      >
+      <mesh rotation={[-Math.PI / 2.2, 0, 0]} position={[-10, -5, 0]}>
         <planeGeometry args={[100, 100, 256, 256]} />
         <shaderMaterial
           attach="material"
@@ -81,7 +69,7 @@ export default function Experience() {
             },
           ]}
         />
-      </mesh> */}
+      </mesh>
       <Sky
         sunPosition={[-4, 1, 5]} // Adjust the sun position to change the lighting angle
         turbidity={10} //Higher turbidity gives a more scattered, warm look
@@ -89,7 +77,6 @@ export default function Experience() {
         inclination={0.6} // Adjust to modify the time of day, 0.6 gives a warm tone
         azimuth={0.25}
       />
-      <Rig />
     </Canvas>
   );
 }

@@ -1,23 +1,25 @@
+"use client";
 import { EffectComposer, Outline } from "@react-three/postprocessing";
-
 import { useThree } from "@react-three/fiber";
 
-function Effects() {
-  const { size } = useThree();
+function Effects({ hoveredItem, targetMeshes }) {
+  const { size, camera } = useThree();
+  camera.layers.enable(1);
+
   return (
     <EffectComposer
-      // stencilBuffer
-      disableNormalPass={true}
       autoClear={false}
-      // multisampling={4}
-      // antialias
+      disableNormalPass={true}
+      multisampling={4}
     >
       <Outline
-        visibleEdgeColor="white"
-        hiddenEdgeColor="white"
+        visibleEdgeColor={hoveredItem ? "white" : "green"}
+        hiddenEdgeColor={hoveredItem ? "white" : "green"}
         blur
-        width={size.width * 2}
+        pulseSpeed={0.5}
+        width={size.width * 1.5}
         edgeStrength={10}
+        selection={targetMeshes}
       />
     </EffectComposer>
   );

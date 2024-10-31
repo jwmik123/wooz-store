@@ -4,11 +4,10 @@ Command: npx gltfjsx@6.5.2 studio.glb -d -k
 */
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
-// import { ShaderMaterial, Uniform } from "three";
 
 import { Select, Selection } from "@react-three/postprocessing";
 import Effects from "./Effects";
@@ -25,11 +24,12 @@ import {
 import collectionStore from "../stores/collectionStore";
 
 export default function Studio(props) {
-  const { nodes } = useGLTF("/models/studio.glb");
+  const { nodes } = useGLTF("/models/studio-29okt.glb");
 
   const [hoveredItem, setHoveredItem] = useState({ type: null, id: null });
   const [vec] = useState(() => new THREE.Vector3());
   const [lookVec] = useState(() => new THREE.Vector3()); // Separate vector for lookAt
+
   const { camera, mouse } = useThree();
 
   const cameraPositions = {
@@ -127,8 +127,27 @@ export default function Studio(props) {
     }
   });
 
+  // const [variable, setVariable] = useState(false);
+  // const [randomGroup, setRandomGroup] = useState(null);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setVariable(true);
+  //     setRandomGroup((prevGroup) => (prevGroup + 1) % 3); // Select groups in sequence (0, 1, 2) one after each other
+  //     setTimeout(() => {
+  //       setVariable(false);
+  //     }, 2000);
+  //   }, 5000);
+
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  const splatterMesh = useRef();
+  const longsleeveMesh = useRef();
+  const poloMesh = useRef();
+
   return (
-    <group {...props} dispose={null} rotation={[0, -Math.PI / 2, 0]}>
+    <group {...props} dispose={null} rotation={[0, -Math.PI / 2, 0]} layers={1}>
       <mesh
         name="studio"
         geometry={nodes.studio.geometry}
@@ -137,6 +156,7 @@ export default function Studio(props) {
         rotation={[Math.PI / 2, 0, -Math.PI / 2]}
         scale={1.916}
       />
+
       <Selection>
         <Select enabled={hoveredItem.type === "splatter"}>
           <group
@@ -152,6 +172,7 @@ export default function Studio(props) {
                 position={position}
                 rotation={rotation}
                 scale={1.916}
+                ref={splatterMesh}
               />
             ))}
           </group>
@@ -171,6 +192,7 @@ export default function Studio(props) {
                   position={position}
                   rotation={rotation}
                   scale={scale}
+                  ref={longsleeveMesh}
                 />
               )
             )}
@@ -190,57 +212,18 @@ export default function Studio(props) {
                 position={position}
                 rotation={rotation}
                 scale={scale}
+                ref={poloMesh}
               />
             ))}
           </group>
         </Select>
-        <Effects />
+        <Effects
+          hoveredItem={hoveredItem}
+          targetMeshes={[splatterMesh, longsleeveMesh, poloMesh]}
+        />
       </Selection>
-
-      <mesh
-        name="Polo_Black"
-        geometry={nodes.Polo_Black.geometry}
-        material={studioMaterial}
-        position={[-0.929, -0.441, -0.912]}
-        rotation={[Math.PI / 2, 0, 0.984]}
-      />
-      <mesh
-        name="Polo_DarkBlue"
-        geometry={nodes.Polo_DarkBlue.geometry}
-        material={studioMaterial}
-        position={[-0.643, -0.441, -1.068]}
-        rotation={[Math.PI / 2, 0, -2.256]}
-      />
-      <mesh
-        name="Polo_Green"
-        geometry={nodes.Polo_Green.geometry}
-        material={studioMaterial}
-        position={[-0.49, -0.441, -1.148]}
-        rotation={[Math.PI / 2, 0, 0.817]}
-      />
-      <mesh
-        name="Polo_Grey"
-        geometry={nodes.Polo_Grey.geometry}
-        material={studioMaterial}
-        position={[-0.334, -0.441, -1.23]}
-        rotation={[Math.PI / 2, 0, 0.857]}
-      />
-      <mesh
-        name="Polo_LightBlue"
-        geometry={nodes.Polo_LightBlue.geometry}
-        material={studioMaterial}
-        position={[-0.153, -0.441, -1.325]}
-        rotation={[Math.PI / 2, 0, -2.244]}
-      />
-      <mesh
-        name="Polo_White"
-        geometry={nodes.Polo_White.geometry}
-        material={studioMaterial}
-        position={[-0.786, -0.441, -0.993]}
-        rotation={[Math.PI / 2, 0, 0.921]}
-      />
     </group>
   );
 }
 
-useGLTF.preload("/studio.glb");
+useGLTF.preload("/models/studio-29okt.glb");
