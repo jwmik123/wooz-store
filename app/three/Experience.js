@@ -4,7 +4,6 @@ import { OrbitControls, Sky, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useState } from "react";
 import { useThree, Canvas } from "@react-three/fiber";
-import { Model } from "./Studio31okt";
 
 import Studio from "./Studio";
 export default function Experience() {
