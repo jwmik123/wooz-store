@@ -4,7 +4,7 @@ Command: npx gltfjsx@6.5.2 studio.glb -d -k
 */
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
@@ -103,44 +103,44 @@ export default function Studio(props) {
     }
   };
 
-  useFrame(() => {
-    if (targetPosition) {
-      // Smoothly move the camera to the target position
-      camera.position.lerp(
-        vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
-        0.04
-      );
-      // Open sidebar when camera is close to target position
-      if (camera.position.distanceTo(vec) < 0.1) {
-        setSidebarOpen(true);
-      }
+  // useFrame(() => {
+  //   if (targetPosition) {
+  //     // Smoothly move the camera to the target position
+  //     camera.position.lerp(
+  //       vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
+  //       0.04
+  //     );
+  //     // Open sidebar when camera is close to target position
+  //     if (camera.position.distanceTo(vec) < 0.1) {
+  //       setSidebarOpen(true);
+  //     }
 
-      if (lookAtTarget) {
-        // Make the camera look at the specified target (separate vector)
-        camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
-      }
-    } else if (setSidebarClosed) {
-      camera.position.lerp(vec.set(0, 0, 5), 0.05);
-    } else {
-      // Default behavior for mouse-controlled camera movement
-      camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
-    }
-  });
+  //     if (lookAtTarget) {
+  //       // Make the camera look at the specified target (separate vector)
+  //       camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
+  //     }
+  //   } else if (setSidebarClosed) {
+  //     camera.position.lerp(vec.set(0, 0, 5), 0.05);
+  //   } else {
+  //     // Default behavior for mouse-controlled camera movement
+  //     camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
+  //   }
+  // });
 
-  // const [variable, setVariable] = useState(false);
-  // const [randomGroup, setRandomGroup] = useState(null);
+  const [variable, setVariable] = useState(false);
+  const [randomGroup, setRandomGroup] = useState(null);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setVariable(true);
-  //     setRandomGroup((prevGroup) => (prevGroup + 1) % 3); // Select groups in sequence (0, 1, 2) one after each other
-  //     setTimeout(() => {
-  //       setVariable(false);
-  //     }, 2000);
-  //   }, 5000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVariable(true);
+      setRandomGroup((prevGroup) => (prevGroup + 1) % 3); // Select groups in sequence (0, 1, 2) one after each other
+      setTimeout(() => {
+        setVariable(false);
+      }, 2000);
+    }, 5000);
 
-  //   return () => clearInterval(interval);
-  // }, []);
+    return () => clearInterval(interval);
+  }, []);
 
   const splatterMesh = useRef();
   const longsleeveMesh = useRef();
@@ -158,7 +158,10 @@ export default function Studio(props) {
       />
 
       <Selection>
-        <Select enabled={hoveredItem.type === "splatter"}>
+        <Select
+          enabled={hoveredItem.type === "splatter" && !variable}
+          group={randomGroup === 0}
+        >
           <group
             onPointerOver={() => handlePointerOver("splatter")}
             onPointerOut={handlePointerOut}
