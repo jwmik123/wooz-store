@@ -24,10 +24,9 @@ export default function Experience() {
       // enableZoom={false}
       // enablePan={false}
       />
+
       <Center>
         <Studio />
-
-        {/* <Model /> */}
       </Center>
       <Grass />
 
