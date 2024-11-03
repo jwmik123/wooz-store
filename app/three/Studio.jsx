@@ -11,7 +11,6 @@ import { useLoader, useFrame, useThree } from "@react-three/fiber";
 
 import { Select, Selection } from "@react-three/postprocessing";
 import Effects from "./Effects";
-
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
 
@@ -103,29 +102,29 @@ export default function Studio(props) {
     }
   };
 
-  // useFrame(() => {
-  //   if (targetPosition) {
-  //     // Smoothly move the camera to the target position
-  //     camera.position.lerp(
-  //       vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
-  //       0.04
-  //     );
-  //     // Open sidebar when camera is close to target position
-  //     if (camera.position.distanceTo(vec) < 0.1) {
-  //       setSidebarOpen(true);
-  //     }
+  useFrame(() => {
+    if (targetPosition) {
+      // Smoothly move the camera to the target position
+      camera.position.lerp(
+        vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
+        0.04
+      );
+      // Open sidebar when camera is close to target position
+      if (camera.position.distanceTo(vec) < 0.1) {
+        setSidebarOpen(true);
+      }
 
-  //     if (lookAtTarget) {
-  //       // Make the camera look at the specified target (separate vector)
-  //       camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
-  //     }
-  //   } else if (setSidebarClosed) {
-  //     camera.position.lerp(vec.set(0, 0, 5), 0.05);
-  //   } else {
-  //     // Default behavior for mouse-controlled camera movement
-  //     camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
-  //   }
-  // });
+      if (lookAtTarget) {
+        // Make the camera look at the specified target (separate vector)
+        camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
+      }
+    } else if (setSidebarClosed) {
+      camera.position.lerp(vec.set(0, 0, 5), 0.05);
+    } else {
+      // Default behavior for mouse-controlled camera movement
+      camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
+    }
+  });
 
   const [variable, setVariable] = useState(false);
   const [randomGroup, setRandomGroup] = useState(null);

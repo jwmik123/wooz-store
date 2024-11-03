@@ -41,16 +41,16 @@ export default function Grass() {
     const indices = [];
     const colors = [];
 
-    const BLADE_COUNT = 80000; // Half the original count
+    const BLADE_COUNT = 75000; // Half the original count
     const RADIUS = 45;
-    const BLADE_WIDTH = 0.2;
-    const BLADE_HEIGHT = 0.8;
+    const BLADE_WIDTH = 0.5;
+    const BLADE_HEIGHT = 0.75;
     const BLADE_HEIGHT_VARIATION = 0.6;
-    const ANGLE = Math.PI / 2; // 90 degrees for quarter circle shape
+    const ANGLE = Math.PI; // 180 degrees for half circle shape
 
     for (let i = 0; i < BLADE_COUNT; i++) {
       const r = RADIUS * Math.sqrt(Math.random());
-      const theta = Math.random() * ANGLE - ANGLE * 1.5; // Restrict to quarter circle shape
+      const theta = Math.random() * ANGLE - ANGLE; // Restrict to half circle shape
       const x = r * Math.cos(theta);
       const y = r * Math.sin(theta);
 
@@ -153,11 +153,11 @@ export default function Grass() {
   const grassGeometry = useMemo(() => generateField(), []);
 
   return (
-    <group position={[0, -3.5, 6]}>
+    <group position={[0, -3.2, 6]}>
       <mesh ref={meshRef} geometry={grassGeometry}>
         <primitive attach="material" object={GrassMaterial} />
       </mesh>
-      <mesh position={[0, -1, -20]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, -1, -10]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[50, 25]} /> {/* Adjusted plane size */}
         <meshStandardMaterial color="#00785B" />
         <ambientLight intensity={1} />
