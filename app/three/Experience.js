@@ -2,10 +2,9 @@
 import * as THREE from "three";
 import { OrbitControls, Sky, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
-import { useState, useEffect } from "react";
-import { useThree, Canvas, extend } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import Grass from "./Grass";
-
+import Clouds from "./clouds/Clouds";
 import Studio from "./Studio";
 export default function Experience() {
   return (
@@ -29,7 +28,7 @@ export default function Experience() {
         <Studio />
       </Center>
       <Grass />
-
+      <Clouds />
       <Sky
         sunPosition={[-4, 1, 5]} // Adjust the sun position to change the lighting angle
         turbidity={10} //Higher turbidity gives a more scattered, warm look

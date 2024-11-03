@@ -20,15 +20,10 @@ export default function Grass() {
   const meshRef = useRef();
   const startTime = useRef(Date.now());
   const grassTexture = useLoader(THREE.TextureLoader, "/assets/grass.jpg");
-  const cloudTexture = useLoader(THREE.TextureLoader, "/assets/cloud.jpg");
 
   useEffect(() => {
-    cloudTexture.wrapS = cloudTexture.wrapT = THREE.RepeatWrapping;
-    meshRef.current.material.uniforms.textures.value = [
-      grassTexture,
-      cloudTexture,
-    ];
-  }, [grassTexture, cloudTexture]);
+    meshRef.current.material.uniforms.textures.value = [grassTexture];
+  }, [grassTexture]);
 
   useFrame(() => {
     meshRef.current.material.uniforms.iTime.value =
