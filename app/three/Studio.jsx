@@ -32,7 +32,7 @@ export default function Studio(props) {
 
   const [effectsEnabled, setEffectsEnabled] = useState(true);
 
-  const { blendFunction } = useControls("Tone Mapping Style", {});
+  const [blendFunction, setBlendFunction] = useState(BlendFunction.SKIP);
 
   useControls("Effects", {
     enableEffects: {
@@ -40,11 +40,12 @@ export default function Studio(props) {
       onChange: (value) => setEffectsEnabled(value),
     },
     blendFunction: {
-      value: BlendFunction.NORMAL,
+      value: blendFunction,
       options: Object.keys(BlendFunction).reduce((acc, key) => {
         acc[key] = BlendFunction[key];
         return acc;
       }, {}),
+      onChange: (value) => setBlendFunction(value),
     },
   });
 
