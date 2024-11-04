@@ -1,8 +1,15 @@
 "use client";
-import { EffectComposer, Outline } from "@react-three/postprocessing";
+import {
+  EffectComposer,
+  Outline,
+  ToneMapping,
+} from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import { useThree } from "@react-three/fiber";
 
-function Effects({ hoveredItem, targetMeshes }) {
+import { useControls } from "leva";
+
+function Effects({ blendFunction, targetMeshes }) {
   const { size, camera } = useThree();
   camera.layers.enable(1);
 
@@ -13,14 +20,15 @@ function Effects({ hoveredItem, targetMeshes }) {
       multisampling={4}
     >
       <Outline
-        visibleEdgeColor={hoveredItem ? "white" : "green"}
-        hiddenEdgeColor={hoveredItem ? "white" : "green"}
+        visibleEdgeColor="white"
+        hiddenEdgeColor="white"
         blur
         pulseSpeed={0.5}
         width={size.width * 1.5}
         edgeStrength={10}
         selection={targetMeshes}
       />
+      <ToneMapping adaptive blendFunction={blendFunction} />
     </EffectComposer>
   );
 }

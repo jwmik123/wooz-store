@@ -7,7 +7,7 @@ varying vec3 vColor;
 
 void main() {
   float contrast = 1.5;
-  float brightness = -0.5;
+  float brightness = 0.0;
 
   vec3 color = texture2D(textures[0], vUv).rgb * contrast;
 

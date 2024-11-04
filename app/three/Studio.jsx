@@ -6,9 +6,10 @@ Command: npx gltfjsx@6.5.2 studio.glb -d -k
 
 import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
-import { useGLTF } from "@react-three/drei";
+import { Outlines, useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
-
+import { useControls } from "leva";
+import { BlendFunction } from "postprocessing";
 import { Select, Selection } from "@react-three/postprocessing";
 import Effects from "./Effects";
 import vertexShader from "./shaders/studio/vertexShader.glsl";
@@ -28,6 +29,24 @@ export default function Studio(props) {
   const [hoveredItem, setHoveredItem] = useState({ type: null, id: null });
   const [vec] = useState(() => new THREE.Vector3());
   const [lookVec] = useState(() => new THREE.Vector3()); // Separate vector for lookAt
+
+  const [effectsEnabled, setEffectsEnabled] = useState(true);
+
+  const { blendFunction } = useControls("Tone Mapping Style", {});
+
+  useControls("Effects", {
+    enableEffects: {
+      value: effectsEnabled,
+      onChange: (value) => setEffectsEnabled(value),
+    },
+    blendFunction: {
+      value: BlendFunction.NORMAL,
+      options: Object.keys(BlendFunction).reduce((acc, key) => {
+        acc[key] = BlendFunction[key];
+        return acc;
+      }, {}),
+    },
+  });
 
   const { camera, mouse } = useThree();
 
@@ -122,7 +141,7 @@ export default function Studio(props) {
       camera.position.lerp(vec.set(0, 0, 5), 0.05);
     } else {
       // Default behavior for mouse-controlled camera movement
-      camera.position.lerp(vec.set(mouse.x * 0.8, mouse.y * 0.1, 5), 0.05);
+      camera.position.lerp(vec.set(mouse.x * 0.4, mouse.y * 0.1, 5), 0.05);
     }
   });
 
@@ -157,10 +176,7 @@ export default function Studio(props) {
       />
 
       <Selection>
-        <Select
-          enabled={hoveredItem.type === "splatter" && !variable}
-          group={randomGroup === 0}
-        >
+        <Select enabled={hoveredItem.type === "splatter"}>
           <group
             onPointerOver={() => handlePointerOver("splatter")}
             onPointerOut={handlePointerOut}
@@ -215,14 +231,21 @@ export default function Studio(props) {
                 rotation={rotation}
                 scale={scale}
                 ref={poloMesh}
-              />
+              >
+                {/* {hoveredItem.type === "polo" && (
+                  <Outlines thickness={2.5} angle={0.1} color="lightgreen" />
+                )} */}
+              </mesh>
             ))}
           </group>
         </Select>
-        <Effects
-          hoveredItem={hoveredItem}
-          targetMeshes={[splatterMesh, longsleeveMesh, poloMesh]}
-        />
+        {effectsEnabled && (
+          <Effects
+            blendFunction={blendFunction}
+            hoveredItem={hoveredItem}
+            targetMeshes={[splatterMesh, longsleeveMesh, poloMesh]}
+          />
+        )}
       </Selection>
     </group>
   );

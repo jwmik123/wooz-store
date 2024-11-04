@@ -12,7 +12,7 @@ export default function Experience() {
       style={{ width: "100%", height: "100%" }}
       camera={{ position: [0, 0, 5], fov: 55 }}
       gl={{
-        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMapping: false,
         antialias: true,
         depth: true,
       }}
@@ -27,7 +27,7 @@ export default function Experience() {
       <Center>
         <Studio />
       </Center>
-      <Grass />
+      {/* <Grass /> */}
       <Clouds />
       <Sky
         sunPosition={[-4, 1, 5]} // Adjust the sun position to change the lighting angle

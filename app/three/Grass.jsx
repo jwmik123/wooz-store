@@ -38,7 +38,7 @@ export default function Grass() {
 
     const BLADE_COUNT = 75000; // Half the original count
     const RADIUS = 45;
-    const BLADE_WIDTH = 0.5;
+    const BLADE_WIDTH = 0.6;
     const BLADE_HEIGHT = 0.75;
     const BLADE_HEIGHT_VARIATION = 0.6;
     const ANGLE = Math.PI; // 180 degrees for half circle shape
