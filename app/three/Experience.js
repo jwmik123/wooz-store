@@ -6,7 +6,15 @@ import { Canvas } from "@react-three/fiber";
 import Grass from "./Grass";
 import Clouds from "./clouds/Clouds";
 import Studio from "./Studio";
+import { useControls } from "leva";
 export default function Experience() {
+  const { showGrass } = useControls({
+    showGrass: {
+      value: false,
+      label: "Show Grass",
+    },
+  });
+
   return (
     <Canvas
       style={{ width: "100%", height: "100%" }}
@@ -27,7 +35,8 @@ export default function Experience() {
       <Center>
         <Studio />
       </Center>
-      {/* <Grass /> */}
+      {showGrass && <Grass />}
+
       <Clouds />
       <Sky
         sunPosition={[-4, 1, 5]} // Adjust the sun position to change the lighting angle
