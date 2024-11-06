@@ -93,7 +93,9 @@ export default function Studio(props) {
     side: THREE.DoubleSide,
   });
 
-  const { setSidebarOpen, setSidebarClosed } = collectionStore();
+  const { setSidebarOpen, setSidebarClose } = collectionStore();
+  const sidebarOpen = collectionStore((state) => state.sidebarOpen);
+  const cameraPosition = collectionStore((state) => state.cameraPosition);
 
   /* Camera Controls */
   const [targetPosition, setTargetPosition] = useState(null);
@@ -117,6 +119,9 @@ export default function Studio(props) {
       setSelectedCollection(type);
       setProductHandle(type);
     }
+    setTimeout(() => {
+      setSidebarOpen(true);
+    }, 1000);
   };
 
   useFrame(() => {
@@ -126,22 +131,23 @@ export default function Studio(props) {
         vec.set(targetPosition.x, targetPosition.y, targetPosition.z),
         0.04
       );
-      // Open sidebar when camera is close to target position
-      if (camera.position.distanceTo(vec) < 0.1) {
-        setSidebarOpen(true);
-      }
-
       if (lookAtTarget) {
         // Make the camera look at the specified target (separate vector)
         camera.lookAt(lookVec.lerp(new THREE.Vector3(...lookAtTarget), 0.01));
       }
-    } else if (setSidebarClosed) {
-      camera.position.lerp(vec.set(0, 0, 5), 0.05);
     } else {
       // Default behavior for mouse-controlled camera movement
       camera.position.lerp(vec.set(mouse.x * 0.4, mouse.y * 0.1, 5), 0.05);
     }
   });
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      // Return the camera to the original position when the sidebar is closed
+      setTargetPosition({ x: mouse.x * 0.4, y: mouse.y * 0.1, z: 5 });
+      setLookAtTarget([0, 0, 0]);
+    }
+  }, [sidebarOpen]);
 
   const splatterMesh = useRef();
   const longsleeveMesh = useRef();

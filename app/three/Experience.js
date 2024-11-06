@@ -1,15 +1,15 @@
 "use client";
 
-import { OrbitControls, Sky, Center } from "@react-three/drei";
+import { OrbitControls, Sky, Center, CameraControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
-import { Canvas, useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import { Canvas } from "@react-three/fiber";
+import { useControls } from "leva";
+
 import WaterComponent from "./water/Water";
 import Grass from "./Grass";
 import Clouds from "./clouds/Clouds";
 import Studio from "./Studio";
 import Smoke from "./Smoke";
-import { useControls } from "leva";
 
 export default function Experience() {
   const { showOption } = useControls({
@@ -35,15 +35,17 @@ export default function Experience() {
     >
       <Perf position="top-left" />
       <OrbitControls
-      // enableRotate={false}
-      // enableZoom={false}
-      // enablePan={false}
+        enableRotate={false}
+        enableZoom={false}
+        enablePan={false}
       />
+      {/* <CameraControls /> */}
       <Center>
         <Studio />
       </Center>
 
       {showGrass && <Grass />}
+
       <Smoke />
       <Clouds />
 

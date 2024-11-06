@@ -22,12 +22,9 @@ const WaterComponent = () => {
     waterColor: 0x001100, // 0x001e0f
     distortionScale: 3.7,
   });
-
   water.rotation.x = -Math.PI / 2;
 
-  console.log(water.material.uniforms);
-
-  useFrame((clock) => {
+  useFrame(() => {
     if (waterRef.current) {
       waterRef.current.material.uniforms.time.value += 0.1 / 60.0;
     }

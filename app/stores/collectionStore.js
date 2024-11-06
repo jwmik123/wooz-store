@@ -6,7 +6,7 @@ const collectionStore = create((set) => ({
   setSelectedCollection: (collection) =>
     set({ selectedCollection: collection }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
-  setSidebarClose: () => set({ sidebarOpen: false }),
+  setSidebarClose: () => set({ sidebarOpen: false, cameraPosition: [0, 0, 5] }),
 }));
 
 export default collectionStore;
