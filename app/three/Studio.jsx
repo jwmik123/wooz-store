@@ -51,21 +51,21 @@ export default function Studio(props) {
 
   const cameraPositions = {
     polo: {
-      x: 0.4898568407579924,
-      y: -0.6973355377258545,
-      z: 0.444403827686815,
+      x: 0,
+      y: -0.5,
+      z: -0.4,
       lookAt: [5, -2, -5],
     },
     longsleeve: {
       x: -1,
-      y: -0.8362189733581833,
-      z: -1.2113942542277958,
+      y: -0.8,
+      z: -1.2,
       lookAt: [4, -1, -7],
     },
     splatter: {
-      x: 0.21924441389375993,
-      z: -0.7401673558933446,
-      y: -0.20296872786811337,
+      x: 0.2,
+      z: -0.7,
+      y: -0.2,
       lookAt: [-1, -1, -2],
     },
   };
@@ -125,6 +125,7 @@ export default function Studio(props) {
   };
 
   const introScreen = collectionStore((state) => state.introScreen);
+
   useFrame(() => {
     if (targetPosition) {
       // Smoothly move the camera to the target position
