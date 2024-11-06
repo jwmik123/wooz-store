@@ -2,7 +2,9 @@
 
 import { OrbitControls, Sky, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import WaterComponent from "./water/Water";
 import Grass from "./Grass";
 import Clouds from "./clouds/Clouds";
 import Studio from "./Studio";
@@ -10,12 +12,16 @@ import Smoke from "./Smoke";
 import { useControls } from "leva";
 
 export default function Experience() {
-  const { showGrass } = useControls({
-    showGrass: {
-      value: false,
-      label: "Show Grass",
+  const { showOption } = useControls({
+    showOption: {
+      value: "water",
+      label: "Environment",
+      options: { Water: "water", Grass: "grass" },
     },
   });
+
+  const showWater = showOption === "water";
+  const showGrass = showOption === "grass";
 
   return (
     <Canvas
@@ -40,6 +46,8 @@ export default function Experience() {
       {showGrass && <Grass />}
       <Smoke />
       <Clouds />
+
+      {showWater && <WaterComponent />}
 
       <Sky
         sunPosition={[-15, 10, 8]}
