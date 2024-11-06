@@ -24,12 +24,18 @@ const Clouds = () => {
     <>
       <Cloud
         textureUrl="/assets/cloud1.png"
-        position={[-6, 8, -20]}
-        scale={[8, 8, 8]}
+        position={[-7, 8, -25]}
+        scale={[10, 8, 8]}
+      />
+
+      <Cloud
+        textureUrl="/assets/cloud1.png"
+        position={[40, 25, -90]}
+        scale={[40, 20, 30]}
       />
       <Cloud
         textureUrl="/assets/cloud1.png"
-        position={[40, 30, -70]}
+        position={[-1, 30, -50]}
         scale={[20, 20, 20]}
       />
     </>

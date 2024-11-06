@@ -6,21 +6,20 @@ Command: npx gltfjsx@6.5.2 studio.glb -d -k
 
 import React, { useState, useRef, useEffect } from "react";
 import * as THREE from "three";
-import { Outlines, useGLTF } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import { BlendFunction } from "postprocessing";
 import { Select, Selection } from "@react-three/postprocessing";
+
 import Effects from "./Effects";
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
-
 import {
   splatterConfig,
   longSleeveConfig,
   poloConfig,
 } from "./assets/clothingConfig";
-
 import collectionStore from "../stores/collectionStore";
 
 export default function Studio(props) {
@@ -31,8 +30,7 @@ export default function Studio(props) {
   const [lookVec] = useState(() => new THREE.Vector3()); // Separate vector for lookAt
 
   const [effectsEnabled, setEffectsEnabled] = useState(true);
-
-  const [blendFunction, setBlendFunction] = useState(BlendFunction.SKIP);
+  const [blendFunction, setBlendFunction] = useState(BlendFunction.MULTIPLY);
 
   useControls("Effects", {
     enableEffects: {
@@ -71,9 +69,7 @@ export default function Studio(props) {
       lookAt: [-1, -1, -2],
     },
   };
-  const { setSidebarOpen, setSidebarClosed } = collectionStore();
 
-  // Handles mouse over
   const handlePointerOver = (type, id) => {
     setHoveredItem({ type, id });
     document.body.style.cursor = "pointer";
@@ -97,11 +93,12 @@ export default function Studio(props) {
     side: THREE.DoubleSide,
   });
 
+  const { setSidebarOpen, setSidebarClosed } = collectionStore();
+
   /* Camera Controls */
   const [targetPosition, setTargetPosition] = useState(null);
-  const [lookAtTarget, setLookAtTarget] = useState(null); // State for lookAt target
+  const [lookAtTarget, setLookAtTarget] = useState(null);
 
-  // Keep track of initial camera position when clicking
   const [initialPosition, setInitialPosition] = useState(null);
   const [initialLookAt, setInitialLookAt] = useState(null);
 
@@ -113,10 +110,10 @@ export default function Studio(props) {
   const handleCollectionClick = (type) => {
     const position = cameraPositions[type];
     if (position) {
-      setInitialPosition(camera.position.clone()); // Set initial position
-      setInitialLookAt(lookVec.clone()); // Set initial lookAt direction
+      setInitialPosition(camera.position.clone());
+      setInitialLookAt(lookVec.clone());
       setTargetPosition(position);
-      setLookAtTarget(position.lookAt); // Set lookAt target when clicked
+      setLookAtTarget(position.lookAt);
       setSelectedCollection(type);
       setProductHandle(type);
     }
@@ -145,21 +142,6 @@ export default function Studio(props) {
       camera.position.lerp(vec.set(mouse.x * 0.4, mouse.y * 0.1, 5), 0.05);
     }
   });
-
-  const [variable, setVariable] = useState(false);
-  const [randomGroup, setRandomGroup] = useState(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVariable(true);
-      setRandomGroup((prevGroup) => (prevGroup + 1) % 3); // Select groups in sequence (0, 1, 2) one after each other
-      setTimeout(() => {
-        setVariable(false);
-      }, 2000);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const splatterMesh = useRef();
   const longsleeveMesh = useRef();

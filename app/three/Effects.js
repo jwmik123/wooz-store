@@ -1,13 +1,11 @@
 "use client";
+
 import {
   EffectComposer,
   Outline,
   ToneMapping,
 } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
 import { useThree } from "@react-three/fiber";
-
-import { useControls } from "leva";
 
 function Effects({ blendFunction, targetMeshes }) {
   const { size, camera } = useThree();
@@ -20,15 +18,13 @@ function Effects({ blendFunction, targetMeshes }) {
       multisampling={4}
     >
       <Outline
-        visibleEdgeColor="white"
-        hiddenEdgeColor="white"
-        blur
-        pulseSpeed={0.5}
-        width={size.width * 1.5}
-        edgeStrength={10}
+        visibleEdgeColor="green"
+        hiddenEdgeColor="green"
+        width={size.width * 1}
+        edgeStrength={20}
         selection={targetMeshes}
       />
-      <ToneMapping adaptive blendFunction={blendFunction} />
+      <ToneMapping blendFunction={blendFunction} />
     </EffectComposer>
   );
 }

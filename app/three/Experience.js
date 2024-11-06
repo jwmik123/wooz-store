@@ -1,12 +1,14 @@
 "use client";
-import * as THREE from "three";
+
 import { OrbitControls, Sky, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { Canvas } from "@react-three/fiber";
 import Grass from "./Grass";
 import Clouds from "./clouds/Clouds";
 import Studio from "./Studio";
+import Smoke from "./Smoke";
 import { useControls } from "leva";
+
 export default function Experience() {
   const { showGrass } = useControls({
     showGrass: {
@@ -31,18 +33,19 @@ export default function Experience() {
       // enableZoom={false}
       // enablePan={false}
       />
-
       <Center>
         <Studio />
       </Center>
-      {showGrass && <Grass />}
 
+      {showGrass && <Grass />}
+      <Smoke />
       <Clouds />
+
       <Sky
-        sunPosition={[-4, 1, 5]} // Adjust the sun position to change the lighting angle
-        turbidity={10} //Higher turbidity gives a more scattered, warm look
-        rayleigh={0.3} // Adjust to control the scattering effect
-        inclination={0.6} // Adjust to modify the time of day, 0.6 gives a warm tone
+        sunPosition={[-15, 10, 8]}
+        turbidity={5}
+        rayleigh={0.3}
+        inclination={0.4}
         azimuth={0.25}
       />
     </Canvas>

@@ -66,6 +66,8 @@ export default function ProductsClientComponent() {
 function ProductItem({ product, addToCart, checkout }) {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(product.images[0].src);
+  const [loading, setLoading] = useState(true);
 
   const colors = [
     ...new Set(
@@ -79,8 +81,15 @@ function ProductItem({ product, addToCart, checkout }) {
   ];
 
   useEffect(() => {
-    setSelectedColor(colors[0]);
-  }, []);
+    if (selectedColor) {
+      const colorVariantImage = product.variants.find(
+        (variant) =>
+          variant.selectedOptions.find((opt) => opt.name === "Color")?.value ===
+          selectedColor
+      )?.image?.src;
+      setSelectedImage(colorVariantImage);
+    }
+  }, [selectedColor, product.images, product.variants]);
 
   const sizes = [
     ...new Set(
@@ -92,6 +101,7 @@ function ProductItem({ product, addToCart, checkout }) {
         .filter(Boolean)
     ),
   ];
+
   const findVariant = () => {
     return product.variants.find(
       (variant) =>
@@ -122,9 +132,6 @@ function ProductItem({ product, addToCart, checkout }) {
     }
   };
 
-  const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(product.images[0].src);
-
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-green-100 font-inter">
@@ -136,16 +143,7 @@ function ProductItem({ product, addToCart, checkout }) {
               </div>
             )}
             <Image
-              src={
-                selectedColor
-                  ? product.variants.find(
-                      (variant) =>
-                        variant.selectedOptions.find(
-                          (opt) => opt.name === "Color"
-                        )?.value === selectedColor
-                    )?.image?.src
-                  : product.images[0].src
-              }
+              src={selectedImage}
               alt={product.title}
               className="object-cover w-full h-full mb-2"
               quality={75}
@@ -199,8 +197,8 @@ function ProductItem({ product, addToCart, checkout }) {
 
               const selectedColorClass =
                 selectedColor === color
-                  ? `${colorClass} border-green-100`
-                  : `${colorClass} border-slate-400`;
+                  ? `${colorClass} border-green-500`
+                  : `${colorClass} border-white`;
 
               return (
                 <label key={color} className={`flex items-center`}>
@@ -213,7 +211,7 @@ function ProductItem({ product, addToCart, checkout }) {
                     className="hidden"
                   />
                   <span
-                    className={`p-4 border rounded-full cursor-pointer ${selectedColorClass} hover:border-green-100`}
+                    className={`p-4 border-2 rounded-full cursor-pointer ${selectedColorClass} hover:border-green-500`}
                   ></span>
                 </label>
               );
@@ -239,14 +237,14 @@ function ProductItem({ product, addToCart, checkout }) {
                   disabled={!isSizeAvailable(size)}
                 />
                 <span
-                  className={`block w-full text-center rounded-lg p-2 border  ${
+                  className={`block w-full text-center rounded-lg p-2 border-2  ${
                     isSizeAvailable(size)
-                      ? "hover:border-green-100 cursor-pointer"
-                      : "cursor-not-allowed opacity-50"
+                      ? "hover:border-green-500 hover:text-green-500 cursor-pointer"
+                      : "cursor-not-allowed opacity-30"
                   } ${
                     selectedSize === size
-                      ? "border-green-400"
-                      : "border-green-100"
+                      ? "border-green-500 text-green-500"
+                      : "border-white text-white"
                   }`}
                 >
                   {size}
@@ -263,7 +261,7 @@ function ProductItem({ product, addToCart, checkout }) {
       <div className="sticky bottom-0 flex items-center justify-center w-full px-5 pb-5">
         <button
           onClick={handleAddToCart}
-          className={`w-full text-black transition-colors duration-200 bg-green-100 hover:bg-green-100 hover:text-green-900 rounded-lg  p-4 text-lg ${
+          className={`w-full text-black font-bold transition-colors duration-200 bg-green-100 hover:text-white hover:bg-green-500 border-4 border-green-500 rounded-lg  p-4 text-lg ${
             !selectedColor || !selectedSize ? " cursor-not-allowed" : ""
           }`}
           disabled={!selectedColor || !selectedSize}
