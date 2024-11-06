@@ -154,7 +154,7 @@ function ProductItem({ product, addToCart, checkout }) {
               onLoad={() => setLoading(false)}
             />
           </div>
-          <div className="flex flex-col w-1/4 gap-2 overflow-x-scroll">
+          <div className="flex flex-col w-1/4 gap-2 overflow-y-auto products-scrollbar">
             {product.images.map((image, index) => (
               <Image
                 key={index}
@@ -262,7 +262,9 @@ function ProductItem({ product, addToCart, checkout }) {
         <button
           onClick={handleAddToCart}
           className={`w-full text-black font-bold transition-colors duration-200 bg-green-100 hover:text-white hover:bg-green-500 border-4 border-green-500 rounded-lg  p-4 text-lg ${
-            !selectedColor || !selectedSize ? " cursor-not-allowed" : ""
+            !selectedColor || !selectedSize
+              ? " cursor-not-allowed opacity-50"
+              : ""
           }`}
           disabled={!selectedColor || !selectedSize}
         >

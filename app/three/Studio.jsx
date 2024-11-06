@@ -214,11 +214,7 @@ export default function Studio(props) {
                 rotation={rotation}
                 scale={scale}
                 ref={poloMesh}
-              >
-                {/* {hoveredItem.type === "polo" && (
-                  <Outlines thickness={2.5} angle={0.1} color="lightgreen" />
-                )} */}
-              </mesh>
+              ></mesh>
             ))}
           </group>
         </Select>
