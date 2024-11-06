@@ -1,6 +1,6 @@
 "use client";
 
-import { OrbitControls, Sky, Center, CameraControls } from "@react-three/drei";
+import { OrbitControls, Sky, Center } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";

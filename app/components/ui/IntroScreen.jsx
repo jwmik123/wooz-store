@@ -1,29 +1,41 @@
 "use client";
-
 import { useState } from "react";
+import { useProgress } from "@react-three/drei";
+import collectionStore from "../../stores/collectionStore";
+import { LoaderCircle } from "lucide-react";
 
-const IntroScreen = ({ onEnterWorld }) => {
-  const [isVisible, setIsVisible] = useState(true);
+const IntroScreen = () => {
+  const { progress } = useProgress();
+  const setIntroScreen = collectionStore((state) => state.setIntroScreen);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  const handleEnterWorld = () => {
-    setIsVisible(false);
-    if (onEnterWorld) {
-      onEnterWorld();
-    }
+  const handleButtonClick = () => {
+    setFadeOut(true);
+    setTimeout(() => {
+      setIntroScreen(false);
+    }, 1000); // Match the duration of the CSS transition
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div className="text-center text-white">
-        <h1 className="mb-4 text-4xl">Welcome to the World</h1>
-        <button
-          onClick={handleEnterWorld}
-          className="px-6 py-3 text-white bg-green-500 rounded-lg hover:bg-green-700"
-        >
-          Enter World
-        </button>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-1000 backdrop-blur-sm ${
+        fadeOut ? "opacity-0" : "opacity-100"
+      }`}
+    >
+      <div className="flex flex-col items-center gap-4 text-center text-white">
+        {progress === 100 ? (
+          <button
+            onClick={handleButtonClick}
+            className="px-6 py-3 text-white transition-all duration-200 bg-transparent border border-white rounded-lg hover:border-2 hover:py-4 hover:px-7 "
+          >
+            Enter
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <LoaderCircle className="animate-spin" />
+            {progress.toFixed(0) + "%"}
+          </div>
+        )}
       </div>
     </div>
   );

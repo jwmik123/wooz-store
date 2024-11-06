@@ -124,6 +124,7 @@ export default function Studio(props) {
     }, 1000);
   };
 
+  const introScreen = collectionStore((state) => state.introScreen);
   useFrame(() => {
     if (targetPosition) {
       // Smoothly move the camera to the target position

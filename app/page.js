@@ -2,15 +2,15 @@
 
 import Experience from "./three/Experience";
 import { Sidebar } from "./components/ui/Sidebar";
-import { useState } from "react";
 import IntroScreen from "./components/ui/IntroScreen";
+import collectionStore from "./stores/collectionStore";
 
 export default function Home() {
-  const [isIntroVisible, setIsIntroVisible] = useState(true);
+  const introScreen = collectionStore((state) => state.introScreen);
 
   return (
     <main className="h-screen">
-      <IntroScreen onEnterWorld={() => setIsIntroVisible(false)} />
+      {!introScreen && <IntroScreen />}
       <Experience />
       <Sidebar />
     </main>
