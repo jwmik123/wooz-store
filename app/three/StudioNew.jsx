@@ -7,7 +7,7 @@ Command: npx gltfjsx@6.5.3 studio.glb -d -k
 import { useState, useRef } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
-import { useLoader, useThree, useFrame } from "@react-three/fiber";
+import { useLoader, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
 import {
@@ -187,7 +187,6 @@ export default function StudioNew(props) {
             ))}
           </group>
         </Select>
-        {/* <Effects /> */}
       </Selection>
     </group>
   );
