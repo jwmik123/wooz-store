@@ -4,18 +4,12 @@ Command: npx gltfjsx@6.5.3 studio.glb -d -k
 */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
-import { useLoader, useFrame, useThree } from "@react-three/fiber";
-import { useControls } from "leva";
-import { BlendFunction } from "postprocessing";
+import { useLoader, useThree } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
-import Effects from "./Effects";
-
-import vertexShader from "./shaders/studio/vertexShader.glsl";
-import fragmentShader from "./shaders/studio/fragmentShader.glsl";
 import {
   splatterConfig,
   longSleeveConfig,
@@ -23,6 +17,10 @@ import {
   hoodieConfig,
 } from "./assets/clothingConfig";
 import collectionStore from "../stores/collectionStore";
+
+import vertexShader from "./shaders/studio/vertexShader.glsl";
+import fragmentShader from "./shaders/studio/fragmentShader.glsl";
+import Effects from "./Effects";
 
 export default function StudioNew(props) {
   const { nodes } = useGLTF("/models/studio.glb");
@@ -32,14 +30,20 @@ export default function StudioNew(props) {
   );
   bakedFinalTexture.colorSpace = THREE.SRGBColorSpace;
   bakedFinalTexture.flipY = false;
-  const studioMaterial = new THREE.ShaderMaterial({
+
+  const shaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
-      uBakedDayTexture: new THREE.Uniform(bakedFinalTexture),
+      uBakedDayTexture: { value: bakedFinalTexture },
+      uDirectionalLightColor: new THREE.Uniform(new THREE.Color(1, 0, 0)), // Default white light
+      uDirectionalLightDirection: new THREE.Uniform(
+        new THREE.Vector3(0, -1, 0)
+      ), // Default downward direction
     },
     vertexShader,
     fragmentShader,
     side: THREE.DoubleSide,
   });
+
   const splatterMesh = useRef();
   const longsleeveMesh = useRef();
   const poloMesh = useRef();
@@ -61,8 +65,10 @@ export default function StudioNew(props) {
       <mesh
         name="studio"
         geometry={nodes.studio.geometry}
-        material={studioMaterial}
+        material={shaderMaterial}
         position={[0, 1.5, 0]}
+        castShadow
+        receiveShadow
       />
       <Selection>
         <Select enabled={hoveredItem.type === "longsleeve"}>
@@ -75,10 +81,12 @@ export default function StudioNew(props) {
                 key={index}
                 name={`Longsleeve_${color}_High002`}
                 geometry={nodes[`Longsleeve_${color}_High002`].geometry}
-                material={studioMaterial}
+                material={shaderMaterial}
                 position={position}
                 rotation={rotation}
                 ref={longsleeveMesh}
+                castShadow
+                receiveShadow
               />
             ))}
           </group>
@@ -92,10 +100,12 @@ export default function StudioNew(props) {
               <mesh
                 key={index}
                 geometry={nodes[`Polo2_${color}_High002`].geometry}
-                material={studioMaterial}
+                material={shaderMaterial}
                 position={position}
                 rotation={rotation}
                 ref={poloMesh}
+                castShadow
+                receiveShadow
               ></mesh>
             ))}
           </group>
@@ -109,10 +119,12 @@ export default function StudioNew(props) {
               <mesh
                 key={index}
                 geometry={nodes[`Splatter_${color}_High002`].geometry}
-                material={studioMaterial}
+                material={shaderMaterial}
                 position={position}
                 rotation={rotation}
                 ref={splatterMesh}
+                castShadow
+                receiveShadow
               />
             ))}
           </group>
@@ -126,10 +138,12 @@ export default function StudioNew(props) {
               <mesh
                 key={index}
                 geometry={nodes[`Hoodie_${color}_High002`].geometry}
-                material={studioMaterial}
+                material={shaderMaterial}
                 position={position}
                 rotation={rotation}
                 ref={hoodieMesh}
+                castShadow
+                receiveShadow
               />
             ))}
           </group>

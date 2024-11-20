@@ -18,7 +18,7 @@ void main()
     // Twist
     float twistPerlin = texture(
         uPerlinTexture,
-        vec2(0.5, uv.y * 0.2 - uTime * 0.005)
+        vec2(0.5, uv.y * 0.2 - uTime * 0.01)
     ).r;
     float angle = twistPerlin * 10.0;
     newPosition.xz = rotate2D(newPosition.xz, angle);
