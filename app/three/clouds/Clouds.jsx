@@ -19,7 +19,7 @@ const Cloud = ({ textureUrl, position, scale }) => {
   );
 };
 
-const Clouds = () => {
+const FakeClouds = () => {
   return (
     <>
       <Cloud
@@ -42,4 +42,4 @@ const Clouds = () => {
   );
 };
 
-export default Clouds;
+export default FakeClouds;

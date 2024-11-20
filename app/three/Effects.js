@@ -5,6 +5,7 @@ import {
   Outline,
   ToneMapping,
 } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import { useThree } from "@react-three/fiber";
 
 function Effects({ blendFunction, targetMeshes }) {
@@ -24,7 +25,7 @@ function Effects({ blendFunction, targetMeshes }) {
         edgeStrength={20}
         selection={targetMeshes}
       />
-      <ToneMapping blendFunction={blendFunction} />
+      <ToneMapping blendFunction={BlendFunction.MULTIPLY} />
     </EffectComposer>
   );
 }
