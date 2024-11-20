@@ -7,7 +7,7 @@ Command: npx gltfjsx@6.5.3 studio.glb -d -k
 import { useState, useRef } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
-import { useLoader, useThree } from "@react-three/fiber";
+import { useLoader, useThree, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
 import {
@@ -20,7 +20,6 @@ import collectionStore from "../stores/collectionStore";
 
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
-import Effects from "./Effects";
 
 export default function StudioNew(props) {
   const { nodes } = useGLTF("/models/studio.glb");
@@ -34,10 +33,6 @@ export default function StudioNew(props) {
   const shaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uBakedDayTexture: { value: bakedFinalTexture },
-      uDirectionalLightColor: new THREE.Uniform(new THREE.Color(1, 0, 0)), // Default white light
-      uDirectionalLightDirection: new THREE.Uniform(
-        new THREE.Vector3(0, -1, 0)
-      ), // Default downward direction
     },
     vertexShader,
     fragmentShader,
@@ -49,6 +44,8 @@ export default function StudioNew(props) {
   const poloMesh = useRef();
   const hoodieMesh = useRef();
 
+  const setProductHandle = collectionStore((state) => state.setProductHandle);
+  const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
   const [hoveredItem, setHoveredItem] = useState({ type: null, id: null });
   const handlePointerOver = (type, id) => {
     setHoveredItem({ type, id });
@@ -59,6 +56,44 @@ export default function StudioNew(props) {
     setHoveredItem({ type: null, id: null });
     document.body.style.cursor = "auto";
   };
+
+  const handleCollectionClick = (type) => {
+    setProductHandle(type);
+    setTimeout(() => {
+      setSidebarOpen(true);
+    }, 1000);
+  };
+
+  const points = [
+    {
+      position: new THREE.Vector3(0, -1, -3),
+      element: document.querySelector(".point-0"),
+    },
+    {
+      position: new THREE.Vector3(-1.2, -1, -1.8),
+      element: document.querySelector(".point-1"),
+    },
+    {
+      position: new THREE.Vector3(1.1, -1, -1.8),
+      element: document.querySelector(".point-2"),
+    },
+    {
+      position: new THREE.Vector3(1.4, -1, -0.4),
+      element: document.querySelector(".point-3"),
+    },
+  ];
+
+  useFrame(({ camera }) => {
+    for (const point of points) {
+      const screenPosition = point.position.clone();
+      screenPosition.project(camera);
+
+      const translateX = (screenPosition.x * window.innerWidth) / 2;
+      const translateY = -(screenPosition.y * window.innerHeight) / 2;
+
+      point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
+    }
+  });
 
   return (
     <group {...props} dispose={null} rotation={[0, -Math.PI / 2, 0]} layers={1}>
@@ -75,6 +110,7 @@ export default function StudioNew(props) {
           <group
             onPointerOver={() => handlePointerOver("longsleeve")}
             onPointerOut={handlePointerOut}
+            onClick={() => handleCollectionClick("longsleeve")}
           >
             {longSleeveConfig.map(({ color, position, rotation }, index) => (
               <mesh
@@ -95,6 +131,7 @@ export default function StudioNew(props) {
           <group
             onPointerOver={() => handlePointerOver("polo")}
             onPointerOut={handlePointerOut}
+            onClick={() => handleCollectionClick("polo")}
           >
             {poloConfig.map(({ color, position, rotation }, index) => (
               <mesh
@@ -114,6 +151,7 @@ export default function StudioNew(props) {
           <group
             onPointerOver={() => handlePointerOver("splatter")}
             onPointerOut={handlePointerOut}
+            onClick={() => handleCollectionClick("splatter")}
           >
             {splatterConfig.map(({ color, position, rotation }, index) => (
               <mesh
@@ -133,6 +171,7 @@ export default function StudioNew(props) {
           <group
             onPointerOver={() => handlePointerOver("hoodie")}
             onPointerOut={handlePointerOut}
+            onClick={() => handleCollectionClick("hoodie")}
           >
             {hoodieConfig.map(({ color, position, rotation }, index) => (
               <mesh
