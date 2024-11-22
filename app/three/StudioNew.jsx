@@ -40,7 +40,7 @@ const CAMERA_POSITIONS = {
     target: new THREE.Vector3(0, 0, 0),
   },
   intro: {
-    position: new THREE.Vector3(0, 0, 27),
+    position: new THREE.Vector3(0, 0, 12),
     target: new THREE.Vector3(0, 0, 0),
   },
 };
@@ -203,9 +203,9 @@ export default function StudioNew(props) {
     <>
       <OrbitControls
         ref={orbitControlsRef}
-        enableZoom={false}
-        enablePan={false}
-        enableRotate={false}
+        // enableZoom={false}
+        // enablePan={false}
+        // enableRotate={false}
       />
       <group
         {...props}
