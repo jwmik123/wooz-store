@@ -1,5 +1,5 @@
 "use client";
-
+import { useRef } from "react";
 import Experience from "./three/Experience";
 import { Sidebar } from "./components/ui/Sidebar";
 import IntroScreen from "./components/ui/IntroScreen";

@@ -12,6 +12,7 @@
     "@react-three/drei": "^9.112.0",
     "@react-three/fiber": "^8.17.6",
     "@react-three/postprocessing": "^2.16.2",
+    "gsap": "^3.12.5",
     "leva": "^0.9.35",
     "lucide-react": "^0.454.0",
     "next": "^14.2.7",

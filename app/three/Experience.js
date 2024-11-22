@@ -2,19 +2,13 @@
 
 import * as THREE from "three";
 import { useRef } from "react";
-import {
-  OrbitControls,
-  Center,
-  Clouds,
-  Cloud,
-  StatsGl,
-} from "@react-three/drei";
-
+import { Center, Clouds, Cloud, StatsGl } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";
 
 import Smoke from "./Smoke";
 import StudioNew from "./StudioNew";
+import Studio from "./Studio";
 
 export default function Experience() {
   const ref = useRef();
@@ -44,70 +38,77 @@ export default function Experience() {
   spotLight3.penumbra = 1;
 
   return (
-    <Canvas
-      style={{ width: "100%", height: "100%" }}
-      camera={{ position: [0, 0, 5], fov: 55 }}
-      gl={{
-        toneMapping: THREE.ACESFilmicToneMapping,
-        antialias: true,
-        depth: true,
-      }}
-    >
-      <StatsGl />
-      <OrbitControls />
-      <Center>
-        <StudioNew />
-      </Center>
-      <Smoke />
-      <group ref={ref}>
-        <ambientLight intensity={0.5} />
-        <primitive object={spotLight1} />
-        <primitive object={spotLight3} />
-        <Clouds material={THREE.MeshLambertMaterial} limit={400} range={range}>
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="#f8d7da" // pinkish/whitish color
-            seed={2}
-            position={[15, -10, -13]}
-          />
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="#f8e1e4" // pinkish/whitish color
-            seed={3}
-            position={[-15, -10, -13]}
-          />
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="#f8e1e4" // pinkish/whitish color
-            seed={3}
-            position={[15, -10, -1]}
-          />
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="#f8e8eb" // pinkish/whitish color
-            seed={4}
-            position={[0, -5, -20]}
-          />
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="pink" // pinkish/whitish color
-            seed={5}
-            position={[0, -5, -12]}
-          />
-          <Cloud
-            {...config}
-            bounds={[x, y, z]}
-            color="pink" // pinkish/whitish color
-            seed={5}
-            position={[0, 0, 10]}
-          />
-        </Clouds>
-      </group>
-    </Canvas>
+    <>
+      <Canvas
+        style={{ width: "100%", height: "100%" }}
+        camera={{ position: [0, 0, 5], fov: 55 }}
+        gl={{
+          toneMapping: THREE.ACESFilmicToneMapping,
+          antialias: true,
+          depth: true,
+        }}
+      >
+        <StatsGl />
+        {/* <OrbitControls /> */}
+        <Center>
+          <StudioNew />
+          {/* <Studio /> */}
+        </Center>
+        <Smoke />
+        <group ref={ref}>
+          <ambientLight intensity={0.5} />
+          <primitive object={spotLight1} />
+          <primitive object={spotLight3} />
+          <Clouds
+            material={THREE.MeshLambertMaterial}
+            limit={400}
+            range={range}
+          >
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="#f8d7da" // pinkish/whitish color
+              seed={2}
+              position={[15, -10, -13]}
+            />
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="#f8e1e4" // pinkish/whitish color
+              seed={3}
+              position={[-15, -10, -13]}
+            />
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="#f8e1e4" // pinkish/whitish color
+              seed={3}
+              position={[15, -10, -1]}
+            />
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="#f8e8eb" // pinkish/whitish color
+              seed={4}
+              position={[0, -5, -20]}
+            />
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="pink" // pinkish/whitish color
+              seed={5}
+              position={[0, -5, -12]}
+            />
+            <Cloud
+              {...config}
+              bounds={[x, y, z]}
+              color="pink" // pinkish/whitish color
+              seed={5}
+              position={[0, 0, 10]}
+            />
+          </Clouds>
+        </group>
+      </Canvas>
+    </>
   );
 }
