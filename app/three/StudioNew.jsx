@@ -72,6 +72,7 @@ export default function StudioNew(props) {
   const setProductHandle = collectionStore((state) => state.setProductHandle);
   const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
   const sidebarOpen = collectionStore((state) => state.sidebarOpen);
+
   useEffect(() => {
     const moveCamera = async () => {
       if (!sidebarOpen && cameraControlsRef.current) {
@@ -87,6 +88,12 @@ export default function StudioNew(props) {
         );
       }
     };
+
+    if (!sidebarOpen) {
+      document.querySelectorAll(".point").forEach((point) => {
+        point.classList.add("visible");
+      });
+    }
 
     moveCamera();
   }, [sidebarOpen]);
@@ -115,6 +122,10 @@ export default function StudioNew(props) {
   const handleCollectionClick = (type) => {
     setSidebarOpen(true);
     setProductHandle(type);
+
+    document.querySelectorAll(".point").forEach((point) => {
+      point.classList.remove("visible");
+    });
 
     if (!cameraControlsRef.current) return;
 
