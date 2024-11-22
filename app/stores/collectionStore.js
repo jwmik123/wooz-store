@@ -7,7 +7,8 @@ const collectionStore = create((set) => ({
     set({ selectedCollection: collection }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setSidebarClose: () => set({ sidebarOpen: false, cameraPosition: [0, 0, 5] }),
-  setIntroScreen: () => set({ introScreen: true }),
+  introScreen: true,
+  setIntroScreen: (value) => set({ introScreen: value }),
 }));
 
 export default collectionStore;

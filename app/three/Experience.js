@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Center, Clouds, Cloud, StatsGl } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";
@@ -15,10 +15,10 @@ export default function Experience() {
   const { color, x, y, z, range, ...config } = useControls({
     seed: { value: 1, min: 1, max: 100, step: 1 },
     segments: { value: 20, min: 5, max: 80, step: 1 },
-    volume: { value: 20, min: 0, max: 100, step: 0.1 },
+    volume: { value: 24, min: 0, max: 100, step: 0.1 },
     opacity: { value: 0.8, min: 0, max: 1, step: 0.01 },
     fade: { value: 10, min: 0, max: 400, step: 1 },
-    growth: { value: 0, min: 0, max: 20, step: 1 },
+    growth: { value: 2, min: 0, max: 20, step: 1 },
     speed: { value: 0.2, min: 0, max: 1, step: 0.01 },
     x: { value: 6, min: -100, max: 100, step: 1 },
     y: { value: -5, min: 0, max: 100, step: 1 },
@@ -26,22 +26,30 @@ export default function Experience() {
     color: "white",
   });
 
-  const spotLight1 = new THREE.SpotLight("white", 100);
+  const spotLight1 = new THREE.SpotLight("red", 100);
   spotLight1.position.set(0, 20, 0);
   spotLight1.decay = 0;
   spotLight1.distance = 45;
   spotLight1.penumbra = 0.5;
-  const spotLight3 = new THREE.SpotLight("white", 50);
+  const spotLight3 = new THREE.SpotLight("red", 50);
   spotLight3.position.set(0, 0, 30);
   spotLight3.angle = 1;
   spotLight3.decay = 0;
   spotLight3.penumbra = 1;
 
+  useEffect(() => {
+    setTimeout(() => {
+      document.querySelectorAll(".point").forEach((point) => {
+        point.classList.add("visible");
+      });
+    }, 1000);
+  }, []);
+
   return (
     <>
       <Canvas
         style={{ width: "100%", height: "100%" }}
-        camera={{ position: [0, 0, 5], fov: 55 }}
+        camera={{ position: [0, 1, 17], fov: 55 }}
         gl={{
           toneMapping: THREE.ACESFilmicToneMapping,
           antialias: true,

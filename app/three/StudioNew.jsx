@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 
 import * as THREE from "three";
-import { useGLTF, CameraControls } from "@react-three/drei";
+import { useGLTF, OrbitControls } from "@react-three/drei";
 import { useLoader, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
@@ -39,7 +39,12 @@ const CAMERA_POSITIONS = {
     position: new THREE.Vector3(0, 0, 5),
     target: new THREE.Vector3(0, 0, 0),
   },
+  intro: {
+    position: new THREE.Vector3(0, 0, 27),
+    target: new THREE.Vector3(0, 0, 0),
+  },
 };
+
 const NODE_NAMES = {
   longsleeve: "Longsleeve",
   polo: "Polo2",
@@ -48,11 +53,16 @@ const NODE_NAMES = {
 };
 
 export default function StudioNew(props) {
-  const cameraControlsRef = useRef();
+  const orbitControlsRef = useRef();
   const [mouse] = useState(() => ({ x: 0, y: 0 }));
+  const [targetCameraPosition, setTargetCameraPosition] = useState(
+    new THREE.Vector3()
+  );
+  const [targetCameraTarget, setTargetCameraTarget] = useState(
+    new THREE.Vector3()
+  );
 
   const { nodes } = useGLTF("/models/studio.glb");
-  console.log(nodes);
   const bakedFinalTexture = useLoader(
     THREE.TextureLoader,
     "/assets/bakednew.jpg"
@@ -72,31 +82,34 @@ export default function StudioNew(props) {
   const setProductHandle = collectionStore((state) => state.setProductHandle);
   const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
   const sidebarOpen = collectionStore((state) => state.sidebarOpen);
+  const introScreen = collectionStore((state) => state.introScreen);
+
+  console.log("introScreen", introScreen);
 
   useEffect(() => {
-    const moveCamera = async () => {
-      if (!sidebarOpen && cameraControlsRef.current) {
-        const defaultConfig = CAMERA_POSITIONS.default;
-        await cameraControlsRef.current.setLookAt(
-          defaultConfig.position.x,
-          defaultConfig.position.y,
-          defaultConfig.position.z,
-          defaultConfig.target.x,
-          defaultConfig.target.y,
-          defaultConfig.target.z,
-          true
-        );
-      }
-    };
+    if (!sidebarOpen && orbitControlsRef.current) {
+      const defaultConfig = introScreen
+        ? CAMERA_POSITIONS.intro
+        : CAMERA_POSITIONS.default;
+
+      // Use a temporary Vector3 for the position and target
+      const newTargetCameraPosition = new THREE.Vector3().copy(
+        defaultConfig.position
+      );
+      const newTargetCameraTarget = new THREE.Vector3().copy(
+        defaultConfig.target
+      );
+
+      setTargetCameraPosition(newTargetCameraPosition);
+      setTargetCameraTarget(newTargetCameraTarget);
+    }
 
     if (!sidebarOpen) {
       document.querySelectorAll(".point").forEach((point) => {
         point.classList.add("visible");
       });
     }
-
-    moveCamera();
-  }, [sidebarOpen]);
+  }, [sidebarOpen, introScreen]);
 
   useEffect(() => {
     const updateMouse = (event) => {
@@ -127,34 +140,25 @@ export default function StudioNew(props) {
       point.classList.remove("visible");
     });
 
-    if (!cameraControlsRef.current) return;
+    if (!orbitControlsRef.current) return;
 
     const cameraConfig = CAMERA_POSITIONS[type];
-    cameraControlsRef.current.setLookAt(
-      cameraConfig.position.x,
-      cameraConfig.position.y,
-      cameraConfig.position.z,
-      cameraConfig.target.x,
-      cameraConfig.target.y,
-      cameraConfig.target.z,
-      true
+    const newTargetCameraPosition = new THREE.Vector3().copy(
+      cameraConfig.position
     );
+    const newTargetCameraTarget = new THREE.Vector3().copy(cameraConfig.target);
+
+    setTargetCameraPosition(newTargetCameraPosition);
+    setTargetCameraTarget(newTargetCameraTarget);
   };
 
   useFrame(({ camera }) => {
-    // Update camera target based on mouse position when sidebar is closed
-    // if (!sidebarOpen && cameraControlsRef.current) {
-    //   const defaultConfig = CAMERA_POSITIONS.default;
-    //   cameraControlsRef.current.setLookAt(
-    //     defaultConfig.position.x,
-    //     defaultConfig.position.y,
-    //     defaultConfig.position.z,
-    //     mouse.x * 0.2,
-    //     mouse.y * 0.2,
-    //     0,
-    //     true
-    //   );
-    // }
+    // Lerp camera position and target
+    if (orbitControlsRef.current) {
+      orbitControlsRef.current.object.position.lerp(targetCameraPosition, 0.02);
+      orbitControlsRef.current.target.lerp(targetCameraTarget, 0.02);
+      orbitControlsRef.current.update();
+    }
 
     // Update points
     for (const point of points) {
@@ -197,7 +201,12 @@ export default function StudioNew(props) {
 
   return (
     <>
-      <CameraControls ref={cameraControlsRef} />
+      <OrbitControls
+        ref={orbitControlsRef}
+        enableZoom={false}
+        enablePan={false}
+        enableRotate={false}
+      />
       <group
         {...props}
         dispose={null}

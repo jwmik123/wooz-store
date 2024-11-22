@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: linear-gradient(to top, darkblue, lightskyblue);
+  background: linear-gradient(to top, darkblue, lightblue);
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
