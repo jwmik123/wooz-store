@@ -26,12 +26,12 @@ export default function Experience() {
     color: "white",
   });
 
-  const spotLight1 = new THREE.SpotLight("red", 100);
+  const spotLight1 = new THREE.SpotLight("white", 100);
   spotLight1.position.set(0, 20, 0);
   spotLight1.decay = 0;
   spotLight1.distance = 45;
   spotLight1.penumbra = 0.5;
-  const spotLight3 = new THREE.SpotLight("red", 50);
+  const spotLight3 = new THREE.SpotLight("white", 50);
   spotLight3.position.set(0, 0, 30);
   spotLight3.angle = 1;
   spotLight3.decay = 0;
@@ -63,7 +63,7 @@ export default function Experience() {
           {/* <Studio /> */}
         </Center>
         <Smoke />
-        <Environment preset="sunset" />
+        {/* <Environment files="/hdr.hdr" background /> */}
         <group ref={ref}>
           <ambientLight intensity={0.5} />
           <primitive object={spotLight1} />
