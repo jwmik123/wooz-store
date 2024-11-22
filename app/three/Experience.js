@@ -49,7 +49,7 @@ export default function Experience() {
     <>
       <Canvas
         style={{ width: "100%", height: "100%" }}
-        camera={{ position: [0, 1, 12], fov: 55 }}
+        camera={{ position: [0, 1, 20], fov: 55 }}
         gl={{
           toneMapping: THREE.ACESFilmicToneMapping,
           antialias: true,

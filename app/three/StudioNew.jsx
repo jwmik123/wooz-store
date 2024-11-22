@@ -40,7 +40,7 @@ const CAMERA_POSITIONS = {
     target: new THREE.Vector3(0, 0, 0),
   },
   intro: {
-    position: new THREE.Vector3(0, 0, 12),
+    position: new THREE.Vector3(0, 0, 20),
     target: new THREE.Vector3(0, 0, 0),
   },
 };
@@ -133,7 +133,6 @@ export default function StudioNew(props) {
   };
 
   const handleCollectionClick = (type) => {
-    setSidebarOpen(true);
     setProductHandle(type);
 
     document.querySelectorAll(".point").forEach((point) => {
@@ -150,6 +149,10 @@ export default function StudioNew(props) {
 
     setTargetCameraPosition(newTargetCameraPosition);
     setTargetCameraTarget(newTargetCameraTarget);
+
+    setTimeout(() => {
+      setSidebarOpen(true);
+    }, 500);
   };
 
   useFrame(({ camera }) => {
