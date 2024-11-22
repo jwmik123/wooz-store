@@ -57,13 +57,10 @@ export default function Experience() {
         }}
       >
         <StatsGl />
-        {/* <OrbitControls /> */}
         <Center>
           <StudioNew />
-          {/* <Studio /> */}
         </Center>
         <Smoke />
-        {/* <Environment files="/hdr.hdr" background /> */}
         <group ref={ref}>
           <ambientLight intensity={0.5} />
           <primitive object={spotLight1} />
