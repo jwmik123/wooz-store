@@ -8,7 +8,7 @@ import { useControls } from "leva";
 
 import Smoke from "./Smoke";
 import StudioNew from "./StudioNew";
-import Studio from "./Studio";
+import Birds from "./Bird";
 
 export default function Experience() {
   const ref = useRef();
@@ -57,6 +57,7 @@ export default function Experience() {
         }}
       >
         <StatsGl />
+        <Birds />
         <Center>
           <StudioNew />
         </Center>
