@@ -84,8 +84,6 @@ export default function StudioNew(props) {
   const sidebarOpen = collectionStore((state) => state.sidebarOpen);
   const introScreen = collectionStore((state) => state.introScreen);
 
-  console.log("introScreen", introScreen);
-
   useEffect(() => {
     if (!sidebarOpen && orbitControlsRef.current) {
       const defaultConfig = introScreen
@@ -176,10 +174,10 @@ export default function StudioNew(props) {
       }
     }
     // Show camera x, y, z position
-    const cameraPosition = camera.position;
-    console.log(
-      `Camera Position - x: ${cameraPosition.x}, y: ${cameraPosition.y}, z: ${cameraPosition.z}`
-    );
+    // const cameraPosition = camera.position;
+    // console.log(
+    //   `Camera Position - x: ${cameraPosition.x}, y: ${cameraPosition.y}, z: ${cameraPosition.z}`
+    // );
   });
 
   // Handle points for labels/annotations

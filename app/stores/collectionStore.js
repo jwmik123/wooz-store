@@ -6,6 +6,7 @@ const collectionStore = create((set) => ({
   setSelectedCollection: (collection) =>
     set({ selectedCollection: collection }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  setCartOpen: (open) => set({ cartOpen: open }),
   setSidebarClose: () => set({ sidebarOpen: false, cameraPosition: [0, 0, 5] }),
   introScreen: true,
   setIntroScreen: (value) => set({ introScreen: value }),

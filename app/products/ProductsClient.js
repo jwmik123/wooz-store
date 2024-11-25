@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
+import useCheckoutStore from "../stores/checkoutStore";
 
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
-  const [checkout, setCheckout] = useState(null);
   const { productHandle } = collectionStore();
+  const { checkout, initializeCheckout, addToCart } = useCheckoutStore();
 
   useEffect(() => {
     async function fetchProducts() {
@@ -15,30 +16,8 @@ export default function ProductsClientComponent() {
     }
     fetchProducts();
 
-    async function createCheckout() {
-      const checkout = await client.checkout.create();
-      setCheckout(checkout);
-    }
-    createCheckout();
-  }, [productHandle, setProduct, setCheckout]);
-
-  const addToCart = async (variantId) => {
-    if (!checkout) {
-      console.error("No checkout available");
-      return;
-    }
-
-    const lineItemsToAdd = [{ variantId, quantity: 1 }];
-
-    const newCheckout = await client.checkout
-      .addLineItems(checkout.id, lineItemsToAdd)
-      .then((checkout) => {
-        console.log("Product added to checkout:", checkout.lineItems);
-        return checkout;
-      });
-
-    setCheckout(newCheckout);
-  };
+    initializeCheckout();
+  }, [productHandle, initializeCheckout]);
 
   return (
     <div>
@@ -62,7 +41,7 @@ export default function ProductsClientComponent() {
   );
 }
 
-function ProductItem({ product, addToCart, checkout }) {
+function ProductItem({ product, addToCart }) {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);

@@ -4,6 +4,7 @@ import { Sidebar } from "./components/ui/Sidebar";
 import IntroScreen from "./components/ui/IntroScreen";
 import collectionStore from "./stores/collectionStore";
 import PointsOfInterest from "./three/overlay/Overlay";
+import Cart from "./components/ui/Cart";
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
 
@@ -13,6 +14,7 @@ export default function Home() {
       <Experience />
       <Sidebar />
       <PointsOfInterest />
+      <Cart />
     </main>
   );
 }
