@@ -29,14 +29,6 @@ export default function ProductsClientComponent() {
           checkout={checkout}
         />
       )}
-      {checkout && checkout.webUrl && (
-        <button
-          onClick={() => (window.location.href = checkout.webUrl)}
-          className="p-2 text-white bg-green-500 rounded-lg"
-        >
-          Complete Checkout
-        </button>
-      )}
     </div>
   );
 }
