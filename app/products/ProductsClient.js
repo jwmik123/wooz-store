@@ -12,7 +12,6 @@ export default function ProductsClientComponent() {
     async function fetchProducts() {
       const product = await client.product.fetchByHandle(productHandle);
       setProduct(product);
-      console.log(product); // TODO: remove
     }
     fetchProducts();
 
@@ -134,7 +133,7 @@ function ProductItem({ product, addToCart, checkout }) {
 
   return (
     <>
-      <div className="relative flex flex-col w-full pt-5 space-y-4 text-green-100 font-inter">
+      <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
         <div className="flex justify-between mx-10 mb-5 overflow-hidden space-x-5 h-[600px]">
           <div className="h-full">
             {loading && (
@@ -145,7 +144,7 @@ function ProductItem({ product, addToCart, checkout }) {
             <Image
               src={selectedImage}
               alt={product.title}
-              className="object-cover w-full h-full mb-2"
+              className="object-cover w-full h-full mb-2 rounded-lg"
               quality={75}
               height={500}
               width={500}
@@ -154,13 +153,13 @@ function ProductItem({ product, addToCart, checkout }) {
               onLoad={() => setLoading(false)}
             />
           </div>
-          <div className="flex flex-col w-1/4 gap-2 overflow-y-auto products-scrollbar">
+          <div className="flex flex-col w-1/5 gap-2 overflow-y-auto products-scrollbar">
             {product.images.map((image, index) => (
               <Image
                 key={index}
                 src={image.src}
                 alt={`${product.title} thumbnail ${index + 1}`}
-                className="object-cover w-full cursor-pointer"
+                className="object-cover w-full rounded-lg cursor-pointer aspect-square"
                 quality={50}
                 height={100}
                 onClick={() => setSelectedImage(image.src)}
@@ -171,15 +170,15 @@ function ProductItem({ product, addToCart, checkout }) {
           </div>
         </div>
         <div className="mx-10 font-inter">
-          <h2 className="text-3xl">{product.title}</h2>
-          <h3 className="text-3xl font-medium text-green-500">
+          <h2 className="mb-2 text-3xl">{product.title}</h2>
+          <h3 className="text-xl font-medium text-green-500">
             €{product.variants[0].price.amount.replace("$", "")}0
           </h3>
         </div>
 
         {/* Color selection */}
         <div className="w-full px-10">
-          <label htmlFor="color" className="text-xs font-light">
+          <label htmlFor="color" className="text-base font-light">
             Color: {selectedColor}
           </label>
           <div className="flex mt-1 space-x-4">
@@ -211,7 +210,7 @@ function ProductItem({ product, addToCart, checkout }) {
                     className="hidden"
                   />
                   <span
-                    className={`p-4 border-2 rounded-full cursor-pointer ${selectedColorClass} hover:border-green-500`}
+                    className={`p-4 border-2 rounded-full cursor-pointer border-primary ${selectedColorClass} hover:border-green-500`}
                   ></span>
                 </label>
               );
@@ -221,7 +220,7 @@ function ProductItem({ product, addToCart, checkout }) {
 
         {/* Size selection */}
         <div className="w-full px-10">
-          <label htmlFor="size" className="text-xs font-light">
+          <label htmlFor="size" className="text-base font-light">
             Size: {selectedSize}
           </label>
           <div className="flex w-full gap-2 mt-1">
@@ -244,7 +243,7 @@ function ProductItem({ product, addToCart, checkout }) {
                   } ${
                     selectedSize === size
                       ? "border-green-500 text-green-500"
-                      : "border-white text-white"
+                      : "border-primary text-primary"
                   }`}
                 >
                   {size}

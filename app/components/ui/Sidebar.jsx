@@ -21,16 +21,16 @@ export const Sidebar = () => {
   return (
     <>
       {sidebarOpen && (
-        <div className="sidebar absolute top-0 right-0 w-full h-screen p-5 lg:w-1/2 xl:w-2/5 md:max-w-[650px]">
-          <div className="w-full h-full overflow-x-hidden bg-opacity-50 border rounded-lg sidebar-inner glass border-slate-500 backdrop-blur-md">
-            {/* <div className="w-full h-full overflow-x-hidden bg-white border rounded-lg sidebar-inner border-slate-500"> */}
+        <div className="sidebar absolute top-0 right-0 w-full h-screen  lg:w-1/2 xl:w-2/5 md:max-w-[650px]">
+          {/* <div className="w-full h-full overflow-x-hidden bg-opacity-50 border rounded-lg sidebar-inner glass border-slate-500 backdrop-blur-md"> */}
+          <div className="w-full h-full overflow-x-hidden bg-white sidebar-inner ">
             <div className="flex justify-end mx-10 mt-5">
               <button
                 onClick={closeSidebar}
-                className="flex items-center gap-1 text-green-300"
+                className="flex items-center gap-1 text-primary"
               >
                 {/* <span className="text-base">Go back</span> */}
-                (<X width={20} height={20} />)
+                <X width={20} height={20} />
               </button>
             </div>
             <ProductsClientComponent />

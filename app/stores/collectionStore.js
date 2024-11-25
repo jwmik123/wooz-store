@@ -9,6 +9,7 @@ const collectionStore = create((set) => ({
   setSidebarClose: () => set({ sidebarOpen: false, cameraPosition: [0, 0, 5] }),
   introScreen: true,
   setIntroScreen: (value) => set({ introScreen: value }),
+  setGlobalCheckout: (checkout) => set({ globalCheckout: checkout }),
 }));
 
 export default collectionStore;
