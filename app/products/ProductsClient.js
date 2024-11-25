@@ -168,7 +168,7 @@ function ProductItem({ product, addToCart }) {
               const selectedColorClass =
                 selectedColor === color
                   ? `${colorClass} border-green-500`
-                  : `${colorClass} border-white`;
+                  : `${colorClass} border-primary`;
 
               return (
                 <label key={color} className={`flex items-center`}>
