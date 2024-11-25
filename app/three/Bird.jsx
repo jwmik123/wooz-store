@@ -21,7 +21,7 @@ function Bird(props) {
 
   useFrame(() => {
     const action = actions["Take 001"].play();
-    action.timeScale = 1.2;
+    action.timeScale = 2.5;
   });
 
   return (
@@ -42,7 +42,7 @@ function Bird(props) {
 export default function Birds() {
   const birdsRef = useRef();
   useFrame(() => {
-    birdsRef.current.position.x += 0.02;
+    birdsRef.current.position.x += 0.01;
     if (birdsRef.current.position.x > 20) {
       birdsRef.current.position.x = -20;
     }
