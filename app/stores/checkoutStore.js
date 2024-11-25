@@ -11,11 +11,11 @@ const useCheckoutStore = create((set, get) => ({
     try {
       const { checkout } = get();
 
-      // If we already have a checkout, verify it's still valid
       if (checkout) {
         try {
           const currentCheckout = await client.checkout.fetch(checkout.id);
-          // If the checkout is empty or completed, create a new one
+
+          // if the checkout is empty or completed, create a new one
           if (
             currentCheckout.completedAt ||
             currentCheckout.lineItems.length === 0
@@ -27,7 +27,6 @@ const useCheckoutStore = create((set, get) => ({
           console.log("Existing checkout invalid, creating new one");
         }
       }
-
       // Create a new checkout
       const newCheckout = await client.checkout.create();
       set({ checkout: newCheckout });

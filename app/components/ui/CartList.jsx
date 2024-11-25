@@ -1,7 +1,7 @@
 import React from "react";
 import useCheckoutStore from "../../stores/checkoutStore";
 import Image from "next/image";
-
+import { Plus, Minus, Trash2 } from "lucide-react";
 const CartList = () => {
   const { checkout, updateQuantity, removeFromCart } = useCheckoutStore();
 
@@ -14,7 +14,7 @@ const CartList = () => {
   }
 
   return (
-    <div className="p-5">
+    <div className="h-full p-5">
       <h2 className="mb-6 text-2xl font-bold text-primary">Your Cart</h2>
       <div className="flex flex-col gap-4 divide-y divide-gray-200">
         {checkout.lineItems.map((item) => {
@@ -43,16 +43,31 @@ const CartList = () => {
                   {sizeOption && <p>Size: {sizeOption.value}</p>}
                 </div>
               </div>
-              <div className="text-lg font-medium text-primary">
-                {item.quantity}x
+              <div className="flex items-center gap-2 text-lg font-medium text-primary">
+                {item.quantity === 1 ? (
+                  <Trash2
+                    className="p-1 rounded-full cursor-pointer w-7 h-7 hover:bg-gray-200"
+                    onClick={() => removeFromCart(item.id)}
+                  />
+                ) : (
+                  <Minus
+                    className="p-1 rounded-full cursor-pointer w-7 h-7 hover:bg-gray-200"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  />
+                )}
+                {item.quantity}
+                <Plus
+                  className="p-1 rounded-full cursor-pointer w-7 h-7 hover:bg-gray-200"
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                />
               </div>
             </div>
           );
         })}
       </div>
-      <div className="flex justify-end mt-6">
+      <div className="flex w-full mt-10">
         <button
-          className="px-4 py-2 text-white rounded-lg bg-primary"
+          className="w-full px-4 py-2 text-white rounded-lg bg-primary"
           onClick={() => (window.location.href = checkout.webUrl)}
         >
           Checkout
