@@ -3,7 +3,7 @@ import { create } from "zustand";
 import client from "@/lib/shopify";
 
 const useCheckoutStore = create((set, get) => ({
-  checkout: JSON.parse(localStorage.getItem("checkout")),
+  checkout: null,
   isLoading: false,
   error: null,
 
@@ -30,7 +30,6 @@ const useCheckoutStore = create((set, get) => ({
       // Create a new checkout
       const newCheckout = await client.checkout.create();
       set({ checkout: newCheckout });
-      localStorage.setItem("checkout", JSON.stringify(newCheckout));
     } catch (error) {
       set({ error: error.message });
     }
