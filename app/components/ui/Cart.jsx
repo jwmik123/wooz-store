@@ -15,7 +15,7 @@ const Cart = () => {
       }}
     >
       <ShoppingCart width={20} height={20} />
-      {checkout && (
+      {checkout && checkout.lineItems.length > 0 && (
         <span className="absolute -top-3 -right-3 px-2.5 py-1 text-xs text-white bg-red-500 rounded-full">
           {checkout.lineItems.length}
         </span>

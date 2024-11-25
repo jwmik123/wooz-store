@@ -4,8 +4,6 @@ import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
 import { LoaderCircle } from "lucide-react";
 
-import gsap from "gsap";
-
 const IntroScreen = () => {
   const { progress } = useProgress();
   const setIntroScreen = collectionStore((state) => state.setIntroScreen);
@@ -60,7 +58,7 @@ const IntroScreen = () => {
         >
           <div className="flex flex-col items-center gap-2">
             <LoaderCircle className="w-10 h-10 animate-spin" />
-            <span className="text-2xl">{progress.toFixed(0) + "%"}</span>
+            <span className="text-2xl">{progress}</span>
           </div>
         </div>
       )}
