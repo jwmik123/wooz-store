@@ -3,7 +3,8 @@ import useCheckoutStore from "../../stores/checkoutStore";
 import Image from "next/image";
 import { Plus, Minus, Trash2 } from "lucide-react";
 const CartList = () => {
-  const { checkout, updateQuantity, removeFromCart } = useCheckoutStore();
+  const { checkout, updateQuantity, removeFromCart, clearCheckout } =
+    useCheckoutStore();
 
   if (!checkout || !checkout.lineItems.length) {
     return (
@@ -68,7 +69,10 @@ const CartList = () => {
       <div className="flex w-full mt-10">
         <button
           className="w-full px-4 py-2 text-white rounded-lg bg-primary"
-          onClick={() => (window.location.href = checkout.webUrl)}
+          onClick={() => {
+            window.location.href = checkout.webUrl;
+            clearCheckout();
+          }}
         >
           Checkout
         </button>

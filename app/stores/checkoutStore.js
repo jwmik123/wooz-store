@@ -2,15 +2,24 @@
 import { create } from "zustand";
 import client from "@/lib/shopify";
 
+const STORAGE_KEY = "shopify_checkout";
+
+const getStoredCheckout = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return null;
+  }
+};
+
 const useCheckoutStore = create((set, get) => ({
-  checkout: null,
+  checkout: getStoredCheckout(),
   isLoading: false,
   error: null,
 
   initializeCheckout: async () => {
     try {
       const { checkout } = get();
-
       if (checkout) {
         try {
           const currentCheckout = await client.checkout.fetch(checkout.id);
@@ -23,12 +32,13 @@ const useCheckoutStore = create((set, get) => ({
             throw new Error("Checkout expired or empty");
           }
           return;
-        } catch (error) {
-          console.log("Existing checkout invalid, creating new one");
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
       // Create a new checkout
       const newCheckout = await client.checkout.create();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
       set({ checkout: newCheckout });
     } catch (error) {
       set({ error: error.message });
@@ -52,6 +62,7 @@ const useCheckoutStore = create((set, get) => ({
         lineItemsToAdd
       );
 
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
       set({ checkout: newCheckout, isLoading: false });
       return newCheckout;
     } catch (error) {
@@ -74,6 +85,7 @@ const useCheckoutStore = create((set, get) => ({
       const newCheckout = await client.checkout.removeLineItems(checkout.id, [
         lineItemId,
       ]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
       set({ checkout: newCheckout, isLoading: false });
     } catch (error) {
       set({ error: error.message, isLoading: false });
@@ -92,10 +104,16 @@ const useCheckoutStore = create((set, get) => ({
           quantity,
         },
       ]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
       set({ checkout: newCheckout, isLoading: false });
     } catch (error) {
       set({ error: error.message, isLoading: false });
     }
+  },
+
+  clearCheckout: () => {
+    localStorage.removeItem(STORAGE_KEY);
+    set({ checkout: null });
   },
 }));
 
