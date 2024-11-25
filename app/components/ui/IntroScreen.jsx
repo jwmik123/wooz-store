@@ -56,9 +56,9 @@ const IntroScreen = () => {
             fadeOut ? "opacity-0" : "opacity-100"
           }`}
         >
-          <div className="flex flex-col items-center gap-2">
-            <LoaderCircle className="w-10 h-10 animate-spin" />
-            <span className="text-2xl">{progress}</span>
+          <div className="absolute flex flex-col items-center gap-2 bottom-10 right-10">
+            {/* <LoaderCircle className="w-10 h-10 animate-spin" /> */}
+            <span className="text-9xl">{progress.toFixed(0)}%</span>
           </div>
         </div>
       )}
