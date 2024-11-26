@@ -52,7 +52,7 @@ const NODE_NAMES = {
   hoodie: "Hoodie",
 };
 
-export default function StudioNew(props) {
+export default function StudioNew({ showDebug, ...props }) {
   const orbitControlsRef = useRef();
   const [mouse] = useState(() => ({ x: 0, y: 0 }));
   const [targetCameraPosition, setTargetCameraPosition] = useState(
@@ -204,9 +204,9 @@ export default function StudioNew(props) {
     <>
       <OrbitControls
         ref={orbitControlsRef}
-        enableZoom={window.location.hash === "#debug"}
-        enablePan={window.location.hash === "#debug"}
-        enableRotate={window.location.hash === "#debug"}
+        enableZoom={showDebug}
+        enablePan={showDebug}
+        enableRotate={showDebug}
       />
       <group
         {...props}

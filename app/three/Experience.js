@@ -1,8 +1,8 @@
 "use client";
 
 import * as THREE from "three";
-import { useRef, useEffect } from "react";
-import { Center, Clouds, Cloud, StatsGl, Environment } from "@react-three/drei";
+import { useRef, useEffect, useState } from "react";
+import { Center, Clouds, Cloud, StatsGl } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";
 
@@ -11,6 +11,7 @@ import StudioNew from "./StudioNew";
 import Birds from "./Bird";
 
 export default function Experience() {
+  const [showDebug, setShowDebug] = useState(false);
   const ref = useRef();
   const { color, x, y, z, range, ...config } = useControls({
     seed: { value: 1, min: 1, max: 100, step: 1 },
@@ -45,6 +46,21 @@ export default function Experience() {
     }, 1000);
   }, []);
 
+  useEffect(() => {
+    const checkHash = () => {
+      setShowDebug(window.location.hash === "#debug");
+    };
+
+    // Check initially
+    checkHash();
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", checkHash);
+
+    // Cleanup
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
+
   return (
     <>
       <Canvas
@@ -56,10 +72,10 @@ export default function Experience() {
           depth: true,
         }}
       >
-        {window.location.hash === "#debug" && <StatsGl />}
+        {showDebug && <StatsGl />}
         <Birds />
         <Center>
-          <StudioNew />
+          <StudioNew showDebug={showDebug} />
         </Center>
         <Smoke />
         <group ref={ref}>
