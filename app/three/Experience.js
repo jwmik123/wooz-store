@@ -56,7 +56,7 @@ export default function Experience() {
           depth: true,
         }}
       >
-        <StatsGl />
+        {window.location.hash === "#debug" && <StatsGl />}
         <Birds />
         <Center>
           <StudioNew />

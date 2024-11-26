@@ -204,9 +204,9 @@ export default function StudioNew(props) {
     <>
       <OrbitControls
         ref={orbitControlsRef}
-        enableZoom={false}
-        enablePan={false}
-        enableRotate={false}
+        enableZoom={window.location.hash === "#debug"}
+        enablePan={window.location.hash === "#debug"}
+        enableRotate={window.location.hash === "#debug"}
       />
       <group
         {...props}

@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
-import { LoaderCircle } from "lucide-react";
 
 const IntroScreen = () => {
   const { progress } = useProgress();
@@ -57,7 +56,6 @@ const IntroScreen = () => {
           }`}
         >
           <div className="absolute flex flex-col items-center gap-2 bottom-10 right-10">
-            {/* <LoaderCircle className="w-10 h-10 animate-spin" /> */}
             <span className="text-9xl">{progress.toFixed(0)}%</span>
           </div>
         </div>
