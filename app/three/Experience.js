@@ -67,7 +67,6 @@ export default function Experience() {
         style={{ width: "100%", height: "100%" }}
         camera={{ position: [0, 1, 20], fov: 55 }}
         gl={{
-          toneMapping: THREE.ACESFilmicToneMapping,
           antialias: true,
           depth: true,
         }}
