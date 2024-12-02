@@ -7,10 +7,10 @@ import useCheckoutStore from "../stores/checkoutStore";
 // New function to preload images
 function preloadImage(src) {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.src = src;
+    const img = document.createElement("img");
     img.onload = resolve;
     img.onerror = reject;
+    img.src = src;
   });
 }
 
@@ -195,7 +195,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                 "Dark grey/Taupe": "bg-gray-600",
                 "Light grey": "bg-gray-300",
                 "Light Grey Melange": "bg-gray-200",
-                "Light green": "bg-[#B9BD8C]",
+                "Sage Green": "bg-[#B9BD8C]",
                 Green: "bg-green-700",
                 Navy: "bg-blue-900",
                 Blue: "bg-blue-800",
