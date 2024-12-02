@@ -72,6 +72,7 @@ export default function Experience() {
         }}
       >
         {showDebug && <StatsGl />}
+
         <Birds />
         <Center>
           <StudioNew showDebug={showDebug} />

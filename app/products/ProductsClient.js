@@ -4,18 +4,41 @@ import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
 
+// New function to preload images
+function preloadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = resolve;
+    img.onerror = reject;
+  });
+}
+
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
+  const [imagesPreloaded, setImagesPreloaded] = useState(false);
   const { productHandle } = collectionStore();
   const { checkout, initializeCheckout, addToCart } = useCheckoutStore();
 
   useEffect(() => {
-    async function fetchProducts() {
-      const product = await client.product.fetchByHandle(productHandle);
-      setProduct(product);
-    }
-    fetchProducts();
+    async function fetchAndPreloadProducts() {
+      try {
+        const product = await client.product.fetchByHandle(productHandle);
+        setProduct(product);
 
+        // Preload all product images in parallel
+        if (product && product.images.length > 0) {
+          await Promise.all(
+            product.images.map((image) => preloadImage(image.src))
+          );
+          setImagesPreloaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching or preloading:", error);
+      }
+    }
+
+    fetchAndPreloadProducts();
     initializeCheckout();
   }, [productHandle, initializeCheckout]);
 
@@ -27,17 +50,18 @@ export default function ProductsClientComponent() {
           product={product}
           addToCart={addToCart}
           checkout={checkout}
+          imagesPreloaded={imagesPreloaded}
         />
       )}
     </div>
   );
 }
 
-function ProductItem({ product, addToCart }) {
+function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!imagesPreloaded);
 
   const colors = [
     ...new Set(
@@ -57,9 +81,18 @@ function ProductItem({ product, addToCart }) {
           variant.selectedOptions.find((opt) => opt.name === "Color")?.value ===
           selectedColor
       )?.image?.src;
-      setSelectedImage(colorVariantImage);
+      if (colorVariantImage) {
+        setSelectedImage(colorVariantImage);
+      }
     }
-  }, [selectedColor, product.images, product.variants]);
+  }, [selectedColor, product.variants]);
+
+  // Set loading to false when images are preloaded
+  useEffect(() => {
+    if (imagesPreloaded) {
+      setLoading(false);
+    }
+  }, [imagesPreloaded]);
 
   const sizes = [
     ...new Set(
@@ -105,7 +138,7 @@ function ProductItem({ product, addToCart }) {
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
-        <div className="flex justify-between mx-10 mb-5 overflow-hidden space-x-5 h-[600px]">
+        <div className="flex justify-between mx-10 mb-5 space-x-5 overflow-hidden h-[40rem]">
           <div className="h-full">
             {loading && (
               <div className="absolute top-[280px] left-[30%] flex items-center justify-center">
@@ -133,13 +166,15 @@ function ProductItem({ product, addToCart }) {
                 className="object-cover w-full rounded-lg cursor-pointer aspect-square"
                 quality={50}
                 height={100}
-                onClick={() => setSelectedImage(image.src)}
                 width={100}
+                onClick={() => setSelectedImage(image.src)}
                 placeholder="empty"
+                priority={index < 4} // Prioritize loading first 4 thumbnails
               />
             ))}
           </div>
         </div>
+        {/* Rest of the component remains the same */}
         <div className="mx-10 font-inter">
           <h2 className="mb-2 text-3xl">{product.title}</h2>
           <h3 className="text-xl font-medium text-green-500">
@@ -157,7 +192,10 @@ function ProductItem({ product, addToCart }) {
               const colorClass = {
                 Black: "bg-black",
                 Brown: "bg-brown",
+                "Dark grey/Taupe": "bg-gray-600",
                 "Light grey": "bg-gray-300",
+                "Light Grey Melange": "bg-gray-200",
+                "Light green": "bg-[#B9BD8C]",
                 Green: "bg-green-700",
                 Navy: "bg-blue-900",
                 Blue: "bg-blue-800",
@@ -231,9 +269,9 @@ function ProductItem({ product, addToCart }) {
       <div className="sticky bottom-0 flex items-center justify-center w-full px-5 pb-5">
         <button
           onClick={handleAddToCart}
-          className={`w-full text-black font-bold transition-colors duration-200 bg-green-100 hover:text-white hover:bg-green-500 border-4 border-green-500 rounded-lg  p-4 text-lg ${
+          className={`w-full text-black font-bold transition-colors duration-200 bg-green-100 hover:text-white hover:bg-green-500 border-4 border-green-500 rounded-lg p-4 text-lg ${
             !selectedColor || !selectedSize
-              ? " cursor-not-allowed opacity-50"
+              ? "cursor-not-allowed opacity-50"
               : ""
           }`}
           disabled={!selectedColor || !selectedSize}
