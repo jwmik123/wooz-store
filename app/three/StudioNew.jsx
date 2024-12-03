@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-
 import * as THREE from "three";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import { useLoader, useFrame } from "@react-three/fiber";
@@ -14,36 +13,10 @@ import {
   hoodieConfig,
 } from "./assets/clothingConfig";
 import collectionStore from "../stores/collectionStore";
+import useCameraStore from "../stores/cameraStore";
 
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
-
-const CAMERA_POSITIONS = {
-  longsleeve: {
-    position: new THREE.Vector3(0, -0.7, 1.2),
-    target: new THREE.Vector3(3.4, -1, -1.1),
-  },
-  polo: {
-    position: new THREE.Vector3(0.15, -0.8, -0.45),
-    target: new THREE.Vector3(4.6, -1, -4),
-  },
-  splatter: {
-    position: new THREE.Vector3(-0.1, -0.6, -0.8),
-    target: new THREE.Vector3(-1, -1, -2),
-  },
-  hoodie: {
-    position: new THREE.Vector3(0.5, -0.6, -1),
-    target: new THREE.Vector3(0, -1, -5),
-  },
-  default: {
-    position: new THREE.Vector3(0, 0, 5),
-    target: new THREE.Vector3(0, 0, 0),
-  },
-  intro: {
-    position: new THREE.Vector3(0, 0, 20),
-    target: new THREE.Vector3(0, 0, 0),
-  },
-};
 
 const NODE_NAMES = {
   longsleeve: "Longsleeve",
@@ -55,12 +28,14 @@ const NODE_NAMES = {
 export default function StudioNew({ showDebug, ...props }) {
   const orbitControlsRef = useRef();
   const [mouse] = useState(() => ({ x: 0, y: 0 }));
-  const [targetCameraPosition, setTargetCameraPosition] = useState(
-    new THREE.Vector3()
-  );
-  const [targetCameraTarget, setTargetCameraTarget] = useState(
-    new THREE.Vector3()
-  );
+
+  // Get camera state and methods from camera store
+  const {
+    targetCameraPosition,
+    targetCameraTarget,
+    updateCameraConfig,
+    resetCamera,
+  } = useCameraStore();
 
   const { nodes } = useGLTF("/models/studio.glb");
   const bakedFinalTexture = useLoader(
@@ -86,20 +61,7 @@ export default function StudioNew({ showDebug, ...props }) {
 
   useEffect(() => {
     if (!sidebarOpen && orbitControlsRef.current) {
-      const defaultConfig = introScreen
-        ? CAMERA_POSITIONS.intro
-        : CAMERA_POSITIONS.default;
-
-      // Use a temporary Vector3 for the position and target
-      const newTargetCameraPosition = new THREE.Vector3().copy(
-        defaultConfig.position
-      );
-      const newTargetCameraTarget = new THREE.Vector3().copy(
-        defaultConfig.target
-      );
-
-      setTargetCameraPosition(newTargetCameraPosition);
-      setTargetCameraTarget(newTargetCameraTarget);
+      resetCamera(introScreen);
     }
 
     if (!sidebarOpen) {
@@ -107,11 +69,10 @@ export default function StudioNew({ showDebug, ...props }) {
         point.classList.add("visible");
       });
     }
-  }, [sidebarOpen, introScreen]);
+  }, [sidebarOpen, introScreen, resetCamera]);
 
   useEffect(() => {
     const updateMouse = (event) => {
-      // Convert mouse coordinates to normalized device coordinates (-1 to +1)
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     };
@@ -139,14 +100,7 @@ export default function StudioNew({ showDebug, ...props }) {
 
     if (!orbitControlsRef.current) return;
 
-    const cameraConfig = CAMERA_POSITIONS[type];
-    const newTargetCameraPosition = new THREE.Vector3().copy(
-      cameraConfig.position
-    );
-    const newTargetCameraTarget = new THREE.Vector3().copy(cameraConfig.target);
-
-    setTargetCameraPosition(newTargetCameraPosition);
-    setTargetCameraTarget(newTargetCameraTarget);
+    updateCameraConfig(type);
 
     setTimeout(() => {
       setSidebarOpen(true);
@@ -154,10 +108,19 @@ export default function StudioNew({ showDebug, ...props }) {
   };
 
   useFrame(({ camera }) => {
-    // Lerp camera position and target
+    const lerpSpeed = 0.04;
     if (orbitControlsRef.current) {
-      orbitControlsRef.current.object.position.lerp(targetCameraPosition, 0.02);
-      orbitControlsRef.current.target.lerp(targetCameraTarget, 0.02);
+      orbitControlsRef.current.object.position.lerp(
+        targetCameraPosition,
+        lerpSpeed
+      );
+      if (targetCameraPosition.equals(new THREE.Vector3(0, 0, 5))) {
+        orbitControlsRef.current.target.lerp(
+          new THREE.Vector3(mouse.x * 0.4, mouse.y * 0.1, 5),
+          0.02
+        );
+      }
+      orbitControlsRef.current.target.lerp(targetCameraTarget, lerpSpeed);
       orbitControlsRef.current.update();
     }
 
@@ -173,11 +136,6 @@ export default function StudioNew({ showDebug, ...props }) {
         point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
     }
-    // Show camera x, y, z position
-    // const cameraPosition = camera.position;
-    // console.log(
-    //   `Camera Position - x: ${cameraPosition.x}, y: ${cameraPosition.y}, z: ${cameraPosition.z}`
-    // );
   });
 
   // Handle points for labels/annotations
