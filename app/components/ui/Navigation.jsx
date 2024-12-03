@@ -46,7 +46,7 @@ const Navigation = () => {
   if (!productHandle) return null;
 
   return (
-    <div className="fixed flex items-center justify-between w-1/4 transform -translate-x-1/2 bottom-4 left-1/2">
+    <div className="fixed flex items-center justify-between w-[150px] transform -translate-x-1/2 bottom-4 left-1/2">
       <button
         className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary "
         onClick={() => handleNavigation("prev")}

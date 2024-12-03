@@ -104,7 +104,7 @@ export default function StudioNew({ showDebug, ...props }) {
 
     setTimeout(() => {
       setSidebarOpen(true);
-    }, 500);
+    }, 100);
   };
 
   useFrame(({ camera }) => {
