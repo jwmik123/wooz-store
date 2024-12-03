@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import * as THREE from "three";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import { useLoader, useFrame } from "@react-three/fiber";
@@ -114,6 +114,7 @@ export default function StudioNew({ showDebug, ...props }) {
         targetCameraPosition,
         lerpSpeed
       );
+      // If the camera is in the default position, move the target towards the mouse
       if (targetCameraPosition.equals(new THREE.Vector3(0, 0, 5))) {
         orbitControlsRef.current.target.lerp(
           new THREE.Vector3(mouse.x * 0.4, mouse.y * 0.1, 5),
@@ -139,24 +140,27 @@ export default function StudioNew({ showDebug, ...props }) {
   });
 
   // Handle points for labels/annotations
-  const points = [
-    {
-      position: new THREE.Vector3(0, -1, -3),
-      element: document.querySelector(".point-0"),
-    },
-    {
-      position: new THREE.Vector3(-1.2, -1, -1.8),
-      element: document.querySelector(".point-1"),
-    },
-    {
-      position: new THREE.Vector3(1.1, -1, -1.8),
-      element: document.querySelector(".point-2"),
-    },
-    {
-      position: new THREE.Vector3(1.4, -1, -0.4),
-      element: document.querySelector(".point-3"),
-    },
-  ];
+  const points = useMemo(
+    () => [
+      {
+        position: new THREE.Vector3(0, -1, -3),
+        element: document.querySelector(".point-0"),
+      },
+      {
+        position: new THREE.Vector3(-1.2, -1, -1.8),
+        element: document.querySelector(".point-1"),
+      },
+      {
+        position: new THREE.Vector3(1.1, -1, -1.8),
+        element: document.querySelector(".point-2"),
+      },
+      {
+        position: new THREE.Vector3(1.4, -1, -0.4),
+        element: document.querySelector(".point-3"),
+      },
+    ],
+    []
+  );
 
   return (
     <>

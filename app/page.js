@@ -5,6 +5,7 @@ import IntroScreen from "./components/ui/IntroScreen";
 import collectionStore from "./stores/collectionStore";
 import PointsOfInterest from "./three/overlay/Overlay";
 import Cart from "./components/ui/Cart";
+import Navigation from "./components/ui/Navigation";
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
 
@@ -15,6 +16,7 @@ export default function Home() {
       <Sidebar />
       <PointsOfInterest />
       <Cart />
+      <Navigation />
     </main>
   );
 }
