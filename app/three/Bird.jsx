@@ -12,16 +12,18 @@ import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 
-function Bird(props) {
+function Bird({ timeOffset = 0, ...props }) {
   const group = useRef();
   const { scene, animations } = useGLTF("/models/bird.glb");
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone);
   const { actions } = useAnimations(animations, group);
 
-  useFrame(() => {
-    const action = actions["Take 001"].play();
-    action.timeScale = 2.5;
+  useFrame(({ clock }) => {
+    const action = actions["Take 001"];
+    action.time =
+      ((clock.elapsedTime + timeOffset) % action.getClip().duration) * 2.5;
+    action.play();
   });
 
   return (
@@ -42,16 +44,25 @@ function Bird(props) {
 export default function Birds() {
   const birdsRef = useRef();
   useFrame(() => {
-    birdsRef.current.position.x += 0.01;
+    birdsRef.current.position.x += 0.02;
     if (birdsRef.current.position.x > 20) {
       birdsRef.current.position.x = -20;
     }
   });
   return (
     <group ref={birdsRef} rotation={[0, Math.PI / 2, 0]} position={[0, 5, -10]}>
-      <Bird position={[Math.random() * 5, 0, Math.random() * 5, 0]} />
-      <Bird position={[Math.random() * 5 - 2, Math.random() * 5 - 2, 0]} />
-      <Bird position={[Math.random() * 5 - 1, Math.random() * 5 - 1, 0]} />
+      <Bird
+        timeOffset={0}
+        position={[Math.random() * 5, 0, Math.random() * 5, 0]}
+      />
+      <Bird
+        timeOffset={0.33}
+        position={[Math.random() * 5 - 2, Math.random() * 5 - 2, 0]}
+      />
+      <Bird
+        timeOffset={0.66}
+        position={[Math.random() * 5 - 1, Math.random() * 5 - 1, 0]}
+      />
     </group>
   );
 }
