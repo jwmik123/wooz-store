@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
-
+import SmoothProgress from "./SmoothProgress";
 const IntroScreen = () => {
   const { progress } = useProgress();
   const setIntroScreen = collectionStore((state) => state.setIntroScreen);
@@ -43,7 +43,7 @@ const IntroScreen = () => {
 
             <button
               onClick={handleButtonClick}
-              className="px-6 py-3 mt-12 text-white uppercase transition-all duration-200 border-2 border-white rounded-lg hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
+              className="px-6 py-3 mt-12 text-white uppercase transition-opacity duration-200 border-2 border-white rounded-lg hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
             >
               Start Experience
             </button>
@@ -51,12 +51,12 @@ const IntroScreen = () => {
         </div>
       ) : (
         <div
-          className={`fixed font-libre inset-0 z-50 bg-white flex items-center justify-center transition-opacity duration-1000 ${
+          className={`fixed font-libre inset-0 z-50 bg-white flex items-center justify-center transition-opacity duration-300 ${
             fadeOut ? "opacity-0" : "opacity-100"
           }`}
         >
-          <div className="absolute flex flex-col items-center gap-2 bottom-10 right-10">
-            <span className="text-9xl">{progress.toFixed(0)}%</span>
+          <div className="absolute flex flex-col items-center justify-center gap-2">
+            <SmoothProgress actualProgress={progress} />
           </div>
         </div>
       )}

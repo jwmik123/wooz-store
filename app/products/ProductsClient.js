@@ -63,6 +63,8 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
   const [loading, setLoading] = useState(!imagesPreloaded);
 
+  console.log(product);
+
   const colors = [
     ...new Set(
       product.variants
@@ -138,7 +140,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
-        <div className="flex justify-between mx-10 mb-5 space-x-5 overflow-hidden h-[40rem]">
+        <div className="flex justify-between mx-10 mb-5 space-x-5 overflow-hidden h-[31rem] xl:h-[500px]">
           <div className="h-full">
             {loading && (
               <div className="absolute top-[280px] left-[30%] flex items-center justify-center">
@@ -148,7 +150,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
             <Image
               src={selectedImage}
               alt={product.title}
-              className="object-cover w-full h-full mb-2 rounded-lg"
+              className="object-cover w-full rounded-lg"
               quality={75}
               height={500}
               width={500}
@@ -157,7 +159,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               onLoad={() => setLoading(false)}
             />
           </div>
-          <div className="flex flex-col w-1/5 gap-2 overflow-y-auto products-scrollbar">
+          <div className="flex flex-col w-2/5 gap-2 overflow-y-auto products-scrollbar">
             {product.images.map((image, index) => (
               <Image
                 key={index}
@@ -260,29 +262,31 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               </label>
             ))}
           </div>
-          <div className="my-24">
+          <button
+            onClick={handleAddToCart}
+            disabled={!selectedColor || !selectedSize}
+            className={`w-full font-bold bg-primary transition-colors duration-200 
+              hover:bg-white hover:text-primary border border-primary 
+              text-white rounded-lg mt-4 mb-6 p-4 text-lg
+              ${
+                !selectedColor || !selectedSize
+                  ? "opacity-50 pointer-events-none"
+                  : ""
+              }
+              `}
+          >
+            <div className="text-center uppercase">Add To Cart</div>
+          </button>
+          <div>
             <h3 className="text-lg font-bold">Description:</h3>
-            <p className="text-base">{product.description}</p>
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+            />
           </div>
         </div>
       </div>
-      <div className="sticky bottom-0 flex items-center justify-center w-full px-5 pb-5">
-        <button
-          onClick={handleAddToCart}
-          className={`w-full text-black font-bold transition-colors duration-200 bg-green-100 hover:text-white hover:bg-green-500 border-4 border-green-500 rounded-lg p-4 text-lg ${
-            !selectedColor || !selectedSize
-              ? "cursor-not-allowed opacity-50"
-              : ""
-          }`}
-          disabled={!selectedColor || !selectedSize}
-        >
-          <div className="text-center uppercase">
-            {!selectedColor || !selectedSize
-              ? "Select color and size"
-              : "Add to Cart"}
-          </div>
-        </button>
-      </div>
+      <div className="sticky bottom-0 flex items-center justify-center w-full px-5 pb-5"></div>
     </>
   );
 }

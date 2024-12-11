@@ -38,7 +38,7 @@ export const Sidebar = () => {
   return (
     <div
       ref={sidebarRef}
-      className="sidebar fixed top-0 right-0 w-full h-screen lg:w-1/2 xl:w-2/5 md:max-w-[650px] bg-white transform translate-x-full"
+      className="sidebar fixed top-0 right-0 w-full h-screen lg:w-1/2 xl:w-2/5 md:max-w-[550px] bg-white transform translate-x-full"
     >
       <div className="w-full h-full overflow-x-hidden sidebar-inner">
         <div className="flex justify-end mx-10 mt-5">

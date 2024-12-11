@@ -58,6 +58,7 @@ export default function StudioNew({ showDebug, ...props }) {
   const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
   const sidebarOpen = collectionStore((state) => state.sidebarOpen);
   const introScreen = collectionStore((state) => state.introScreen);
+  const setCartOpen = collectionStore((state) => state.setCartOpen);
 
   useEffect(() => {
     if (!sidebarOpen && orbitControlsRef.current) {
@@ -190,7 +191,10 @@ export default function StudioNew({ showDebug, ...props }) {
               <group
                 onPointerOver={handlePointerOver}
                 onPointerOut={handlePointerOut}
-                onClick={() => handleCollectionClick(type)}
+                onClick={() => {
+                  handleCollectionClick(type);
+                  setCartOpen(false);
+                }}
               >
                 {config.map(({ color, position, rotation }, index) => {
                   const nodeName = `${NODE_NAMES[type]}_${color}_High002`;

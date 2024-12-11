@@ -67,6 +67,14 @@ const CartList = () => {
         })}
       </div>
       <div className="flex w-full mt-10">
+        <div className="flex-1 text-lg font-semibold text-primary">
+          Total: $
+          {checkout.lineItems
+            .reduce((total, item) => {
+              return total + item.variant.price * item.quantity;
+            }, 0)
+            .toFixed(2)}
+        </div>
         <button
           className="w-full px-4 py-2 text-white rounded-lg bg-primary"
           onClick={() => {
