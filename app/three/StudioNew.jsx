@@ -113,55 +113,6 @@ export default function StudioNew({ showDebug, ...props }) {
       navigator.userAgent
     );
   };
-  // Move viewport handling to a dedicated hook
-  const useViewportHandling = () => {
-    const [viewportSize, setViewportSize] = useState({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      visualHeight: window.innerHeight,
-    });
-
-    const updateViewportSize = useCallback(() => {
-      const height = window.visualViewport
-        ? window.visualViewport.height
-        : window.innerHeight;
-
-      setViewportSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        visualHeight: height,
-      });
-    }, []);
-
-    useEffect(() => {
-      updateViewportSize();
-
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", updateViewportSize);
-        window.visualViewport.addEventListener("scroll", updateViewportSize);
-      }
-
-      window.addEventListener("resize", updateViewportSize);
-
-      return () => {
-        if (window.visualViewport) {
-          window.visualViewport.removeEventListener(
-            "resize",
-            updateViewportSize
-          );
-          window.visualViewport.removeEventListener(
-            "scroll",
-            updateViewportSize
-          );
-        }
-        window.removeEventListener("resize", updateViewportSize);
-      };
-    }, [updateViewportSize]);
-
-    return viewportSize;
-  };
-
-  const viewportSize = useViewportHandling();
 
   useFrame(({ camera }) => {
     const lerpSpeed = 0.04;
@@ -187,19 +138,14 @@ export default function StudioNew({ showDebug, ...props }) {
         const screenPosition = point.position.clone();
         screenPosition.project(camera);
 
-        const translateX = (screenPosition.x * viewportSize.width) / 2;
-
-        // Calculate Y position using visual viewport height
-        const baseTranslateY =
-          -(screenPosition.y * viewportSize.visualHeight) / 2;
+        const translateX = (screenPosition.x * window.innerWidth) / 2;
+        const translateY = -(screenPosition.y * window.innerHeight) / 2;
 
         // Apply dynamic offset based on viewport differences
-        const viewportOffset = isMobile()
-          ? (window.innerHeight - viewportSize.visualHeight) / 2
-          : 0;
+        const viewportOffset = isMobile() ? -20 : 0;
 
         point.element.style.transform = `translateX(${translateX}px) translateY(${
-          baseTranslateY - viewportOffset
+          translateY - viewportOffset
         }px)`;
       }
     }
