@@ -140,6 +140,13 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
+        {/* Rest of the component remains the same */}
+        <div className="mx-10 font-inter">
+          <h2 className="mb-2 text-3xl">{product.title}</h2>
+          <h3 className="text-xl font-medium text-black">
+            €{product.variants[0].price.amount.replace("$", "")}0
+          </h3>
+        </div>
         <div className="flex justify-between mx-10 mb-5 space-x-5 overflow-hidden h-[31rem] xl:h-[500px]">
           <div className="h-full">
             {loading && (
@@ -175,13 +182,6 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               />
             ))}
           </div>
-        </div>
-        {/* Rest of the component remains the same */}
-        <div className="mx-10 font-inter">
-          <h2 className="mb-2 text-3xl">{product.title}</h2>
-          <h3 className="text-xl font-medium text-green-500">
-            €{product.variants[0].price.amount.replace("$", "")}0
-          </h3>
         </div>
 
         {/* Color selection */}
@@ -269,7 +269,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
           <button
             onClick={handleAddToCart}
             disabled={!selectedColor || !selectedSize}
-            className={`w-full font-bold bg-primary transition-colors duration-200 
+            className={`w-full  bg-primary transition-colors duration-200 
               hover:bg-white hover:text-primary border border-primary 
               text-white rounded-lg mt-4 mb-6 p-4 text-lg
               ${
