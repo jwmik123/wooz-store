@@ -141,16 +141,16 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
         {/* Rest of the component remains the same */}
-        <div className="mx-10 font-inter">
+        <div className="flex items-center justify-between mx-10 font-inter">
           <h2 className="mb-2 text-3xl">{product.title}</h2>
           <h3 className="text-xl font-medium text-black">
             €{product.variants[0].price.amount.replace("$", "")}0
           </h3>
         </div>
-        <div className="flex justify-between mx-10 mb-5 space-x-5 overflow-hidden h-[31rem] xl:h-[500px]">
-          <div className="h-full">
+        <div className="flex flex-col justify-between mx-4 mb-5 space-y-4 overflow-hidden md:h-[31.5rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
+          <div className="w-full h-full md:w-auto">
             {loading && (
-              <div className="absolute top-[280px] left-[30%] flex items-center justify-center">
+              <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
                 <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
               </div>
             )}
@@ -166,19 +166,19 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               onLoad={() => setLoading(false)}
             />
           </div>
-          <div className="flex flex-col w-2/5 gap-2 overflow-y-auto products-scrollbar">
+          <div className="flex flex-row w-full gap-2 overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
             {product.images.map((image, index) => (
               <Image
                 key={index}
                 src={image.src}
                 alt={`${product.title} thumbnail ${index + 1}`}
-                className="object-cover w-full rounded-lg cursor-pointer aspect-square"
+                className="flex-shrink-0 object-cover w-24 rounded-lg cursor-pointer md:w-full aspect-square"
                 quality={50}
                 height={100}
                 width={100}
                 onClick={() => setSelectedImage(image.src)}
                 placeholder="empty"
-                priority={index < 4} // Prioritize loading first 4 thumbnails
+                priority={index < 4}
               />
             ))}
           </div>
@@ -221,7 +221,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                     className="hidden"
                   />
                   <span
-                    className={` relative p-4 shadow-inner shadow-gray-400/50 rounded-full cursor-pointer  ${selectedColorClass} hover:border-green-500 after:content-[''] ${
+                    className={` relative p-4 shadow-inner shadow-gray-400/50 rounded-full cursor-pointer  ${selectedColorClass}] after:content-[''] ${
                       selectedColor === color
                         ? "after:absolute after:-bottom-3 after:left-[15px] after:w-1 after:h-1 after:rounded-full after:bg-primary"
                         : ""
