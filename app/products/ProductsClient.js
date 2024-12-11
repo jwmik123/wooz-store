@@ -221,7 +221,11 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                     className="hidden"
                   />
                   <span
-                    className={`p-4 border-2 rounded-full cursor-pointer border-primary ${selectedColorClass} hover:border-green-500`}
+                    className={` relative p-4 shadow-inner shadow-gray-400/50 rounded-full cursor-pointer  ${selectedColorClass} hover:border-green-500 after:content-[''] ${
+                      selectedColor === color
+                        ? "after:absolute after:-bottom-3 after:left-[15px] after:w-1 after:h-1 after:rounded-full after:bg-primary"
+                        : ""
+                    }`}
                   ></span>
                 </label>
               );
