@@ -141,14 +141,14 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
         {/* Rest of the component remains the same */}
-        <div className="flex items-center justify-between mx-10 font-inter">
+        <div className="flex items-center justify-between mx-4 md:mx-10 font-inter">
           <h2 className="mb-2 text-3xl">{product.title}</h2>
           <h3 className="text-xl font-medium text-black">
             €{product.variants[0].price.amount.replace("$", "")}0
           </h3>
         </div>
         <div className="flex flex-col justify-between mx-4 mb-5 space-y-4 overflow-hidden md:h-[31.5rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
-          <div className="w-full h-full md:w-auto">
+          <div className="flex justify-center w-full h-full md:block md:w-auto">
             {loading && (
               <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
                 <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
@@ -157,7 +157,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
             <Image
               src={selectedImage}
               alt={product.title}
-              className="object-cover w-full rounded-lg"
+              className="object-cover w-[90%] rounded-lg md:w-full"
               quality={75}
               height={500}
               width={500}
@@ -185,7 +185,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
         </div>
 
         {/* Color selection */}
-        <div className="w-full px-10">
+        <div className="w-full px-4 md:px-10">
           <label htmlFor="color" className="text-base font-light">
             Color: {selectedColor}
           </label>
@@ -234,7 +234,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
         </div>
 
         {/* Size selection */}
-        <div className="w-full px-10">
+        <div className="w-full px-4 md:px-10">
           <label htmlFor="size" className="text-base font-light">
             Size: {selectedSize}
           </label>
@@ -281,7 +281,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
           >
             <div className="text-center uppercase">Add To Cart</div>
           </button>
-          <div>
+          <div className="mb-10">
             <h3 className="text-lg font-bold">Description:</h3>
             <div
               className="prose max-w-none"
