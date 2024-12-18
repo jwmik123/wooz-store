@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo, useCallback } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import * as THREE from "three";
 import { useGLTF, OrbitControls } from "@react-three/drei";
-import { useLoader, useFrame } from "@react-three/fiber";
+import { useLoader, useFrame, useThree } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
 import {
@@ -120,28 +120,8 @@ export default function StudioNew({ showDebug, ...props }) {
       navigator.userAgent
     );
   };
-  const useFramerateCap = (targetFPS = 60) => {
-    const lastFrameTime = useRef(0);
-    const frameDuration = 1000 / targetFPS; // Duration per frame in ms
 
-    useFrame((_, delta) => {
-      const currentTime = performance.now();
-      const timeSinceLastFrame = currentTime - lastFrameTime.current;
-
-      // Skip frame if not enough time has passed
-      if (timeSinceLastFrame < frameDuration) {
-        return;
-      }
-
-      // Update last frame time
-      lastFrameTime.current = currentTime;
-
-      // Your animation code here
-      return delta;
-    });
-  };
-
-  useFramerateCap(60);
+  useCapFPS(120);
 
   useFrame(({ camera, delta }) => {
     const lerpSpeed = 0.04;
@@ -270,3 +250,29 @@ export default function StudioNew({ showDebug, ...props }) {
 }
 
 useGLTF.preload("/models/studio.glb");
+
+export function useCapFPS(fps = 120) {
+  const enabled = useRef(true);
+
+  useEffect(() => {
+    function loop() {
+      setTimeout(() => {
+        if (enabled.current) {
+          requestAnimationFrame(loop);
+        }
+      }, 1000 / fps);
+
+      enabled.current = false;
+    }
+
+    loop();
+
+    return () => {
+      enabled.current = false;
+    };
+  }, [fps]);
+
+  useFrame(() => {
+    enabled.current = true;
+  });
+}
