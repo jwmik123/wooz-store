@@ -31,8 +31,8 @@ const CartList = () => {
               <Image
                 src={item.variant.image.src}
                 alt={item.title}
-                width={100}
-                height={100}
+                width={40}
+                height={40}
                 className="object-cover w-20 mr-4 rounded-lg aspect-square"
               />
               <div className="flex-1">
