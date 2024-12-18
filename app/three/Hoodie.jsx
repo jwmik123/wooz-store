@@ -35,32 +35,30 @@ export default function Hoodie({ selectedColor }) {
     Green: "/assets/splatter_green.png",
   };
 
-  const [textureUrl, setTextureUrl] = useState("/assets/bake.png");
+  const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
 
   useEffect(() => {
     if (productHandle === "hoodie") {
-      gsap.to(controlCubeRef.current.rotation, {
-        y: controlCubeRef.current.rotation.y + Math.PI * 2,
-        duration: 0.8,
-        ease: "power2.inOut",
-      });
       setTimeout(() => {
         setTextureUrl(
           hoodieColorTextureMap[selectedColor] || "/assets/bake.png"
         );
-      }, 400);
+      }, 500);
     } else if (productHandle === "splatter") {
-      gsap.to(controlCubeRef.current.rotation, {
-        y: controlCubeRef.current.rotation.y + Math.PI * 2,
-        duration: 0.8,
-        ease: "power2.inOut",
-      });
       setTimeout(() => {
         setTextureUrl(
           splatterColorTextureMap[selectedColor] || "/assets/splatter.png"
         );
-      }, 400);
+      }, 500);
     }
+  }, [selectedColor, productHandle]);
+
+  useEffect(() => {
+    gsap.to(controlCubeRef.current.rotation, {
+      y: controlCubeRef.current.rotation.y + Math.PI * 2,
+      duration: 0.8,
+      ease: "power2.inOut",
+    });
   }, [selectedColor]);
 
   const bakedFinalTexture = useLoader(THREE.TextureLoader, textureUrl);
@@ -85,6 +83,7 @@ export default function Hoodie({ selectedColor }) {
         child.material = new THREE.MeshStandardMaterial({
           map: bakedFinalTexture,
           side: THREE.DoubleSide,
+          transparent: true,
         });
       }
     });

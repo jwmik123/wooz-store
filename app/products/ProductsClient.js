@@ -67,7 +67,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
   const [loading, setLoading] = useState(!imagesPreloaded);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [openCanvas, setOpenCanvas] = useState(false);
+  const [openCanvas, setOpenCanvas] = useState(true);
   const canvasRef = useRef();
   const clothingRef = useRef();
 
@@ -174,7 +174,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                 <ImageIcon />
               </button>
               <Canvas
-                className="w-full h-full border rounded-lg bg-primary"
+                className="w-full h-full overflow-hidden border rounded-lg bg-primary"
                 camera={{ position: [0, 0, 1] }}
               >
                 <Hoodie ref={clothingRef} selectedColor={selectedColor} />
