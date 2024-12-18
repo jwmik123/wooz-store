@@ -163,7 +163,10 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
         </div>
         <div className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
           {openCanvas ? (
-            <div ref={canvasRef} className="w-full h-full opacity-0">
+            <div
+              ref={canvasRef}
+              className="w-full h-[450px] md:h-full opacity-0"
+            >
               <button
                 className="absolute top-0 right-0 z-10 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
                 onClick={() => setOpenCanvas(false)}
