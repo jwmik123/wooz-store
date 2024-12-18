@@ -8,39 +8,33 @@ const PointsOfInterest = () => {
     (state) => state.selectedCollection
   );
 
-  console.log(selectedCollection);
-
   const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve"];
 
   useEffect(() => {
+    pointRef.current.forEach((point) => {
+      // Reset all text
+      const chars = point.querySelectorAll(".char");
+      gsap.to(chars, {
+        y: -20,
+        opacity: 0,
+        duration: 0.3,
+        stagger: 0.05,
+      });
+    });
+
     if (selectedCollection) {
-      console.log("selectedCollection", selectedCollection);
-      // Find the index of the selected collection
       const selectedIndex = collections.findIndex(
         (label) => label.toLowerCase() === selectedCollection.toLowerCase()
       );
 
-      // Only animate the selected point
       if (selectedIndex !== -1 && pointRef.current[selectedIndex]) {
-        // Then animate the selected point
-        gsap.fromTo(
-          pointRef.current[selectedIndex],
-          {
-            y: 0,
-            duration: 0.5,
-          },
-          {
-            y: -60,
-            duration: 0.5,
-          }
-        );
-      } else {
-        // If no collection is selected, reset all points
-        pointRef.current.forEach((point) => {
-          gsap.to(point, {
-            y: -100,
-            duration: 0.5,
-          });
+        // Animate selected text characters
+        const chars = pointRef.current[selectedIndex].querySelectorAll(".char");
+        gsap.to(chars, {
+          y: -40,
+          opacity: 0.9,
+          duration: 0.3,
+          stagger: 0.05,
         });
       }
     }
@@ -51,14 +45,18 @@ const PointsOfInterest = () => {
       {["Hoodie", "Splatter", "Polo", "Longsleeve"].map((label, index) => (
         <div key={index} className={`point point-${index}`}>
           <div className="label ripple"></div>
-          <div
-            className="overflow-hidden text-center -translate-x-1/2 label-text"
+          {/* <div
+            className="text-center -translate-x-1/2 label-text"
             ref={(el) => (pointRef.current[index] = el)}
           >
-            <p className="text-xl font-bold uppercase pointer-events-none">
-              {label}
+            <p className="text-xl font-bold pointer-events-none">
+              {label.split("").map((char, i) => (
+                <span key={i} className="inline-block char">
+                  {char}
+                </span>
+              ))}
             </p>
-          </div>
+          </div> */}
         </div>
       ))}
     </div>

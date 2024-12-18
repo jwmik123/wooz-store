@@ -40,7 +40,7 @@ export default function StudioNew({ showDebug, ...props }) {
   const { nodes } = useGLTF("/models/studio.glb");
   const bakedFinalTexture = useLoader(
     THREE.TextureLoader,
-    "/assets/bakednew.jpg"
+    "/assets/baked3.jpg"
   );
   bakedFinalTexture.colorSpace = THREE.SRGBColorSpace;
   bakedFinalTexture.flipY = false;
@@ -121,9 +121,7 @@ export default function StudioNew({ showDebug, ...props }) {
     );
   };
 
-  useCapFPS(120);
-
-  useFrame(({ camera, delta }) => {
+  useFrame(({ camera }) => {
     const lerpSpeed = 0.04;
     if (orbitControlsRef.current) {
       orbitControlsRef.current.object.position.lerp(
@@ -176,7 +174,7 @@ export default function StudioNew({ showDebug, ...props }) {
         element: document.querySelector(".point-2"),
       },
       {
-        position: new THREE.Vector3(1.4, -1, -0.4),
+        position: new THREE.Vector3(1.55, -1, -0.4),
         element: document.querySelector(".point-3"),
       },
     ],
@@ -221,6 +219,7 @@ export default function StudioNew({ showDebug, ...props }) {
                   handleCollectionClick(type);
                   setCartOpen(false);
                 }}
+                renderOrder={type === "longsleeve" ? 1 : 0}
               >
                 {config.map(({ color, position, rotation }, index) => {
                   const nodeName = `${NODE_NAMES[type]}_${color}_High002`;
@@ -237,6 +236,7 @@ export default function StudioNew({ showDebug, ...props }) {
                       rotation={rotation}
                       castShadow
                       receiveShadow
+                      renderOrder={type === "longsleeve" ? 1 : 0}
                     />
                   );
                 })}
@@ -250,29 +250,3 @@ export default function StudioNew({ showDebug, ...props }) {
 }
 
 useGLTF.preload("/models/studio.glb");
-
-export function useCapFPS(fps = 120) {
-  const enabled = useRef(true);
-
-  useEffect(() => {
-    function loop() {
-      setTimeout(() => {
-        if (enabled.current) {
-          requestAnimationFrame(loop);
-        }
-      }, 1000 / fps);
-
-      enabled.current = false;
-    }
-
-    loop();
-
-    return () => {
-      enabled.current = false;
-    };
-  }, [fps]);
-
-  useFrame(() => {
-    enabled.current = true;
-  });
-}

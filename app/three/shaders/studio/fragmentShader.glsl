@@ -3,8 +3,6 @@ uniform vec3 uDirectionalLightColor;
 uniform vec3 uDirectionalLightDirection;
 varying vec2 vUv;
 
-#pragma glslify: blend = require(glsl-blend/lighten)
-
 void main()
 {
     vec3 bakedDayColor = texture2D(uBakedDayTexture, vUv).rgb;

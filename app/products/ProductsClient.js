@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
+import { Canvas } from "@react-three/fiber";
+import Hoodie from "../three/Hoodie";
+import gsap from "gsap";
+import { Rotate3d, Image as ImageIcon } from "lucide-react";
 
 // New function to preload images
 function preloadImage(src) {
@@ -62,6 +66,10 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
   const [loading, setLoading] = useState(!imagesPreloaded);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [openCanvas, setOpenCanvas] = useState(false);
+  const canvasRef = useRef();
+  const clothingRef = useRef();
 
   const colors = [
     ...new Set(
@@ -135,6 +143,15 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     }
   };
 
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 1500);
+    if (openCanvas) {
+      gsap.to(canvasRef.current, { opacity: 1, duration: 0.5 });
+    }
+  }, [isLoaded, openCanvas]);
+
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
@@ -145,41 +162,68 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
           </h3>
         </div>
         <div className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
-          <div className="flex justify-center w-full h-full md:block md:w-auto">
-            {loading && (
-              <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
-                <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
+          {openCanvas ? (
+            <div ref={canvasRef} className="w-full h-full opacity-0">
+              <button
+                className="absolute top-0 right-0 z-10 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
+                onClick={() => setOpenCanvas(false)}
+              >
+                <ImageIcon />
+              </button>
+              <Canvas
+                className="w-full h-full border rounded-lg bg-primary"
+                camera={{ position: [0, 0, 1] }}
+              >
+                <Hoodie ref={clothingRef} selectedColor={selectedColor} />
+              </Canvas>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-center w-full h-full md:block md:w-auto">
+                {loading && (
+                  <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
+                    <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
+                  </div>
+                )}
+                <div className="relative flex justify-center w-full h-full md:block md:w-auto">
+                  <Image
+                    src={selectedImage}
+                    alt={product.title}
+                    className="object-cover w-[90%] rounded-lg md:w-full"
+                    quality={75}
+                    height={500}
+                    width={500}
+                    placeholder="empty"
+                    priority
+                    onLoad={() => setLoading(false)}
+                  />
+                  <button
+                    className="absolute top-0 right-0 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
+                    onClick={() => setOpenCanvas(true)}
+                  >
+                    <Rotate3d />
+                  </button>
+                </div>
               </div>
-            )}
-            <Image
-              src={selectedImage}
-              alt={product.title}
-              className="object-cover w-[90%] rounded-lg md:w-full"
-              quality={75}
-              height={500}
-              width={500}
-              placeholder="empty"
-              priority
-              onLoad={() => setLoading(false)}
-            />
-          </div>
-          <div className="flex flex-row w-full gap-2 overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
-            {product.images.map((image, index) => (
-              <Image
-                key={index}
-                src={image.src}
-                alt={`${product.title} thumbnail ${index + 1}`}
-                className="flex-shrink-0 object-cover w-24 rounded-lg cursor-pointer md:w-full aspect-square"
-                quality={50}
-                height={100}
-                width={100}
-                onClick={() => setSelectedImage(image.src)}
-                placeholder="empty"
-                priority={index < 4}
-              />
-            ))}
-          </div>
-          <div className="absolute bottom-0 right-0 z-10 w-32 h-12 pointer-events-none bg-gradient-to-t from-white to-transparent"></div>
+              <div className="flex flex-row w-full gap-2 overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
+                {product.images.map((image, index) => (
+                  <Image
+                    key={index}
+                    src={image.src}
+                    alt={`${product.title} thumbnail ${index + 1}`}
+                    className="flex-shrink-0 object-cover w-24 rounded-lg cursor-pointer md:w-full aspect-square"
+                    quality={50}
+                    height={100}
+                    width={100}
+                    onClick={() => setSelectedImage(image.src)}
+                    placeholder="empty"
+                    priority={index < 4}
+                  />
+                ))}
+              </div>
+              <div className="absolute bottom-0 right-0 z-10 w-32 h-12 pointer-events-none bg-gradient-to-t from-white to-transparent"></div>
+            </>
+          )}
         </div>
 
         {/* Color selection */}

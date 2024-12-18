@@ -54,14 +54,30 @@ body {
   transition: transform 0.3s;
   transition-delay: 0.5s;
 }
+/* .point:nth-child(1) .label {
+  background: rgb(60, 255, 46);
+} */
 
-.ripple {
+.point .ripple {
   animation: pulse 2s infinite;
 }
+
+/* .point:nth-child(1) .ripple {
+  animation: pulse-primary 2s infinite;
+} */
 
 @keyframes pulse {
   0% {
     -webkit-box-shadow: 0 0 0 0 rgba(255, 255, 255, 1);
+  }
+  100% {
+    -webkit-box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes pulse-primary {
+  0% {
+    -webkit-box-shadow: 0 0 0 0 rgb(60, 255, 46);
   }
   100% {
     -webkit-box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
