@@ -55,6 +55,9 @@ export default function StudioNew({ showDebug, ...props }) {
   });
 
   const setProductHandle = collectionStore((state) => state.setProductHandle);
+  const setSelectedCollection = collectionStore(
+    (state) => state.setSelectedCollection
+  );
   const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
   const sidebarOpen = collectionStore((state) => state.sidebarOpen);
   const introScreen = collectionStore((state) => state.introScreen);
@@ -82,8 +85,12 @@ export default function StudioNew({ showDebug, ...props }) {
     return () => window.removeEventListener("mousemove", updateMouse);
   }, [mouse]);
 
-  const handlePointerOver = () => (document.body.style.cursor = "pointer");
-  const handlePointerOut = () => (document.body.style.cursor = "auto");
+  const handlePointerOver = () => {
+    document.body.style.cursor = "pointer";
+  };
+  const handlePointerOut = () => {
+    document.body.style.cursor = "auto";
+  };
 
   const clothingConfigs = {
     longsleeve: longSleeveConfig,
@@ -113,8 +120,30 @@ export default function StudioNew({ showDebug, ...props }) {
       navigator.userAgent
     );
   };
+  const useFramerateCap = (targetFPS = 60) => {
+    const lastFrameTime = useRef(0);
+    const frameDuration = 1000 / targetFPS; // Duration per frame in ms
 
-  useFrame(({ camera }) => {
+    useFrame((_, delta) => {
+      const currentTime = performance.now();
+      const timeSinceLastFrame = currentTime - lastFrameTime.current;
+
+      // Skip frame if not enough time has passed
+      if (timeSinceLastFrame < frameDuration) {
+        return;
+      }
+
+      // Update last frame time
+      lastFrameTime.current = currentTime;
+
+      // Your animation code here
+      return delta;
+    });
+  };
+
+  useFramerateCap(60);
+
+  useFrame(({ camera, delta }) => {
     const lerpSpeed = 0.04;
     if (orbitControlsRef.current) {
       orbitControlsRef.current.object.position.lerp(
@@ -200,8 +229,14 @@ export default function StudioNew({ showDebug, ...props }) {
           {Object.entries(clothingConfigs).map(([type, config]) => (
             <Select key={type}>
               <group
-                onPointerOver={handlePointerOver}
-                onPointerOut={handlePointerOut}
+                onPointerOver={() => {
+                  handlePointerOver();
+                  setSelectedCollection(type);
+                }}
+                onPointerOut={() => {
+                  handlePointerOut();
+                  setSelectedCollection(null);
+                }}
                 onClick={() => {
                   handleCollectionClick(type);
                   setCartOpen(false);

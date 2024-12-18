@@ -44,7 +44,7 @@ function Bird({ timeOffset = 0, ...props }) {
 export default function Birds() {
   const birdsRef = useRef();
   useFrame(() => {
-    birdsRef.current.position.x += 0.02;
+    birdsRef.current.position.x += 0.04;
     if (birdsRef.current.position.x > 20) {
       birdsRef.current.position.x = -20;
     }

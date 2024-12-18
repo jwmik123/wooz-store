@@ -63,8 +63,6 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
   const [loading, setLoading] = useState(!imagesPreloaded);
 
-  console.log(product);
-
   const colors = [
     ...new Set(
       product.variants
@@ -140,14 +138,13 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   return (
     <>
       <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
-        {/* Rest of the component remains the same */}
         <div className="flex items-center justify-between mx-4 md:mx-10 font-inter">
           <h2 className="mb-2 text-3xl">{product.title}</h2>
           <h3 className="text-xl font-medium text-black">
             €{product.variants[0].price.amount.replace("$", "")}0
           </h3>
         </div>
-        <div className="flex flex-col justify-between mx-4 mb-5 space-y-4 overflow-hidden md:h-[31.5rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
+        <div className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
           <div className="flex justify-center w-full h-full md:block md:w-auto">
             {loading && (
               <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
@@ -182,6 +179,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               />
             ))}
           </div>
+          <div className="absolute bottom-0 right-0 z-10 w-32 h-12 pointer-events-none bg-gradient-to-t from-white to-transparent"></div>
         </div>
 
         {/* Color selection */}
