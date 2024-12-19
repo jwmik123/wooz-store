@@ -250,5 +250,3 @@ export default function StudioNew({ showDebug, ...props }) {
 }
 
 useGLTF.preload("/models/studio.glb");
-useGLTF.preload("/models/hoodie.glb");
-useGLTF.preload("/models/splatter.glb");

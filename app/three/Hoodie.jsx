@@ -190,3 +190,5 @@ export default function Hoodie({ selectedColor }) {
     </group>
   );
 }
+useGLTF.preload("/models/hoodie.glb");
+useGLTF.preload("/models/splatter.glb");
