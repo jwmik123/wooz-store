@@ -45,6 +45,8 @@ export default function StudioNew({ showDebug, ...props }) {
   bakedFinalTexture.colorSpace = THREE.SRGBColorSpace;
   bakedFinalTexture.flipY = false;
 
+  console.log(nodes);
+
   const shaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uBakedDayTexture: { value: bakedFinalTexture },
@@ -177,6 +179,10 @@ export default function StudioNew({ showDebug, ...props }) {
         position: new THREE.Vector3(1.55, -1, -0.4),
         element: document.querySelector(".point-3"),
       },
+      {
+        position: new THREE.Vector3(1.4, -2.4, -2),
+        element: document.querySelector(".point-4"),
+      },
     ],
     []
   );
@@ -243,6 +249,12 @@ export default function StudioNew({ showDebug, ...props }) {
               </group>
             </Select>
           ))}
+          <Select>
+            <mesh position={[3.4, 0.9, -0.55]}>
+              <boxGeometry args={[0.2, 0.2, 0.3]} />
+              <meshStandardMaterial color="red" />
+            </mesh>
+          </Select>
         </Selection>
       </group>
     </>

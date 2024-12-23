@@ -243,11 +243,11 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                 "Light grey": "bg-gray-300",
                 "Light Grey Melange": "bg-gray-200",
                 "Sage Green": "bg-[#B9BD8C]",
-                Green: "bg-green-100",
+                Green: "bg-[#028370]",
                 Navy: "bg-blue-900",
-                Blue: "bg-blue-300",
+                Blue: "bg-blue-500",
                 White: "bg-white",
-                "Ice Blue": "bg-blue-300",
+                "Ice Blue": "bg-blue-500",
               }[color];
 
               const selectedColorClass =

@@ -8,7 +8,7 @@ const PointsOfInterest = () => {
     (state) => state.selectedCollection
   );
 
-  const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve"];
+  const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"];
 
   useEffect(() => {
     pointRef.current.forEach((point) => {
@@ -42,10 +42,11 @@ const PointsOfInterest = () => {
 
   return (
     <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-      {["Hoodie", "Splatter", "Polo", "Longsleeve"].map((label, index) => (
-        <div key={index} className={`point point-${index}`}>
-          <div className="label ripple"></div>
-          {/* <div
+      {["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"].map(
+        (label, index) => (
+          <div key={index} className={`point point-${index}`}>
+            <div className="label ripple"></div>
+            {/* <div
             className="text-center -translate-x-1/2 label-text"
             ref={(el) => (pointRef.current[index] = el)}
           >
@@ -57,8 +58,9 @@ const PointsOfInterest = () => {
               ))}
             </p>
           </div> */}
-        </div>
-      ))}
+          </div>
+        )
+      )}
     </div>
   );
 };

@@ -39,10 +39,18 @@ export default function Hoodie({ selectedColor }) {
   const poloColorTextureMap = {
     White: "/assets/polo/Polo_White.jpg",
     Black: "/assets/polo/Polo_Black.jpg",
-    "Light Blue": "/assets/polo/Polo_LightBlue.jpg",
-    "Dark Blue": "/assets/polo/Polo_DarkBlue.jpg",
+    "Ice Blue": "/assets/polo/Polo_LightBlue.jpg",
+    Navy: "/assets/polo/Polo_DarkBlue.jpg",
     Green: "/assets/polo/Polo_Green.jpg",
     "Light Grey Melange": "/assets/polo/Polo_Grey.jpg",
+  };
+
+  const longsleeveColorTextureMap = {
+    White: "/assets/longsleeve/Longsleeve_White.jpg",
+    Black: "/assets/longsleeve/Longsleeve_Black.jpg",
+    Brown: "/assets/longsleeve/Longsleeve_Brown.jpg",
+    Green: "/assets/longsleeve/Longsleeve_Green.jpg",
+    Blue: "/assets/longsleeve/Longsleeve_Blue.jpg",
   };
 
   const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
@@ -66,6 +74,13 @@ export default function Hoodie({ selectedColor }) {
       setTimeout(() => {
         setTextureUrl(
           poloColorTextureMap[selectedColor] || "/assets/polo/Polo_White.jpg"
+        );
+      }, 500);
+    } else if (productHandle === "longsleeve") {
+      setTimeout(() => {
+        setTextureUrl(
+          longsleeveColorTextureMap[selectedColor] ||
+            "/assets/longsleeve/Longsleeve_White.jpg"
         );
       }, 500);
     }
@@ -126,7 +141,7 @@ export default function Hoodie({ selectedColor }) {
 
     setIsSimulating(true);
 
-    // Cleanup
+    // Cleanup for remounting
     return () => {
       setIsSimulating(false);
       wiggleBones.current.forEach((bone) => {
@@ -210,3 +225,4 @@ export default function Hoodie({ selectedColor }) {
 }
 useGLTF.preload("/models/hoodie.glb");
 useGLTF.preload("/models/splatter.glb");
+useGLTF.preload("/models/polo.glb");
