@@ -243,9 +243,9 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                 "Light grey": "bg-gray-300",
                 "Light Grey Melange": "bg-gray-200",
                 "Sage Green": "bg-[#B9BD8C]",
-                Green: "bg-green-700",
+                Green: "bg-green-100",
                 Navy: "bg-blue-900",
-                Blue: "bg-blue-800",
+                Blue: "bg-blue-300",
                 White: "bg-white",
                 "Ice Blue": "bg-blue-300",
               }[color];

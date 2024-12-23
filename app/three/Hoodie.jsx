@@ -13,26 +13,36 @@ export default function Hoodie({ selectedColor }) {
   const wiggleBones = useRef([]);
   const targetRotation = useRef(new THREE.Euler());
   const currentRotation = useRef(new THREE.Euler());
+
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+
   const meshRef = useRef();
   const controlCubeRef = useRef();
   const previousMouseX = useRef(0);
   const modelSize = useRef(new THREE.Vector3());
 
   const hoodieColorTextureMap = {
-    "Dark grey/Taupe": "/assets/hoodie_dark.jpg",
-    White: "/assets/hoodie_white.jpg",
-    "Sage Green": "/assets/hoodie_green.jpg",
-    "Light Grey Melange": "/assets/hoodie_gray.jpg",
-    Black: "/assets/hoodie_navy.jpg",
+    "Dark grey/Taupe": "/assets/hoodie/Hoodie_DarkGrey.jpg",
+    "Sage Green": "/assets/hoodie/Hoodie_Green.jpg",
+    "Light Grey Melange": "/assets/hoodie/Hoodie_Grey.jpg",
+    Black: "/assets/hoodie/Hoodie_Black.jpg",
   };
 
   const splatterColorTextureMap = {
-    Blue: "/assets/splatter_blue.png",
-    White: "/assets/splatter.png",
-    Green: "/assets/splatter_green.png",
+    Blue: "/assets/splatter/Splatter_Blue.jpg",
+    White: "/assets/splatter/Splatter_White.jpg",
+    Green: "/assets/splatter/Splatter_Green.jpg",
+  };
+
+  const poloColorTextureMap = {
+    White: "/assets/polo/Polo_White.jpg",
+    Black: "/assets/polo/Polo_Black.jpg",
+    "Light Blue": "/assets/polo/Polo_LightBlue.jpg",
+    "Dark Blue": "/assets/polo/Polo_DarkBlue.jpg",
+    Green: "/assets/polo/Polo_Green.jpg",
+    "Light Grey Melange": "/assets/polo/Polo_Grey.jpg",
   };
 
   const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
@@ -41,13 +51,21 @@ export default function Hoodie({ selectedColor }) {
     if (productHandle === "hoodie") {
       setTimeout(() => {
         setTextureUrl(
-          hoodieColorTextureMap[selectedColor] || "/assets/bake.png"
+          hoodieColorTextureMap[selectedColor] ||
+            "/assets/hoodie/Hoodie_DarkGrey.jpg"
         );
       }, 500);
     } else if (productHandle === "splatter") {
       setTimeout(() => {
         setTextureUrl(
-          splatterColorTextureMap[selectedColor] || "/assets/splatter.png"
+          splatterColorTextureMap[selectedColor] ||
+            "/assets/splatter/Splatter_White.jpg"
+        );
+      }, 500);
+    } else if (productHandle === "polo") {
+      setTimeout(() => {
+        setTextureUrl(
+          poloColorTextureMap[selectedColor] || "/assets/polo/Polo_White.jpg"
         );
       }, 500);
     }
