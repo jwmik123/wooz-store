@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}  # Use PAT instead of GITHUB_TOKEN
       
       - name: Rename image files to lowercase
         run: |
@@ -41,8 +41,8 @@ jobs:
       
       - name: Commit changes
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add -A
           git diff-index --quiet HEAD || git commit -m "Convert image filenames to lowercase"
           git push
