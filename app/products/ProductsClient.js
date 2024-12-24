@@ -6,7 +6,7 @@ import useCheckoutStore from "../stores/checkoutStore";
 import { Canvas } from "@react-three/fiber";
 import Product from "../three/Product";
 import gsap from "gsap";
-import { Rotate3d, Image as ImageIcon } from "lucide-react";
+import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
 import { Suspense } from "react";
 // New function to preload images
 function preloadImage(src) {
@@ -172,7 +172,13 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               >
                 <ImageIcon />
               </button>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center w-full h-full bg-primary">
+                    <Loader className="animate-spin" />
+                  </div>
+                }
+              >
                 <Canvas
                   className="w-full h-full overflow-hidden border rounded-lg bg-primary"
                   camera={{ position: [0, 0, 1.3], fov: 55 }}
