@@ -174,7 +174,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               </button>
               <Suspense
                 fallback={
-                  <div className="flex items-center justify-center w-full h-full bg-primary">
+                  <div className="flex items-center justify-center w-full h-full rounded-lg bg-primary">
                     <Loader className="animate-spin" />
                   </div>
                 }
