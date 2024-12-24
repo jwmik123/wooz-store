@@ -62,14 +62,6 @@ export default function ProductsClientComponent() {
 }
 
 function ProductItem({ product, addToCart, imagesPreloaded }) {
-  const [selectedColor, setSelectedColor] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(product.images[0].src);
-  const [loading, setLoading] = useState(!imagesPreloaded);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [openCanvas, setOpenCanvas] = useState(true);
-  const canvasRef = useRef();
-
   const colors = [
     ...new Set(
       product.variants
@@ -80,6 +72,14 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
         .filter(Boolean)
     ),
   ];
+
+  const [selectedColor, setSelectedColor] = useState(colors[0]);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(product.images[0].src);
+  const [loading, setLoading] = useState(!imagesPreloaded);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [openCanvas, setOpenCanvas] = useState(true);
+  const canvasRef = useRef();
 
   useEffect(() => {
     if (selectedColor) {

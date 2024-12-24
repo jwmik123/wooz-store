@@ -131,9 +131,6 @@ export default function Product({ selectedColor }) {
       }
     });
 
-    console.log(nodes);
-
-    // Create new bones
     let bones;
     if (productHandle === "totebag") {
       bones = [
