@@ -54,7 +54,7 @@ export default function Product({ selectedColor }) {
   };
 
   const totebagColorTextureMap = {
-    Beige: "/assets/totebag.jpg",
+    Beige: "/assets/totebag/totebag.jpg",
   };
 
   const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
@@ -90,7 +90,7 @@ export default function Product({ selectedColor }) {
     } else if (productHandle === "totebag") {
       setTimeout(() => {
         setTextureUrl(
-          totebagColorTextureMap[selectedColor] || "/assets/totebag.jpg"
+          totebagColorTextureMap[selectedColor] || "/assets/totebag/totebag.jpg"
         );
       }, 500);
     }
