@@ -4,7 +4,7 @@ import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
 import { Canvas } from "@react-three/fiber";
-import Hoodie from "../three/Hoodie";
+import Product from "../three/Product";
 import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon } from "lucide-react";
 import { Suspense } from "react";
@@ -69,7 +69,6 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [openCanvas, setOpenCanvas] = useState(true);
   const canvasRef = useRef();
-  const clothingRef = useRef();
 
   const colors = [
     ...new Set(
@@ -178,7 +177,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                   className="w-full h-full overflow-hidden border rounded-lg bg-primary"
                   camera={{ position: [0, 0, 1.3], fov: 55 }}
                 >
-                  <Hoodie ref={clothingRef} selectedColor={selectedColor} />
+                  <Product selectedColor={selectedColor} />
                 </Canvas>
               </Suspense>
             </div>
@@ -250,6 +249,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                 Blue: "bg-blue-500",
                 White: "bg-white",
                 "Ice Blue": "bg-blue-500",
+                Beige: "bg-[#C8C5B9]",
               }[color];
 
               const selectedColorClass =

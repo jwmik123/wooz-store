@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo } from "react";
 import * as THREE from "three";
 import { useGLTF, OrbitControls } from "@react-three/drei";
-import { useLoader, useFrame, useThree } from "@react-three/fiber";
+import { useLoader, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 
 import {
@@ -44,8 +44,6 @@ export default function StudioNew({ showDebug, ...props }) {
   );
   bakedFinalTexture.colorSpace = THREE.SRGBColorSpace;
   bakedFinalTexture.flipY = false;
-
-  console.log(nodes);
 
   const shaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -103,7 +101,6 @@ export default function StudioNew({ showDebug, ...props }) {
 
   const handleCollectionClick = (type) => {
     setProductHandle(type);
-
     document.querySelectorAll(".point").forEach((point) => {
       point.classList.remove("visible");
     });
@@ -213,8 +210,7 @@ export default function StudioNew({ showDebug, ...props }) {
           {Object.entries(clothingConfigs).map(([type, config]) => (
             <Select key={type}>
               <group
-                on
-                PointerOver={() => {
+                onPointerOver={() => {
                   handlePointerOver();
                   setSelectedCollection(type);
                 }}
@@ -251,9 +247,23 @@ export default function StudioNew({ showDebug, ...props }) {
             </Select>
           ))}
           <Select>
-            <mesh position={[3.4, 0.9, -0.55]}>
-              <boxGeometry args={[0.2, 0.2, 0.3]} />
-              <meshStandardMaterial color="red" />
+            <mesh
+              position={[3.4, 0.9, -0.55]}
+              onPointerOver={() => {
+                handlePointerOver();
+                setSelectedCollection("totebag");
+              }}
+              onPointerOut={() => {
+                handlePointerOut();
+                setSelectedCollection(null);
+              }}
+              onClick={() => {
+                handleCollectionClick("totebag");
+                setCartOpen(false);
+              }}
+            >
+              <boxGeometry args={[0.3, 0.2, 0.3]} />
+              <meshStandardMaterial color="red" visible={false} />
             </mesh>
           </Select>
         </Selection>

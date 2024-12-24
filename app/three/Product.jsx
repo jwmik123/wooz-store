@@ -7,7 +7,7 @@ import * as THREE from "three";
 import collectionStore from "../stores/collectionStore";
 import gsap from "gsap";
 
-export default function Hoodie({ selectedColor }) {
+export default function Product({ selectedColor }) {
   const productHandle = collectionStore((state) => state.productHandle);
   const { scene: gltfScene, nodes } = useGLTF(`/models/${productHandle}.glb`);
   const wiggleBones = useRef([]);
@@ -53,6 +53,10 @@ export default function Hoodie({ selectedColor }) {
     Blue: "/assets/longsleeve/longsleeve_blue.jpg",
   };
 
+  const totebagColorTextureMap = {
+    Beige: "/assets/totebag.jpg",
+  };
+
   const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
 
   useEffect(() => {
@@ -81,6 +85,12 @@ export default function Hoodie({ selectedColor }) {
         setTextureUrl(
           longsleeveColorTextureMap[selectedColor] ||
             "/assets/longsleeve/longsleeve_black.jpg"
+        );
+      }, 500);
+    } else if (productHandle === "totebag") {
+      setTimeout(() => {
+        setTextureUrl(
+          totebagColorTextureMap[selectedColor] || "/assets/totebag.jpg"
         );
       }, 500);
     }
@@ -121,18 +131,35 @@ export default function Hoodie({ selectedColor }) {
       }
     });
 
-    // Create new bones
-    const bones = [
-      nodes["spine001"],
-      nodes["upper_armL"],
-      nodes["upper_armR"],
-      nodes["lower_armL"],
-      nodes["lower_armR"],
-    ];
+    console.log(nodes);
 
-    wiggleBones.current = bones.map(
-      (bone) => new WiggleBone(bone, { stiffness: 200, damping: 20 })
-    );
+    // Create new bones
+    let bones;
+    if (productHandle === "totebag") {
+      bones = [
+        nodes["Bone001"],
+        nodes["Bone002"],
+        nodes["Bone003"],
+        nodes["Bone004"],
+      ];
+    } else {
+      bones = [
+        nodes["spine001"],
+        nodes["upper_armL"],
+        nodes["upper_armR"],
+        nodes["lower_armL"],
+        nodes["lower_armR"],
+      ];
+    }
+    if (productHandle === "totebag") {
+      wiggleBones.current = bones.map(
+        (bone) => new WiggleBone(bone, { stiffness: 200, damping: 20 })
+      );
+    } else {
+      wiggleBones.current = bones.map(
+        (bone) => new WiggleBone(bone, { stiffness: 200, damping: 20 })
+      );
+    }
 
     if (nodes.root) {
       currentRotation.current.copy(nodes.root.rotation);
@@ -159,7 +186,7 @@ export default function Hoodie({ selectedColor }) {
       : "auto";
   }, [hovered, isDragging]);
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (!isSimulating) return;
 
     wiggleBones.current.forEach((wb) => {
@@ -167,11 +194,19 @@ export default function Hoodie({ selectedColor }) {
     });
 
     if (nodes.root && controlCubeRef.current) {
-      nodes.root.rotation.y = THREE.MathUtils.lerp(
-        nodes.root.rotation.y,
-        controlCubeRef.current.rotation.y,
-        0.1
-      );
+      if (productHandle === "totebag") {
+        nodes.root.rotation.y = THREE.MathUtils.lerp(
+          nodes.root.rotation.y,
+          -controlCubeRef.current.rotation.y,
+          0.1
+        );
+      } else {
+        nodes.root.rotation.y = THREE.MathUtils.lerp(
+          nodes.root.rotation.y,
+          controlCubeRef.current.rotation.y,
+          0.1
+        );
+      }
     }
   });
 
@@ -203,7 +238,7 @@ export default function Hoodie({ selectedColor }) {
   return (
     <group>
       <ambientLight />
-      <directionalLight position={[1, 1, 1]} intensity={4} />
+      <directionalLight position={[1, 1, 1]} intensity={2} />
       <mesh
         position={[0, -0.3, -2]}
         ref={controlCubeRef}
@@ -227,3 +262,4 @@ useGLTF.preload("/models/hoodie.glb");
 useGLTF.preload("/models/splatter.glb");
 useGLTF.preload("/models/polo.glb");
 useGLTF.preload("/models/longsleeve.glb");
+useGLTF.preload("/models/totebag.glb");
