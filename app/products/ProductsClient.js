@@ -7,7 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import Hoodie from "../three/Hoodie";
 import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon } from "lucide-react";
-
+import { Suspense } from "react";
 // New function to preload images
 function preloadImage(src) {
   return new Promise((resolve, reject) => {
@@ -173,12 +173,14 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               >
                 <ImageIcon />
               </button>
-              <Canvas
-                className="w-full h-full overflow-hidden border rounded-lg bg-primary"
-                camera={{ position: [0, 0, 1] }}
-              >
-                <Hoodie ref={clothingRef} selectedColor={selectedColor} />
-              </Canvas>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Canvas
+                  className="w-full h-full overflow-hidden border rounded-lg bg-primary"
+                  camera={{ position: [0, 0, 1.3], fov: 55 }}
+                >
+                  <Hoodie ref={clothingRef} selectedColor={selectedColor} />
+                </Canvas>
+              </Suspense>
             </div>
           ) : (
             <>

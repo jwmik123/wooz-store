@@ -24,33 +24,33 @@ export default function Hoodie({ selectedColor }) {
   const modelSize = useRef(new THREE.Vector3());
 
   const hoodieColorTextureMap = {
-    "Dark grey/Taupe": "/assets/hoodie/Hoodie_DarkGrey.jpg",
-    "Sage Green": "/assets/hoodie/Hoodie_Green.jpg",
-    "Light Grey Melange": "/assets/hoodie/Hoodie_Grey.jpg",
-    Black: "/assets/hoodie/Hoodie_Black.jpg",
+    "Dark grey/Taupe": "/assets/hoodie/hoodie_darkgrey.jpg",
+    "Sage Green": "/assets/hoodie/hoodie_green.jpg",
+    "Light Grey Melange": "/assets/hoodie/hoodie_grey.jpg",
+    Black: "/assets/hoodie/hoodie_black.jpg",
   };
 
   const splatterColorTextureMap = {
-    Blue: "/assets/splatter/Splatter_Blue.jpg",
-    White: "/assets/splatter/Splatter_White.jpg",
-    Green: "/assets/splatter/Splatter_Green.jpg",
+    Blue: "/assets/splatter/splatter_blue.jpg",
+    White: "/assets/splatter/splatter_white.jpg",
+    Green: "/assets/splatter/splatter_green.jpg",
   };
 
   const poloColorTextureMap = {
-    White: "/assets/polo/Polo_White.jpg",
-    Black: "/assets/polo/Polo_Black.jpg",
-    "Ice Blue": "/assets/polo/Polo_LightBlue.jpg",
-    Navy: "/assets/polo/Polo_DarkBlue.jpg",
-    Green: "/assets/polo/Polo_Green.jpg",
-    "Light Grey Melange": "/assets/polo/Polo_Grey.jpg",
+    White: "/assets/polo/polo_white.jpg",
+    Black: "/assets/polo/polo_black.jpg",
+    "Ice Blue": "/assets/polo/polo_lightblue.jpg",
+    Navy: "/assets/polo/polo_darkblue.jpg",
+    Green: "/assets/polo/polo_green.jpg",
+    "Light Grey Melange": "/assets/polo/polo_grey.jpg",
   };
 
   const longsleeveColorTextureMap = {
-    White: "/assets/longsleeve/Longsleeve_White.jpg",
-    Black: "/assets/longsleeve/Longsleeve_Black.jpg",
-    Brown: "/assets/longsleeve/Longsleeve_Brown.jpg",
-    Green: "/assets/longsleeve/Longsleeve_Green.jpg",
-    Blue: "/assets/longsleeve/Longsleeve_Blue.jpg",
+    White: "/assets/longsleeve/longsleeve_white.jpg",
+    Black: "/assets/longsleeve/longsleeve_black.jpg",
+    Brown: "/assets/longsleeve/longsleeve_brown.jpg",
+    Green: "/assets/longsleeve/longsleeve_green.jpg",
+    Blue: "/assets/longsleeve/longsleeve_blue.jpg",
   };
 
   const [textureUrl, setTextureUrl] = useState("/assets/transparent_image.png");
@@ -60,27 +60,27 @@ export default function Hoodie({ selectedColor }) {
       setTimeout(() => {
         setTextureUrl(
           hoodieColorTextureMap[selectedColor] ||
-            "/assets/hoodie/Hoodie_DarkGrey.jpg"
+            "/assets/hoodie/hoodie_black.jpg"
         );
       }, 500);
     } else if (productHandle === "splatter") {
       setTimeout(() => {
         setTextureUrl(
           splatterColorTextureMap[selectedColor] ||
-            "/assets/splatter/Splatter_White.jpg"
+            "/assets/splatter/splatter_blue.jpg"
         );
       }, 500);
     } else if (productHandle === "polo") {
       setTimeout(() => {
         setTextureUrl(
-          poloColorTextureMap[selectedColor] || "/assets/polo/Polo_White.jpg"
+          poloColorTextureMap[selectedColor] || "/assets/polo/polo_black.jpg"
         );
       }, 500);
     } else if (productHandle === "longsleeve") {
       setTimeout(() => {
         setTextureUrl(
           longsleeveColorTextureMap[selectedColor] ||
-            "/assets/longsleeve/Longsleeve_White.jpg"
+            "/assets/longsleeve/longsleeve_black.jpg"
         );
       }, 500);
     }
@@ -226,3 +226,4 @@ export default function Hoodie({ selectedColor }) {
 useGLTF.preload("/models/hoodie.glb");
 useGLTF.preload("/models/splatter.glb");
 useGLTF.preload("/models/polo.glb");
+useGLTF.preload("/models/longsleeve.glb");

@@ -213,7 +213,8 @@ export default function StudioNew({ showDebug, ...props }) {
           {Object.entries(clothingConfigs).map(([type, config]) => (
             <Select key={type}>
               <group
-                onPointerOver={() => {
+                on
+                PointerOver={() => {
                   handlePointerOver();
                   setSelectedCollection(type);
                 }}
