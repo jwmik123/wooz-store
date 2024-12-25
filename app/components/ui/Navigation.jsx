@@ -46,7 +46,7 @@ const Navigation = () => {
   if (!productHandle) return null;
 
   return (
-    <div className="fixed flex items-center justify-between w-[150px] transform -translate-x-1/2 bottom-4 left-1/2">
+    <div className="fixed flex items-center w-full justify-between md:w-[150px] transform -translate-x-1/2 bottom-0 md:bottom-4 px-4 py-2 md:py-0 md:px-0 left-1/2 bg-primary md:bg-transparent">
       <button
         className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary "
         onClick={() => handleNavigation("prev")}
@@ -58,7 +58,7 @@ const Navigation = () => {
         {currentIndex + 1} / {PRODUCT_ORDER.length}
       </div>
       <button
-        className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary "
+        className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary"
         onClick={() => handleNavigation("next")}
         aria-label="Next product"
       >

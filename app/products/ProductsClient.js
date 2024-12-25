@@ -153,14 +153,22 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
 
   return (
     <>
-      <div className="relative flex flex-col w-full pt-5 space-y-4 text-primary font-inter">
-        <div className="flex items-center justify-between mx-4 md:mx-10 font-inter">
-          <h2 className="mb-2 text-3xl">{product.title}</h2>
+      <div className="relative flex flex-col w-full pt-5 space-y-4 overflow-x-hidden text-primary font-inter">
+        <div
+          id="product-title"
+          className="flex items-center justify-between mx-4 md:mx-10 font-inter"
+        >
+          <h2 className="mb-2 text-xl font-bold md:text-2xl">
+            {product.title}
+          </h2>
           <h3 className="text-xl font-medium text-black">
             €{product.variants[0].price.amount.replace("$", "")}0
           </h3>
         </div>
-        <div className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0">
+        <div
+          id="product-image"
+          className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0"
+        >
           {openCanvas ? (
             <div
               ref={canvasRef}
@@ -175,7 +183,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center w-full h-full overflow-hidden border rounded-lg bg-primary">
-                    <Loader className="animate-spin" />
+                    <Loader className="w-10 h-10 text-white animate-spin" />
                   </div>
                 }
               >
@@ -231,7 +239,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                   />
                 ))}
               </div>
-              <div className="absolute bottom-0 right-0 z-10 w-32 h-12 pointer-events-none bg-gradient-to-t from-white to-transparent"></div>
+              <div className="absolute bottom-0 right-0 z-10 w-12 h-24 pointer-events-none md:w-32 md:h-12 bg-gradient-to-l md:bg-gradient-to-t from-white to-transparent"></div>
             </>
           )}
         </div>

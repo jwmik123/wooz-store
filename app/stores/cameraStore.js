@@ -24,8 +24,8 @@ const CAMERA_POSITIONS = {
     target: new THREE.Vector3(0, 0, 0),
   },
   totebag: {
-    position: new THREE.Vector3(1, 0, 2), // Position camera slightly above and in front of totebag
-    target: new THREE.Vector3(1, -5, 0), // Target the exact position of the totebag
+    position: new THREE.Vector3(1, 0, 2),
+    target: new THREE.Vector3(1, -5, 0),
   },
   intro: {
     position: new THREE.Vector3(0, 0, 20),
