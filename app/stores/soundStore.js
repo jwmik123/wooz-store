@@ -29,7 +29,6 @@ class Sound {
   }
 }
 
-// Create sounds only on the client side
 const createSounds = () => {
   if (typeof window === "undefined") return {};
 
@@ -50,12 +49,33 @@ const useSoundStore = create((set, get) => ({
   initialize: () => {
     if (typeof window === "undefined") return;
 
-    // Initialize sounds on the client side
     set({ sounds: createSounds() });
 
-    // Preload sounds
     Object.values(get().sounds).forEach((sound) => {
       if (sound.audio) sound.audio.load();
+    });
+
+    // Handle page visibility change
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        get().stopAllSounds();
+      }
+    });
+
+    // Handle page unload
+    window.addEventListener("beforeunload", () => {
+      get().stopAllSounds();
+    });
+
+    // Handle mobile back button and tab closing
+    window.addEventListener("pagehide", () => {
+      get().stopAllSounds();
+    });
+  },
+
+  stopAllSounds: () => {
+    Object.values(get().sounds).forEach((sound) => {
+      sound?.stop();
     });
   },
 
@@ -102,9 +122,13 @@ const useSoundStore = create((set, get) => ({
   cleanup: () => {
     if (typeof window === "undefined") return;
 
-    Object.values(get().sounds).forEach((sound) => {
-      sound?.stop();
-    });
+    // Remove event listeners
+    document.removeEventListener("visibilitychange", get().stopAllSounds);
+    window.removeEventListener("beforeunload", get().stopAllSounds);
+    window.removeEventListener("pagehide", get().stopAllSounds);
+
+    // Stop all sounds
+    get().stopAllSounds();
   },
 }));
 
