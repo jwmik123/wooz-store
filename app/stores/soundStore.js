@@ -35,7 +35,7 @@ const createSounds = () => {
   return {
     swoosh: new Sound("/assets/sounds/swoosh.mp3", { volume: 0.1 }),
     ambient: new Sound("/assets/sounds/ambient.mp3", {
-      volume: 0.1,
+      volume: 0.05,
       loop: true,
     }),
   };
