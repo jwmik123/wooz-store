@@ -10,7 +10,7 @@ export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
 
   return (
-    <main className="h-screen overflow-x-hidden">
+    <main className="h-screen overflow-hidden">
       {introScreen && <IntroScreen />}
       <Experience />
       <Sidebar />

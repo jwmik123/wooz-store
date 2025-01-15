@@ -153,7 +153,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
 
   return (
     <>
-      <div className="relative flex flex-col w-full pt-5 space-y-4 overflow-x-hidden text-primary font-inter">
+      <div className="relative flex flex-col w-full pt-5 space-y-4 overflow-hidden text-primary font-inter">
         <div
           id="product-title"
           className="flex items-center justify-between mx-4 md:mx-10 font-inter"

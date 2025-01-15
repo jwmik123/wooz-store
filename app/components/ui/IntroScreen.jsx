@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
+import { Loader } from "lucide-react";
 const IntroScreen = () => {
   const { progress } = useProgress();
   const setIntroScreen = collectionStore((state) => state.setIntroScreen);
@@ -56,6 +57,7 @@ const IntroScreen = () => {
           }`}
         >
           <div className="absolute flex flex-col items-center justify-center gap-2">
+            <Loader className="animate-spin" />
             <SmoothProgress actualProgress={progress} />
           </div>
         </div>

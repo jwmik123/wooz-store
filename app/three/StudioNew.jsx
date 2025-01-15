@@ -148,7 +148,7 @@ export default function StudioNew({ showDebug, ...props }) {
         const translateY = -(screenPosition.y * window.innerHeight) / 2;
 
         // Apply dynamic offset based on viewport differences
-        const viewportOffset = isMobile() ? -50 : 0;
+        const viewportOffset = isMobile() ? -70 : 0;
 
         point.element.style.transform = `translateX(${translateX}px) translateY(${
           translateY - viewportOffset

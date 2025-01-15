@@ -47,8 +47,8 @@ const SmoothProgress = ({ actualProgress }) => {
   }, [actualProgress]);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-4">
-      <div className="font-light text-9xl">{displayProgress}%</div>
+    <div className="flex flex-col items-center justify-center space-y-4 ">
+      <div className="text-4xl font-light">{displayProgress}%</div>
     </div>
   );
 };
