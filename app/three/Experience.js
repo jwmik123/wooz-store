@@ -61,17 +61,21 @@ export default function Experience() {
     return () => window.removeEventListener("hashchange", checkHash);
   }, []);
 
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    setIsMobileView(
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
     );
-  };
+  }, []);
 
   return (
     <>
       <Canvas
         style={{ width: "100%", height: "100%" }}
-        camera={{ position: [0, 1, 20], fov: isMobile() ? 75 : 55 }}
+        camera={{ position: [0, 1, 20], fov: isMobileView ? 75 : 55 }}
         gl={{
           antialias: true,
           depth: true,
