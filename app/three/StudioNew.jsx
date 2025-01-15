@@ -17,6 +17,7 @@ import useCameraStore from "../stores/cameraStore";
 
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
+import { Vampiro_One } from "next/font/google";
 
 const NODE_NAMES = {
   longsleeve: "Longsleeve",
@@ -120,8 +121,12 @@ export default function StudioNew({ showDebug, ...props }) {
     );
   };
 
-  useFrame(({ camera }) => {
-    const lerpSpeed = 0.04;
+  useFrame(({ clock, camera }) => {
+    const fps = 1 / clock.getDelta();
+
+    // Adjust lerp speed based on FPS
+    const lerpSpeed = fps > 120 ? 0.02 : 0.04;
+
     if (orbitControlsRef.current) {
       orbitControlsRef.current.object.position.lerp(
         targetCameraPosition,
@@ -131,7 +136,7 @@ export default function StudioNew({ showDebug, ...props }) {
       if (targetCameraPosition.equals(new THREE.Vector3(0, 0, 5))) {
         orbitControlsRef.current.target.lerp(
           new THREE.Vector3(mouse.x * 0.4, mouse.y * 0.1, 5),
-          0.02
+          lerpSpeed
         );
       }
       orbitControlsRef.current.target.lerp(targetCameraTarget, lerpSpeed);
