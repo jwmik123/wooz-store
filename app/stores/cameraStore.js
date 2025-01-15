@@ -1,6 +1,6 @@
-// stores/cameraStore.js
 import { create } from "zustand";
 import * as THREE from "three";
+import useSoundStore from "./soundStore";
 
 const CAMERA_POSITIONS = {
   longsleeve: {
@@ -31,6 +31,14 @@ const CAMERA_POSITIONS = {
     position: new THREE.Vector3(0, 0, 20),
     target: new THREE.Vector3(0, 0, 0),
   },
+  lookbook: {
+    position: new THREE.Vector3(1, 0, 2),
+    target: new THREE.Vector3(1, -5, 0),
+  },
+  coffee: {
+    position: new THREE.Vector3(0, 0, 20),
+    target: new THREE.Vector3(0, 0, 0),
+  },
 };
 
 const useCameraStore = create((set) => ({
@@ -40,15 +48,18 @@ const useCameraStore = create((set) => ({
 
   // Methods
   setCameraPosition: (position) => {
+    useSoundStore.getState().playSound("swoosh");
     set({ targetCameraPosition: new THREE.Vector3().copy(position) });
   },
 
   setCameraTarget: (target) => {
+    useSoundStore.getState().playSound("swoosh");
     set({ targetCameraTarget: new THREE.Vector3().copy(target) });
   },
 
   // Combined method to set both position and target
   updateCameraConfig: (type) => {
+    useSoundStore.getState().playSound("swoosh");
     const config = CAMERA_POSITIONS[type] || CAMERA_POSITIONS.default;
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
@@ -58,6 +69,7 @@ const useCameraStore = create((set) => ({
 
   // Reset to default or intro position based on intro screen state
   resetCamera: (isIntroScreen = false) => {
+    useSoundStore.getState().playSound("swoosh");
     const config = isIntroScreen
       ? CAMERA_POSITIONS.intro
       : CAMERA_POSITIONS.default;

@@ -3,13 +3,24 @@ import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
-import { Loader } from "lucide-react";
+import { Loader, InfoIcon } from "lucide-react";
+import useSoundStore from "../../stores/soundStore";
+
 const IntroScreen = () => {
   const { progress } = useProgress();
   const setIntroScreen = collectionStore((state) => state.setIntroScreen);
+  const { setSoundEnabled, initialize } = useSoundStore();
   const [fadeOut, setFadeOut] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeFadeIn, setWelcomeFadeIn] = useState(false);
+
+  useEffect(() => {
+    initialize();
+
+    return () => {
+      useSoundStore.getState().cleanup();
+    };
+  }, [initialize]);
 
   useEffect(() => {
     if (progress === 100) {
@@ -25,9 +36,14 @@ const IntroScreen = () => {
     }
   }, [progress]);
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (withSound = true) => {
+    setSoundEnabled(withSound);
     setFadeOut(true);
     setIntroScreen(false);
+  };
+
+  const handleNoSoundClick = () => {
+    handleButtonClick(false);
   };
 
   return (
@@ -48,6 +64,12 @@ const IntroScreen = () => {
             >
               Start Experience
             </button>
+            <button
+              onClick={handleNoSoundClick}
+              className="py-3 underline underline-offset-2 text-primary"
+            >
+              Start Experience without sound
+            </button>
           </div>
         </div>
       ) : (
@@ -56,9 +78,16 @@ const IntroScreen = () => {
             fadeOut ? "opacity-0" : "opacity-100"
           }`}
         >
-          <div className="absolute flex flex-col items-center justify-center gap-2">
+          <div className="absolute flex flex-col items-center justify-center w-full h-full gap-2">
             <Loader className="animate-spin" />
             <SmoothProgress actualProgress={progress} />
+            <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
+              <InfoIcon className="w-6 h-6 cursor-pointer" />
+
+              <div className="text-center text-black">
+                click on the pulsing dots to interact.
+              </div>
+            </div>
           </div>
         </div>
       )}

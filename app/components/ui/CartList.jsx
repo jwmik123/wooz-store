@@ -40,6 +40,9 @@ const CartList = () => {
                   {item.title}
                 </h3>
                 <div className="mt-1 text-sm text-gray-600">
+                  <p className="text-primary">
+                    ${parseFloat(item.variant.price.amount).toFixed(2)}
+                  </p>
                   {colorOption && <p>Color: {colorOption.value}</p>}
                   {sizeOption && <p>Size: {sizeOption.value}</p>}
                 </div>

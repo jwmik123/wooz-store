@@ -180,6 +180,10 @@ export default function StudioNew({ showDebug, ...props }) {
         position: new THREE.Vector3(1.4, -2.4, -2),
         element: document.querySelector(".point-4"),
       },
+      {
+        position: new THREE.Vector3(1.4, -2.4, -1),
+        element: document.querySelector(".point-5"),
+      },
     ],
     []
   );
