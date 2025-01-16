@@ -8,6 +8,7 @@ import { useControls } from "leva";
 import Smoke from "./Smoke";
 import StudioNew from "./StudioNew";
 import Birds from "./Bird";
+import collectionStore from "../stores/collectionStore";
 
 export default function Experience() {
   const [showDebug, setShowDebug] = useState(false);
@@ -26,12 +27,14 @@ export default function Experience() {
     color: "white",
   });
 
-  const spotLight1 = new THREE.SpotLight("white", 4);
+  const bookVisible = collectionStore((state) => state.bookVisible);
+
+  const spotLight1 = new THREE.SpotLight("white", bookVisible ? 4 : 100);
   spotLight1.position.set(0, 20, 0);
   spotLight1.decay = 0;
   spotLight1.distance = 45;
   spotLight1.penumbra = 0.5;
-  const spotLight3 = new THREE.SpotLight("white", 50);
+  const spotLight3 = new THREE.SpotLight("white", bookVisible ? 0 : 50);
   spotLight3.position.set(0, 0, 30);
   spotLight3.angle = 1;
   spotLight3.decay = 0;
@@ -89,7 +92,7 @@ export default function Experience() {
         <group ref={ref}>
           <ambientLight intensity={0.5} />
           <primitive object={spotLight1} />
-          {/* <primitive object={spotLight3} /> */}
+          <primitive object={spotLight3} />
           <Clouds
             material={THREE.MeshLambertMaterial}
             limit={400}

@@ -10,6 +10,8 @@ const collectionStore = create((set) => ({
   introScreen: true,
   setIntroScreen: (value) => set({ introScreen: value }),
   setGlobalCheckout: (checkout) => set({ globalCheckout: checkout }),
+  bookVisible: false,
+  setBookVisible: (bookVisible) => set({ bookVisible: bookVisible }),
 }));
 
 export default collectionStore;

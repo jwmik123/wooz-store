@@ -32,6 +32,9 @@ export default function StudioNew({ showDebug, ...props }) {
   const orbitControlsRef = useRef();
   const [mouse] = useState(() => ({ x: 0, y: 0 }));
 
+  const bookVisible = collectionStore((state) => state.bookVisible);
+  const setBookVisible = collectionStore((state) => state.setBookVisible);
+
   const {
     targetCameraPosition,
     targetCameraTarget,
@@ -206,8 +209,6 @@ export default function StudioNew({ showDebug, ...props }) {
     ],
     []
   );
-
-  const [bookVisible, setBookVisible] = useState(false);
 
   return (
     <>

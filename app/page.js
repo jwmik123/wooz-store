@@ -21,6 +21,8 @@ export default function Home() {
   const cinematic = cameraStore((state) => state.cinematic);
   const setCinematic = cameraStore((state) => state.setCinematic);
   const resetCamera = cameraStore((state) => state.resetCamera);
+  const bookVisible = collectionStore((state) => state.bookVisible);
+  const setBookVisible = collectionStore((state) => state.setBookVisible);
 
   useEffect(() => {
     if (cinematic) {
@@ -50,6 +52,11 @@ export default function Home() {
 
   const handleClose = () => {
     setCinematic(false);
+    resetCamera(introScreen);
+  };
+
+  const handleCloseBook = () => {
+    setBookVisible(false);
     resetCamera(introScreen);
   };
 
@@ -88,6 +95,15 @@ export default function Home() {
       </div>
 
       {introScreen && <IntroScreen />}
+
+      {bookVisible && (
+        <div
+          onClick={() => handleCloseBook()}
+          className="absolute z-10 flex items-center justify-center w-24 h-10 -translate-x-1/2 bg-white bottom-4 left-1/2 text-primary"
+        >
+          <span>close book</span>
+        </div>
+      )}
 
       <Experience />
       <Sidebar />
