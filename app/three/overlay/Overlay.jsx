@@ -14,17 +14,6 @@ const PointsOfInterest = () => {
   const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"];
 
   useEffect(() => {
-    pointRef.current.forEach((point) => {
-      // Reset all text
-      const chars = point.querySelectorAll(".char");
-      gsap.to(chars, {
-        y: -20,
-        opacity: 0,
-        duration: 0.3,
-        stagger: 0.05,
-      });
-    });
-
     if (selectedCollection) {
       const selectedIndex = collections.findIndex(
         (label) => label.toLowerCase() === selectedCollection.toLowerCase()
@@ -46,25 +35,19 @@ const PointsOfInterest = () => {
   return (
     <>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"].map(
-          (label, index) => (
-            <div key={index} className={`point point-${index}`}>
-              <div className="label ripple"></div>
-              {/* <div
-            className="text-center -translate-x-1/2 label-text"
-            ref={(el) => (pointRef.current[index] = el)}
-          >
-            <p className="text-xl font-bold pointer-events-none">
-              {label.split("").map((char, i) => (
-                <span key={i} className="inline-block char">
-                  {char}
-                </span>
-              ))}
-            </p>
-          </div> */}
-            </div>
-          )
-        )}
+        {[
+          "Hoodie",
+          "Splatter",
+          "Polo",
+          "Longsleeve",
+          "Totebag",
+          "Coffee",
+          "Lookbook",
+        ].map((label, index) => (
+          <div key={index} className={`point point-${index}`}>
+            <div className="label ripple"></div>
+          </div>
+        ))}
       </div>
       <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
         <InfoIcon

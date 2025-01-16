@@ -17,7 +17,6 @@ import useCameraStore from "../stores/cameraStore";
 
 import vertexShader from "./shaders/studio/vertexShader.glsl";
 import fragmentShader from "./shaders/studio/fragmentShader.glsl";
-import { Vampiro_One } from "next/font/google";
 
 const NODE_NAMES = {
   longsleeve: "Longsleeve",
@@ -30,10 +29,11 @@ export default function StudioNew({ showDebug, ...props }) {
   const orbitControlsRef = useRef();
   const [mouse] = useState(() => ({ x: 0, y: 0 }));
 
-  // Get camera state and methods from camera store
   const {
     targetCameraPosition,
     targetCameraTarget,
+    setCameraPosition,
+    setCameraTarget,
     updateCameraConfig,
     resetCamera,
   } = useCameraStore();
@@ -125,9 +125,7 @@ export default function StudioNew({ showDebug, ...props }) {
     const fps = 1 / clock.getDelta();
 
     // Adjust lerp speed based on FPS
-    const lerpSpeed = fps <= 120 ? 0.02 : 0.04;
-
-    console.log(lerpSpeed);
+    const lerpSpeed = fps <= 120 ? 0.04 : 0.02;
 
     if (orbitControlsRef.current) {
       orbitControlsRef.current.object.position.lerp(
@@ -164,7 +162,6 @@ export default function StudioNew({ showDebug, ...props }) {
     }
   });
 
-  // Handle points for labels/annotations
   const points = useMemo(
     () => [
       {
@@ -184,12 +181,16 @@ export default function StudioNew({ showDebug, ...props }) {
         element: document.querySelector(".point-3"),
       },
       {
-        position: new THREE.Vector3(1.4, -2.4, -2),
+        position: new THREE.Vector3(0.6, -1.1, 1.7),
         element: document.querySelector(".point-4"),
       },
       {
-        position: new THREE.Vector3(1.4, -2.4, -1),
+        position: new THREE.Vector3(0, -1.1, 1.8),
         element: document.querySelector(".point-5"),
+      },
+      {
+        position: new THREE.Vector3(-0.5, -1.1, 1.6),
+        element: document.querySelector(".point-6"),
       },
     ],
     []
@@ -274,6 +275,25 @@ export default function StudioNew({ showDebug, ...props }) {
               }}
             >
               <boxGeometry args={[0.3, 0.2, 0.3]} />
+              <meshStandardMaterial color="red" visible={false} />
+            </mesh>
+          </Select>
+          <Select>
+            <mesh
+              position={[2.9, 0.75, 0.5]}
+              onPointerOver={() => {
+                handlePointerOver();
+              }}
+              onPointerOut={() => {
+                handlePointerOut();
+              }}
+              onClick={() => {
+                setCameraPosition(new THREE.Vector3(-0.5, -0.5, 3));
+                setCameraTarget(new THREE.Vector3(0, -1, 0));
+                setCinematic(true);
+              }}
+            >
+              <boxGeometry args={[0.1, 0.1, 0.1]} />
               <meshStandardMaterial color="red" visible={false} />
             </mesh>
           </Select>

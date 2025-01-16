@@ -57,6 +57,10 @@ const useCameraStore = create((set) => ({
     set({ targetCameraTarget: new THREE.Vector3().copy(target) });
   },
 
+  setCinematic: (cinematic) => {
+    set({ cinematic });
+  },
+
   // Combined method to set both position and target
   updateCameraConfig: (type) => {
     useSoundStore.getState().playSound("swoosh");
