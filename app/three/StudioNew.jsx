@@ -146,6 +146,7 @@ export default function StudioNew({ showDebug, ...props }) {
         y: targetCameraTarget.y,
         z: targetCameraTarget.z,
         duration: 1.5,
+        delay: 0.2,
       });
       orbitControlsRef.current.update();
     }
