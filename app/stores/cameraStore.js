@@ -35,10 +35,6 @@ const CAMERA_POSITIONS = {
     position: new THREE.Vector3(1, 0, 2),
     target: new THREE.Vector3(1, -5, 0),
   },
-  coffee: {
-    position: new THREE.Vector3(0, 0, 20),
-    target: new THREE.Vector3(0, 0, 0),
-  },
 };
 
 const useCameraStore = create((set) => ({
@@ -58,7 +54,7 @@ const useCameraStore = create((set) => ({
   },
 
   setCinematic: (cinematic) => {
-    set({ cinematic });
+    set({ cinematic: cinematic });
   },
 
   // Combined method to set both position and target
