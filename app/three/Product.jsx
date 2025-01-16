@@ -17,6 +17,7 @@ export default function Product({ selectedColor }) {
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   const meshRef = useRef();
   const controlCubeRef = useRef();
@@ -95,6 +96,13 @@ export default function Product({ selectedColor }) {
       }, 500);
     }
   }, [selectedColor, productHandle]);
+
+  useEffect(() => {
+    setIsVisible(false);
+    setTimeout(() => {
+      setIsVisible(true);
+    }, 500);
+  }, [productHandle]);
 
   const [isMobileView, setIsMobileView] = useState(false);
 
@@ -261,7 +269,12 @@ export default function Product({ selectedColor }) {
         <sphereGeometry args={[2, 24, 24]} />
         <meshBasicMaterial visible={false} />
       </mesh>
-      <primitive position={[0, -1.3, 0]} object={gltfScene} ref={meshRef} />
+      <primitive
+        position={[0, -1.3, 0]}
+        object={gltfScene}
+        ref={meshRef}
+        visible={isVisible}
+      />
     </group>
   );
 }
