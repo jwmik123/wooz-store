@@ -102,9 +102,13 @@ const pageMaterials = [
 ];
 
 pages.forEach((page) => {
-  useTexture.preload(`/assets/lookbook/${page.front}.webp`);
-  useTexture.preload(`/assets/lookbook/${page.back}.webp`);
-  useTexture.preload(`/assets/lookbook/book-cover-roughness.jpg`);
+  try {
+    useTexture.preload(`/assets/lookbook/${page.front}.webp`);
+    useTexture.preload(`/assets/lookbook/${page.back}.webp`);
+    useTexture.preload(`/assets/lookbook/book-cover-roughness.jpg`);
+  } catch (error) {
+    console.error("Failed to preload texture:", error);
+  }
 });
 
 const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
