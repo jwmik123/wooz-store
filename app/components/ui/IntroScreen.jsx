@@ -36,6 +36,8 @@ const IntroScreen = () => {
     }
   }, [progress]);
 
+  console.log(progress);
+
   const handleButtonClick = (withSound = true) => {
     setSoundEnabled(withSound);
     setFadeOut(true);
@@ -79,14 +81,18 @@ const IntroScreen = () => {
           }`}
         >
           <div className="absolute flex flex-col items-center justify-center w-full h-full gap-2">
-            <Loader className="animate-spin" />
             <SmoothProgress actualProgress={progress} />
-            <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
-              <InfoIcon className="w-6 h-6 cursor-pointer" />
 
-              <div className="text-center text-black">
-                click on the pulsing dots to interact.
-              </div>
+            <div
+              className="fixed bottom-0 left-0 h-4 bg-primary transition-[width] duration-300 will-change-transform"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+
+          <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
+            <InfoIcon className="w-6 h-6 cursor-pointer" />
+            <div className="text-center text-black">
+              click on the pulsing dots to interact.
             </div>
           </div>
         </div>
