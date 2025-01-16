@@ -297,7 +297,7 @@ export default function StudioNew({ showDebug, ...props }) {
                 handlePointerOut();
               }}
               onClick={() => {
-                setCameraPosition(new THREE.Vector3(-0.5, -0.7, 3));
+                setCameraPosition(new THREE.Vector3(-0.5, -0.7, 2.6));
                 setCameraTarget(new THREE.Vector3(0, -1, -3));
                 setCinematic(true);
               }}

@@ -63,6 +63,7 @@ export default function Home() {
       </div>
 
       {introScreen && <IntroScreen />}
+
       <Experience />
       <Sidebar />
       <PointsOfInterest />
