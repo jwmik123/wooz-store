@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import { useLoader, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
+import gsap from "gsap";
 
 import {
   splatterConfig,
@@ -122,31 +123,29 @@ export default function StudioNew({ showDebug, ...props }) {
     );
   };
 
-  useFrame(({ clock, camera }) => {
-    const fps = 1 / clock.getDelta();
-
-    // Adjust lerp speed based on FPS
-    let lerpSpeed = 0.02;
-
-    if (fps >= 60) {
-      lerpSpeed = 0.02;
-    } else {
-      lerpSpeed = 0.04;
-    }
-
+  useFrame(({ camera }) => {
     if (orbitControlsRef.current) {
-      orbitControlsRef.current.object.position.lerp(
-        targetCameraPosition,
-        lerpSpeed
-      );
-      // If the camera is in the default position, move the target towards the mouse
+      gsap.to(orbitControlsRef.current.object.position, {
+        x: targetCameraPosition.x,
+        y: targetCameraPosition.y,
+        z: targetCameraPosition.z,
+        duration: 1.2,
+      });
       if (targetCameraPosition.equals(new THREE.Vector3(0, 0, 5))) {
-        orbitControlsRef.current.target.lerp(
-          new THREE.Vector3(mouse.x * 0.4, mouse.y * 0.1, 5),
-          lerpSpeed
-        );
+        gsap.to(orbitControlsRef.current.target, {
+          x: mouse.x * 0.2,
+          y: mouse.y * 0.1,
+          z: 5,
+          duration: 0.5,
+        });
       }
-      orbitControlsRef.current.target.lerp(targetCameraTarget, lerpSpeed);
+
+      gsap.to(orbitControlsRef.current.target, {
+        x: targetCameraTarget.x,
+        y: targetCameraTarget.y,
+        z: targetCameraTarget.z,
+        duration: 1.2,
+      });
       orbitControlsRef.current.update();
     }
 
