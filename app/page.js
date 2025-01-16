@@ -53,13 +53,41 @@ export default function Home() {
     resetCamera(introScreen);
   };
 
+  console.log(
+    "Code by: Joël Mik (https://mikdevelopment.nl)",
+    "3D Design by: Kevin Schipper"
+  );
+
   return (
     <main className="h-screen max-h-screen overflow-hidden">
       <div onClick={() => handleClose()} className="pointer-events-auto ">
-        <div className="cin-top z-10 fixed top-0 left-0 w-full h-[13%] bg-black translate-y-[-100%]">
+        <div className="cin-top z-10 fixed top-0 left-0 w-full h-[11%] bg-black translate-y-[-100%]">
           <X className="absolute text-white cursor-pointer right-4 top-4" />
         </div>
-        <div className="cin-bottom z-10 fixed bottom-0 left-0 w-full h-[13%] bg-black translate-y-[100%]"></div>
+        <div className="cin-bottom z-10 fixed bottom-0 left-0 w-full h-[11%] bg-black translate-y-[100%]">
+          <div className="flex flex-col justify-center h-full ml-4 text-left text-white">
+            <div className="">
+              <span>Code by: Joël Mik </span>(
+              <a
+                href="https://mikdevelopment.nl"
+                className="font-bold underline"
+              >
+                https://mikdevelopment.nl
+              </a>
+              )
+            </div>
+            <div className="">
+              <span>3D Design by: Kevin Schipper </span>(
+              <a
+                href="https://kevinschipper.com"
+                className="font-bold underline"
+              >
+                https://kevinschipper.com
+              </a>
+              )
+            </div>
+          </div>
+        </div>
       </div>
 
       {introScreen && <IntroScreen />}
