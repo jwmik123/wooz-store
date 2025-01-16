@@ -21,7 +21,7 @@ const CAMERA_POSITIONS = {
   },
   default: {
     position: new THREE.Vector3(0, 0, 5),
-    target: new THREE.Vector3(0, 0, 0),
+    target: new THREE.Vector3(0, 0, -10),
   },
   totebag: {
     position: new THREE.Vector3(1, 0, 2),
