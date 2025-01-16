@@ -26,7 +26,7 @@ export default function Experience() {
     color: "white",
   });
 
-  const spotLight1 = new THREE.SpotLight("white", 100);
+  const spotLight1 = new THREE.SpotLight("white", 4);
   spotLight1.position.set(0, 20, 0);
   spotLight1.decay = 0;
   spotLight1.distance = 45;
@@ -89,7 +89,7 @@ export default function Experience() {
         <group ref={ref}>
           <ambientLight intensity={0.5} />
           <primitive object={spotLight1} />
-          <primitive object={spotLight3} />
+          {/* <primitive object={spotLight3} /> */}
           <Clouds
             material={THREE.MeshLambertMaterial}
             limit={400}
@@ -98,42 +98,42 @@ export default function Experience() {
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="#f8d7da" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={2}
               position={[15, -10, -13]}
             />
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="#f8e1e4" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={3}
               position={[-15, -10, -13]}
             />
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="#f8e1e4" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={3}
               position={[15, -10, -1]}
             />
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="#f8e8eb" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={4}
               position={[0, -5, -20]}
             />
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="pink" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={5}
               position={[0, -5, -12]}
             />
             <Cloud
               {...config}
               bounds={[x, y, z]}
-              color="pink" // pinkish/whitish color
+              color="#fff" // pinkish/whitish color
               seed={5}
               position={[0, 0, 7]}
             />

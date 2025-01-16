@@ -68,21 +68,18 @@ export default function Home() {
           <div className="flex flex-col justify-center h-full ml-4 text-left text-white">
             <div className="">
               <span>Code by: Joël Mik </span>(
-              <a
-                href="https://mikdevelopment.nl"
-                className="font-bold underline"
-              >
-                https://mikdevelopment.nl
+              <a href="https://joelmik.nl" className="font-bold underline">
+                https://joelmik.nl
               </a>
               )
             </div>
             <div className="">
               <span>3D Design by: Kevin Schipper </span>(
               <a
-                href="https://kevinschipper.com"
+                href="https://kevinschipper.nl"
                 className="font-bold underline"
               >
-                https://kevinschipper.com
+                https://kevinschipper.nl
               </a>
               )
             </div>

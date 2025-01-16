@@ -234,7 +234,7 @@ export default function Product({ selectedColor }) {
   const handlePointerMove = (e) => {
     if (isDragging && controlCubeRef.current) {
       const deltaX = e.clientX - previousMouseX.current;
-      const rotationSpeed = isMobileView ? 0.05 : 0.015;
+      const rotationSpeed = isMobileView ? 0.04 : 0.015;
       controlCubeRef.current.rotation.y += deltaX * rotationSpeed;
       previousMouseX.current = e.clientX;
     }

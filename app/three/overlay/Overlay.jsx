@@ -52,6 +52,8 @@ const PointsOfInterest = () => {
       <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
         <InfoIcon
           className="w-6 h-6 cursor-pointer"
+          onPointerEnter={() => setShowInfo(true)}
+          onPointerLeave={() => setShowInfo(false)}
           onClick={() => setShowInfo(!showInfo)}
         />
         {showInfo && (

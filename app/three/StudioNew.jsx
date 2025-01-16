@@ -7,6 +7,8 @@ import { useLoader, useFrame } from "@react-three/fiber";
 import { Select, Selection } from "@react-three/postprocessing";
 import gsap from "gsap";
 
+import { Book } from "./Book";
+
 import {
   splatterConfig,
   longSleeveConfig,
@@ -194,16 +196,18 @@ export default function StudioNew({ showDebug, ...props }) {
         element: document.querySelector(".point-4"),
       },
       {
-        position: new THREE.Vector3(0, -1.1, 1.8),
+        position: new THREE.Vector3(0, -1.1, 1.7),
         element: document.querySelector(".point-5"),
       },
       {
-        position: new THREE.Vector3(-0.5, -1.1, 1.6),
+        position: new THREE.Vector3(-0.5, -1.1, 1.5),
         element: document.querySelector(".point-6"),
       },
     ],
     []
   );
+
+  const [bookVisible, setBookVisible] = useState(false);
 
   return (
     <>
@@ -306,7 +310,36 @@ export default function StudioNew({ showDebug, ...props }) {
               <meshStandardMaterial color="red" visible={false} />
             </mesh>
           </Select>
+          <Select>
+            <mesh
+              position={[3, 0.75, 0]}
+              onPointerOver={() => {
+                handlePointerOver();
+              }}
+              onPointerOut={() => {
+                handlePointerOut();
+              }}
+              onClick={() => {
+                setCameraPosition(new THREE.Vector3(0, -0.5, 1.9));
+                setCameraTarget(new THREE.Vector3(0, -5, 0));
+                setBookVisible(true);
+              }}
+            >
+              <boxGeometry args={[0.3, 0.3, 0.3]} />
+              <meshStandardMaterial color="red" visible={false} />
+            </mesh>
+          </Select>
         </Selection>
+        <group
+          visible={bookVisible}
+          scale={0.2}
+          position={[3, 0.85, 0]}
+          rotation-x={-Math.PI / 2}
+          rotation-y={Math.PI * 0.2}
+          rotation-z={Math.PI / 2}
+        >
+          <Book />
+        </group>
       </group>
     </>
   );
