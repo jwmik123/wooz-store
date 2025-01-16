@@ -34,6 +34,7 @@ export default function StudioNew({ showDebug, ...props }) {
     targetCameraTarget,
     setCameraPosition,
     setCameraTarget,
+    setCinematic,
     updateCameraConfig,
     resetCamera,
   } = useCameraStore();
@@ -125,7 +126,13 @@ export default function StudioNew({ showDebug, ...props }) {
     const fps = 1 / clock.getDelta();
 
     // Adjust lerp speed based on FPS
-    const lerpSpeed = fps <= 120 ? 0.04 : 0.02;
+    let lerpSpeed = 0;
+
+    if (fps <= 120) {
+      lerpSpeed = 0.04;
+    } else {
+      lerpSpeed = 0.02;
+    }
 
     if (orbitControlsRef.current) {
       orbitControlsRef.current.object.position.lerp(
