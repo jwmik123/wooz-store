@@ -333,7 +333,7 @@ export default function StudioNew({ showDebug, ...props }) {
             </mesh>
           </Select>
         </Selection>
-        <group
+        {/* <group
           visible={bookVisible}
           scale={0.2}
           position={[3, 0.85, 0]}
@@ -342,7 +342,7 @@ export default function StudioNew({ showDebug, ...props }) {
           rotation-z={Math.PI / 2}
         >
           <Book />
-        </group>
+        </group> */}
       </group>
     </>
   );
