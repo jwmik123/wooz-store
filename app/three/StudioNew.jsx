@@ -126,12 +126,12 @@ export default function StudioNew({ showDebug, ...props }) {
     const fps = 1 / clock.getDelta();
 
     // Adjust lerp speed based on FPS
-    let lerpSpeed = 0;
+    let lerpSpeed = 0.02;
 
-    if (fps <= 120) {
-      lerpSpeed = 0.04;
-    } else {
+    if (fps >= 60) {
       lerpSpeed = 0.02;
+    } else {
+      lerpSpeed = 0.04;
     }
 
     if (orbitControlsRef.current) {
