@@ -180,8 +180,6 @@ const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
     return mesh;
   }, []);
 
-  // useHelper(skinnedMeshRef, SkeletonHelper, "red");
-
   useFrame((_, delta) => {
     if (!skinnedMeshRef.current) {
       return;
