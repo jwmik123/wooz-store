@@ -176,8 +176,11 @@ export default function StudioNew({ showDebug, ...props }) {
     }
   });
 
-  const points = useMemo(
-    () => [
+  const [points, setPoints] = useState([]);
+
+  useEffect(() => {
+    // Initialize points after DOM is ready
+    setPoints([
       {
         position: new THREE.Vector3(0, -1, -3),
         element: document.querySelector(".point-0"),
@@ -206,9 +209,8 @@ export default function StudioNew({ showDebug, ...props }) {
         position: new THREE.Vector3(-0.5, -1.1, 1.5),
         element: document.querySelector(".point-6"),
       },
-    ],
-    []
-  );
+    ]);
+  }, []); // Empty dependency array means this runs once on mount
 
   return (
     <>

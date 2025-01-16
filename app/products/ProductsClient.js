@@ -20,29 +20,20 @@ function preloadImage(src) {
 
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
-  const [imagesPreloaded, setImagesPreloaded] = useState(false);
   const { productHandle } = collectionStore();
   const { checkout, initializeCheckout, addToCart } = useCheckoutStore();
 
   useEffect(() => {
-    async function fetchAndPreloadProducts() {
+    async function fetchProducts() {
       try {
         const product = await client.product.fetchByHandle(productHandle);
         setProduct(product);
-
-        // Preload all product images in parallel
-        if (product && product.images.length > 0) {
-          await Promise.all(
-            product.images.map((image) => preloadImage(image.src))
-          );
-          setImagesPreloaded(true);
-        }
       } catch (error) {
-        console.error("Error fetching or preloading:", error);
+        console.error("Error fetching product:", error);
       }
     }
 
-    fetchAndPreloadProducts();
+    fetchProducts();
     initializeCheckout();
   }, [productHandle, initializeCheckout]);
 
@@ -54,7 +45,6 @@ export default function ProductsClientComponent() {
           product={product}
           addToCart={addToCart}
           checkout={checkout}
-          imagesPreloaded={imagesPreloaded}
         />
       )}
     </div>
