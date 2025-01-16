@@ -5,7 +5,6 @@ import { useRef, useEffect, useState } from "react";
 import { Center, Clouds, Cloud, StatsGl } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";
-import useSoundStore from "../stores/soundStore";
 import Smoke from "./Smoke";
 import StudioNew from "./StudioNew";
 import Birds from "./Bird";

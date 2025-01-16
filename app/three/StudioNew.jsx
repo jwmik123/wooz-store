@@ -129,8 +129,9 @@ export default function StudioNew({ showDebug, ...props }) {
         x: targetCameraPosition.x,
         y: targetCameraPosition.y,
         z: targetCameraPosition.z,
-        duration: 1.2,
+        duration: 1.5,
       });
+
       if (targetCameraPosition.equals(new THREE.Vector3(0, 0, 5))) {
         gsap.to(orbitControlsRef.current.target, {
           x: mouse.x * 0.2,
@@ -144,7 +145,7 @@ export default function StudioNew({ showDebug, ...props }) {
         x: targetCameraTarget.x,
         y: targetCameraTarget.y,
         z: targetCameraTarget.z,
-        duration: 1.2,
+        duration: 1.5,
       });
       orbitControlsRef.current.update();
     }
