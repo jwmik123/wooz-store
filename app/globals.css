@@ -38,6 +38,12 @@ body {
   transform: scale(1, 1);
 }
 
+@media (max-width: 768px) {
+  .point-5 {
+    display: none;
+  }
+}
+
 .point .label {
   position: absolute;
   width: 10px;

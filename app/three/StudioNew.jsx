@@ -313,36 +313,40 @@ export default function StudioNew({ showDebug, ...props }) {
               <meshStandardMaterial color="red" visible={false} />
             </mesh>
           </Select>
-          <Select>
-            <mesh
-              position={[3, 0.75, 0]}
-              onPointerOver={() => {
-                handlePointerOver();
-              }}
-              onPointerOut={() => {
-                handlePointerOut();
-              }}
-              onClick={() => {
-                setCameraPosition(new THREE.Vector3(0, -0.5, 1.9));
-                setCameraTarget(new THREE.Vector3(0, -5, 0));
-                setBookVisible(true);
-              }}
-            >
-              <boxGeometry args={[0.3, 0.3, 0.3]} />
-              <meshStandardMaterial color="red" visible={false} />
-            </mesh>
-          </Select>
+          {!isMobile() && (
+            <Select>
+              <mesh
+                position={[3, 0.75, 0]}
+                onPointerOver={() => {
+                  handlePointerOver();
+                }}
+                onPointerOut={() => {
+                  handlePointerOut();
+                }}
+                onClick={() => {
+                  setCameraPosition(new THREE.Vector3(0, -0.5, 1.9));
+                  setCameraTarget(new THREE.Vector3(0, -5, 0));
+                  setBookVisible(true);
+                }}
+              >
+                <boxGeometry args={[0.3, 0.3, 0.3]} />
+                <meshStandardMaterial color="red" visible={false} />
+              </mesh>
+            </Select>
+          )}
         </Selection>
-        {/* <group
-          visible={bookVisible}
-          scale={0.2}
-          position={[3, 0.85, 0]}
-          rotation-x={-Math.PI / 2}
-          rotation-y={Math.PI * 0.2}
-          rotation-z={Math.PI / 2}
-        >
-          <Book />
-        </group> */}
+        {!isMobile() && (
+          <group
+            visible={bookVisible}
+            scale={0.2}
+            position={[3, 0.85, 0]}
+            rotation-x={-Math.PI / 2}
+            rotation-y={Math.PI * 0.2}
+            rotation-z={Math.PI / 2}
+          >
+            <Book />
+          </group>
+        )}
       </group>
     </>
   );
