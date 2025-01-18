@@ -329,7 +329,7 @@ export default function StudioNew({ showDebug, ...props }) {
                   setBookVisible(true);
                 }}
               >
-                <boxGeometry args={[0.3, 0.3, 0.3]} />
+                <boxGeometry args={[0.3, 0.3, 0.5]} />
                 <meshStandardMaterial color="red" visible={false} />
               </mesh>
             </Select>

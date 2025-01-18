@@ -36,12 +36,16 @@ export default function Birds() {
   const birdsRef = useRef();
   useFrame(() => {
     birdsRef.current.position.x += 0.04;
-    if (birdsRef.current.position.x > 20) {
-      birdsRef.current.position.x = -20;
+    if (birdsRef.current.position.x > 100) {
+      birdsRef.current.position.x = -100;
     }
   });
   return (
-    <group ref={birdsRef} rotation={[0, Math.PI / 2, 0]} position={[0, 5, -10]}>
+    <group
+      ref={birdsRef}
+      rotation={[0, Math.PI / 2, 0]}
+      position={[0, 10, -30]}
+    >
       <Bird
         timeOffset={0}
         position={[Math.random() * 5, 0, Math.random() * 5, 0]}

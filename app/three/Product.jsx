@@ -27,14 +27,14 @@ export default function Product({ selectedColor }) {
   const hoodieColorTextureMap = {
     "Dark grey/Taupe": "/assets/hoodie/hoodie_darkgrey.jpg",
     "Sage Green": "/assets/hoodie/hoodie_green.jpg",
-    "Light Grey Melange": "/assets/hoodie/hoodie_grey.jpg",
+    "Light Grey": "/assets/hoodie/hoodie_grey.jpg",
     Black: "/assets/hoodie/hoodie_black.jpg",
   };
 
   const splatterColorTextureMap = {
-    Blue: "/assets/splatter/splatter_blue.jpg",
+    "Sky Blue": "/assets/splatter/splatter_blue.jpg",
     White: "/assets/splatter/splatter_white.jpg",
-    Green: "/assets/splatter/splatter_green.jpg",
+    "Foam Green": "/assets/splatter/splatter_green.jpg",
   };
 
   const poloColorTextureMap = {
@@ -252,8 +252,8 @@ export default function Product({ selectedColor }) {
 
   return (
     <group>
-      <ambientLight />
-      <directionalLight position={[1, 1, 1]} intensity={2} />
+      <ambientLight intensity={1} />
+      <directionalLight position={[1, 1, 1]} intensity={3} />
       <mesh
         position={[0, -0.3, -2]}
         ref={controlCubeRef}
