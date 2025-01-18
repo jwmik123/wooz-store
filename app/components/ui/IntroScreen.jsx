@@ -36,8 +36,6 @@ const IntroScreen = () => {
     }
   }, [progress]);
 
-  console.log(progress);
-
   const handleButtonClick = (withSound = true) => {
     setSoundEnabled(withSound);
     setFadeOut(true);
