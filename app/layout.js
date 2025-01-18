@@ -16,11 +16,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head />
-      <body className={inter.className}>
+      <head>
         <GoogleAnalytics GA_MEASUREMENT_ID="G-TDKEGF7JZ2" />
-        {children}
-      </body>
+      </head>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }
