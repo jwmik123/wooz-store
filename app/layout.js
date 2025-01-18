@@ -1,12 +1,8 @@
-import { Inter, Libre_Baskerville } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import GoogleAnalytics from "./components/GoogleAnalytics";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const inter = Inter({ subsets: ["latin"] });
-const libreBaskerville = Libre_Baskerville({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
 
 export const metadata = {
   title: "Wooz Store",
@@ -16,10 +12,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        <GoogleAnalytics GA_MEASUREMENT_ID="G-TDKEGF7JZ2" />
-      </head>
-      <body className={inter.className}>{children}</body>
+      <head />
+      <body className={inter.className}>
+        <GoogleAnalytics gaId="G-TDKEGF7JZ2" />
+        {children}
+      </body>
     </html>
   );
 }
