@@ -8,15 +8,6 @@ import Product from "../three/Product";
 import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
 import { Suspense } from "react";
-// New function to preload images
-function preloadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = document.createElement("img");
-    img.onload = resolve;
-    img.onerror = reject;
-    img.src = src;
-  });
-}
 
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
