@@ -54,8 +54,21 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     ),
   ];
 
+  const sizes = [
+    ...new Set(
+      product.variants
+        .map(
+          (variant) =>
+            variant.selectedOptions.find((opt) => opt.name === "Size")?.value
+        )
+        .filter(Boolean)
+    ),
+  ];
+
   const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(
+    sizes.length === 1 ? sizes[0] : null
+  );
   const [selectedImage, setSelectedImage] = useState(product.images[0].src);
   const [loading, setLoading] = useState(!imagesPreloaded);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -81,17 +94,6 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
       setLoading(false);
     }
   }, [imagesPreloaded]);
-
-  const sizes = [
-    ...new Set(
-      product.variants
-        .map(
-          (variant) =>
-            variant.selectedOptions.find((opt) => opt.name === "Size")?.value
-        )
-        .filter(Boolean)
-    ),
-  ];
 
   const findVariant = () => {
     return product.variants.find(

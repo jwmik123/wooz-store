@@ -41,6 +41,8 @@ const createSounds = () => {
   };
 };
 
+const controller = new AbortController();
+
 const useSoundStore = create((set, get) => ({
   isSoundEnabled: true,
   volume: 0.1,
@@ -56,21 +58,33 @@ const useSoundStore = create((set, get) => ({
     });
 
     // Handle page visibility change
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        get().stopAllSounds();
-      }
-    });
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.hidden) {
+          get().stopAllSounds();
+        }
+      },
+      { signal: controller.signal }
+    );
 
     // Handle page unload
-    window.addEventListener("beforeunload", () => {
-      get().stopAllSounds();
-    });
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        get().stopAllSounds();
+      },
+      { signal: controller.signal }
+    );
 
     // Handle mobile back button and tab closing
-    window.addEventListener("pagehide", () => {
-      get().stopAllSounds();
-    });
+    window.addEventListener(
+      "pagehide",
+      () => {
+        get().stopAllSounds();
+      },
+      { signal: controller.signal }
+    );
   },
 
   stopAllSounds: () => {
@@ -123,9 +137,7 @@ const useSoundStore = create((set, get) => ({
     if (typeof window === "undefined") return;
 
     // Remove event listeners
-    document.removeEventListener("visibilitychange", get().stopAllSounds);
-    window.removeEventListener("beforeunload", get().stopAllSounds);
-    window.removeEventListener("pagehide", get().stopAllSounds);
+    controller.abort();
 
     // Stop all sounds
     get().stopAllSounds();
