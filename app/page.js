@@ -70,7 +70,7 @@ export default function Home() {
           <X className="absolute text-white cursor-pointer right-4 top-4" />
         </div>
         <div className="cin-bottom z-10 fixed bottom-0 left-0 w-full h-[11%] text-sm bg-black translate-y-[100%]">
-          <div className="flex flex-col justify-center h-full ml-4 text-left text-white/40">
+          <div className="flex flex-col justify-center h-full ml-4 text-left text-white/80">
             <div className="">
               <span>Code by: Joël Mik </span>(
               <a href="https://joelmik.nl" className="font-bold underline">

@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import { Instagram, Facebook } from "lucide-react";
 
 const Menu = ({ isNavOpen, toggleNav, navRef, navContainer }) => {
   const linkRefs = useRef([]);
@@ -79,6 +80,20 @@ const Menu = ({ isNavOpen, toggleNav, navRef, navContainer }) => {
             >
               2D Website
             </Link>
+            <div className="flex items-center gap-2 mt-10">
+              <Link
+                href="https://www.instagram.com/woozclothing/"
+                target="_blank"
+              >
+                <Instagram className="w-6 h-6 stroke-2" />
+              </Link>
+              <Link
+                href="https://www.facebook.com/Woozclothing"
+                target="_blank"
+              >
+                <Facebook className="w-6 h-6 stroke-2" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

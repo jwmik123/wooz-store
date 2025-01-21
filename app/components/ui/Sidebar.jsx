@@ -41,12 +41,12 @@ export const Sidebar = () => {
       className="sidebar fixed top-0 right-0 w-full h-screen lg:w-1/2 xl:w-2/5 md:max-w-[500px] bg-white transform translate-x-full"
     >
       <div className="w-full h-full overflow-x-hidden sidebar-inner">
-        <div className="flex justify-end mx-10 mt-5">
+        <div className="flex justify-end mx-4 mt-5">
           <button
             onClick={closeSidebar}
             className="flex items-center gap-1 text-primary"
           >
-            <X width={20} height={20} />
+            <X className="w-6 h-6" />
           </button>
         </div>
         {cartOpen ? <CartList /> : <ProductsClient />}
