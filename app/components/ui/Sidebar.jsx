@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import ProductsClientComponent from "../../products/ProductsClient";
+import ProductsClient from "../../products/ProductsClient";
 import collectionStore from "../../stores/collectionStore";
 import { X } from "lucide-react";
 import CartList from "./CartList";
@@ -38,7 +38,7 @@ export const Sidebar = () => {
   return (
     <div
       ref={sidebarRef}
-      className="sidebar fixed top-0 right-0 w-full h-screen lg:w-1/2 xl:w-2/5 md:max-w-[550px] bg-white transform translate-x-full"
+      className="sidebar fixed top-0 right-0 w-full h-screen lg:w-1/2 xl:w-2/5 md:max-w-[450px] bg-white transform translate-x-full"
     >
       <div className="w-full h-full overflow-x-hidden sidebar-inner">
         <div className="flex justify-end mx-10 mt-5">
@@ -49,7 +49,7 @@ export const Sidebar = () => {
             <X width={20} height={20} />
           </button>
         </div>
-        {cartOpen ? <CartList /> : <ProductsClientComponent />}
+        {cartOpen ? <CartList /> : <ProductsClient />}
       </div>
     </div>
   );

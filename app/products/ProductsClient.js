@@ -88,13 +88,6 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     }
   }, [selectedColor, product.variants]);
 
-  // Set loading to false when images are preloaded
-  useEffect(() => {
-    if (imagesPreloaded) {
-      setLoading(false);
-    }
-  }, [imagesPreloaded]);
-
   const findVariant = () => {
     return product.variants.find(
       (variant) =>
@@ -139,7 +132,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
       <div className="relative flex flex-col w-full pt-5 space-y-4 overflow-hidden text-primary font-inter">
         <div
           id="product-title"
-          className="flex items-center justify-between mx-4 md:mx-10 font-inter"
+          className="flex items-center justify-between mx-5 font-inter"
         >
           <h2 className="mb-2 text-xl font-bold md:text-2xl">
             {product.title}
@@ -150,18 +143,16 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
         </div>
         <div
           id="product-image"
-          className="flex flex-col relative overflow-hidden justify-between mx-4 mb-5 space-y-4 md:h-[31.3rem] md:flex-row md:mx-10 md:space-x-5 md:space-y-0"
+          className="relative flex flex-col justify-between mx-5 mb-5 space-y-4 overflow-hidden md:flex-row md:space-x-5 md:space-y-0"
         >
           {openCanvas ? (
-            <div
-              ref={canvasRef}
-              className="w-full h-[450px] md:h-full opacity-0"
-            >
+            <div ref={canvasRef} className="w-full h-[24rem] opacity-0">
               <button
-                className="absolute top-0 right-0 z-10 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
+                className="absolute top-0 right-0 z-10 flex items-center justify-center px-2 py-1 mt-2 mr-2 space-x-2 bg-white rounded-sm"
                 onClick={() => setOpenCanvas(false)}
               >
-                <ImageIcon />
+                <p className="text-sm text-primary">View Product Images</p>
+                <ImageIcon className="w-5 h-5" />
               </button>
               <Suspense
                 fallback={
@@ -180,13 +171,13 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
             </div>
           ) : (
             <>
-              <div className="flex justify-center w-full h-full md:block md:w-auto">
+              <div className="flex justify-center w-full md:block md:w-auto">
                 {loading && (
                   <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
                     <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
                   </div>
                 )}
-                <div className="relative flex justify-center w-full h-full md:block md:w-auto">
+                <div className="relative flex justify-center w-full md:block md:w-auto">
                   <Image
                     src={selectedImage}
                     alt={product.title}
@@ -206,7 +197,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                   </button>
                 </div>
               </div>
-              <div className="flex flex-row w-full gap-2 overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
+              <div className="flex flex-row w-full gap-2 max-h-[28rem] overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
                 {product.images.map((image, index) => (
                   <Image
                     key={index}
@@ -222,7 +213,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                   />
                 ))}
               </div>
-              <div className="absolute bottom-0 right-0 z-10 w-12 h-24 pointer-events-none md:w-32 md:h-12 bg-gradient-to-l md:bg-gradient-to-t from-white to-transparent"></div>
+              <div className="absolute bottom-0 right-0 z-10 w-12 h-24 pointer-events-none md:w-28 md:h-12 bg-gradient-to-l md:bg-gradient-to-t from-white to-transparent"></div>
             </>
           )}
         </div>
