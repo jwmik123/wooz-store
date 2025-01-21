@@ -179,19 +179,27 @@ export default function StudioNew({ showDebug, ...props }) {
       orbitControlsRef.current.update();
     }
 
+    const isMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    };
+
     // Update points
     for (const point of points) {
       if (point.element) {
         const screenPosition = point.position.clone();
         screenPosition.project(camera);
-        const viewportWidth = window.visualViewport?.width || window.innerWidth;
-        const viewportHeight =
-          window.visualViewport?.height || window.innerHeight;
-        const scale = window.visualViewport?.scale || 1;
 
-        const translateX = (screenPosition.x * viewportWidth) / 2;
-        const translateY = -((screenPosition.y * viewportHeight) / 2);
-        point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
+        const translateX = (screenPosition.x * window.innerWidth) / 2;
+        const translateY = -(screenPosition.y * window.innerHeight) / 2;
+
+        // Apply dynamic offset based on viewport differences
+        const viewportOffset = isMobile() ? getDeviceSpecificOffset() : 0;
+
+        point.element.style.transform = `translateX(${translateX}px) translateY(${
+          translateY - viewportOffset
+        }px)`;
       }
     }
   });
