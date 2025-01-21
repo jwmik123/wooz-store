@@ -44,6 +44,19 @@ body {
   }
 }
 
+.animate-sound {
+  animation: animSound 3.5s infinite linear;
+}
+
+@keyframes animSound {
+  0% {
+    transform: translateZ(0);
+  }
+  100% {
+    transform: translate3d(calc(-100% + 20px), 0, 0);
+  }
+}
+
 .point .label {
   position: absolute;
   width: 10px;

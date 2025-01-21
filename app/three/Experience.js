@@ -7,6 +7,7 @@ import { Canvas } from "@react-three/fiber";
 import { useControls } from "leva";
 import Smoke from "./Smoke";
 import StudioNew from "./StudioNew";
+
 import Birds from "./Bird";
 import collectionStore from "../stores/collectionStore";
 

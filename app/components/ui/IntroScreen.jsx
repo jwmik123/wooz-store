@@ -14,12 +14,9 @@ const IntroScreen = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeFadeIn, setWelcomeFadeIn] = useState(false);
 
+  // Initialize sound store on mount
   useEffect(() => {
     initialize();
-
-    return () => {
-      useSoundStore.getState().cleanup();
-    };
   }, [initialize]);
 
   useEffect(() => {
@@ -37,13 +34,15 @@ const IntroScreen = () => {
   }, [progress]);
 
   const handleButtonClick = (withSound = true) => {
-    setSoundEnabled(withSound);
+    // First enable sound if requested
+    if (withSound) {
+      setSoundEnabled(true);
+    } else {
+      setSoundEnabled(false);
+    }
+
     setFadeOut(true);
     setIntroScreen(false);
-  };
-
-  const handleNoSoundClick = () => {
-    handleButtonClick(false);
   };
 
   return (
@@ -59,14 +58,14 @@ const IntroScreen = () => {
             <h1 className="text-5xl font-base md:text-7xl">Wooz Studio</h1>
 
             <button
-              onClick={handleButtonClick}
+              onClick={() => handleButtonClick(true)}
               className="px-6 py-3 mt-12 text-white uppercase transition-opacity duration-200 border-2 border-white rounded-lg hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
             >
               Start Experience
             </button>
           </div>
           <button
-            onClick={handleNoSoundClick}
+            onClick={() => handleButtonClick(false)}
             className="absolute w-full py-3 underline -translate-x-1/2 bottom-2 left-1/2 underline-offset-2 text-primary"
           >
             Start Experience without sound
