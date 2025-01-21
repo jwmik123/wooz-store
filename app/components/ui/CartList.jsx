@@ -41,7 +41,7 @@ const CartList = () => {
                 </h3>
                 <div className="mt-1 text-sm text-gray-600">
                   <p className="text-primary">
-                    ${parseFloat(item.variant.price.amount).toFixed(2)}
+                    €{parseFloat(item.variant.price.amount).toFixed(2)}
                   </p>
                   {colorOption && <p>Color: {colorOption.value}</p>}
                   {sizeOption && <p>Size: {sizeOption.value}</p>}
@@ -71,7 +71,7 @@ const CartList = () => {
       </div>
       <div className="flex flex-col w-full mt-10">
         <div className="flex-1 mb-2 text-lg font-semibold text-primary">
-          Total: $
+          Total: €
           {parseFloat(checkout.lineItemsSubtotalPrice.amount).toFixed(2)}
         </div>
         <button
