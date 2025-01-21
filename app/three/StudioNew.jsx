@@ -234,7 +234,7 @@ export default function StudioNew({ showDebug, ...props }) {
         element: document.querySelector(".point-5"),
       },
       {
-        position: new THREE.Vector3(-0.5, -1.1, 1.5),
+        position: new THREE.Vector3(-0.5, -1.18, 1.5),
         element: document.querySelector(".point-6"),
       },
     ]);

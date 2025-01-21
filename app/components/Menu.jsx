@@ -69,10 +69,7 @@ const Menu = ({ isNavOpen, toggleNav, navRef, navContainer }) => {
             ref={(el) => (linkRefs.current[4] = el)}
             className="flex flex-col gap-2 pt-16 mx-8 underline underline-offset-4"
           >
-            <Link
-              data-animation-link="no-animation"
-              href="mailto:info@laansolutions.nl"
-            >
+            <Link data-animation-link="no-animation" href="/disclaimer">
               Disclaimer
             </Link>
             <Link
