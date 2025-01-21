@@ -197,7 +197,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                   </button>
                 </div>
               </div>
-              <div className="flex flex-row w-full gap-2 max-h-[28rem] overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
+              <div className="flex flex-row w-full gap-2 max-h-[31rem] overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
                 {product.images.map((image, index) => (
                   <Image
                     key={index}

@@ -124,6 +124,28 @@ export default function StudioNew({ showDebug, ...props }) {
     }, 100);
   };
 
+  const getDeviceSpecificOffset = () => {
+    // Get device pixel ratio
+    const pixelRatio = window.devicePixelRatio;
+
+    // Get actual viewport dimensions
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+
+    // Check for specific devices/conditions
+    const isIPhone = /iPhone/.test(navigator.userAgent);
+    const isSmallScreen = viewportHeight < 700; // adjust threshold as needed
+
+    if (isIPhone) {
+      return pixelRatio >= 3 ? -70 : -35; // adjust values based on testing
+    } else if (isSmallScreen) {
+      return -50;
+    }
+
+    return 0;
+  };
+
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
@@ -162,16 +184,14 @@ export default function StudioNew({ showDebug, ...props }) {
       if (point.element) {
         const screenPosition = point.position.clone();
         screenPosition.project(camera);
+        const viewportWidth = window.visualViewport?.width || window.innerWidth;
+        const viewportHeight =
+          window.visualViewport?.height || window.innerHeight;
+        const scale = window.visualViewport?.scale || 1;
 
-        const translateX = (screenPosition.x * window.innerWidth) / 2;
-        const translateY = -(screenPosition.y * window.innerHeight) / 2;
-
-        // Apply dynamic offset based on viewport differences
-        const viewportOffset = isMobile() ? -70 : 0;
-
-        point.element.style.transform = `translateX(${translateX}px) translateY(${
-          translateY - viewportOffset
-        }px)`;
+        const translateX = (screenPosition.x * viewportWidth) / 2;
+        const translateY = -((screenPosition.y * viewportHeight) / 2);
+        point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
     }
   });

@@ -119,6 +119,34 @@ const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
       ? [`/assets/lookbook/book-cover-roughness.jpg`]
       : []),
   ]);
+
+  // Set texture properties for fitting
+  const textures = [picture, picture2];
+  textures.forEach((texture) => {
+    texture.colorSpace = SRGBColorSpace;
+
+    // Choose one of these fitting modes:
+
+    // Cover - fills the entire space while maintaining aspect ratio
+    texture.repeat.set(1, 1);
+    texture.center.set(0, 0);
+
+    // Contain - fits within bounds while maintaining aspect ratio
+    // const aspectRatio = texture.image.width / texture.image.height;
+    // const pageAspectRatio = PAGE_WIDTH / PAGE_HEIGHT;
+    // if (aspectRatio > pageAspectRatio) {
+    //   texture.repeat.set(1, pageAspectRatio / aspectRatio);
+    //   texture.offset.set(0, (1 - texture.repeat.y) / 2);
+    // } else {
+    //   texture.repeat.set(aspectRatio / pageAspectRatio, 1);
+    //   texture.offset.set((1 - texture.repeat.x) / 2, 0);
+    // }
+
+    // Fill - stretches to fill entire space
+    // texture.repeat.set(1, 1);
+    // texture.offset.set(0, 0);
+  });
+
   picture.colorSpace = picture2.colorSpace = SRGBColorSpace;
   const group = useRef();
   const turnedAt = useRef(0);

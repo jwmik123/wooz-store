@@ -60,11 +60,6 @@ export default function Home() {
     resetCamera(introScreen);
   };
 
-  console.log(
-    "Code by: Joël Mik (https://mikdevelopment.nl)",
-    "3D Design by: Kevin Schipper"
-  );
-
   return (
     <main className="h-screen max-h-screen overflow-hidden">
       <div onClick={() => handleClose()} className="pointer-events-auto ">
