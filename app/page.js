@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Experience from "./three/Experience";
 import { Sidebar } from "./components/ui/Sidebar";
 import IntroScreen from "./components/ui/IntroScreen";
@@ -9,14 +9,17 @@ import Cart from "./components/ui/Cart";
 import Navigation from "./components/ui/Navigation";
 import useSoundStore from "./stores/soundStore";
 import cameraStore from "./stores/cameraStore";
+import Menu from "./components/Menu";
 import gsap from "gsap";
-import { X } from "lucide-react";
+import { X, AlignLeft } from "lucide-react";
 
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
   useEffect(() => {
     useSoundStore.getState().playSound("ambient");
   });
+
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   const cinematic = cameraStore((state) => state.cinematic);
   const setCinematic = cameraStore((state) => state.setCinematic);
@@ -88,6 +91,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <div
+        className="fixed z-50 flex items-center gap-2 text-white cursor-pointer top-4 left-4"
+        onClick={() => setIsNavOpen(!isNavOpen)}
+      >
+        <AlignLeft className="w-8 h-8" />
+        <span className="text-sm">Menu</span>
+      </div>
+      <Menu isNavOpen={isNavOpen} />
 
       {introScreen && <IntroScreen />}
 

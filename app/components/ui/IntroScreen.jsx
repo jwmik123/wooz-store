@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
-import { Loader, InfoIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import useSoundStore from "../../stores/soundStore";
 
 const IntroScreen = () => {
@@ -56,7 +56,7 @@ const IntroScreen = () => {
         >
           <div className="flex flex-col items-center gap-4 text-center text-primary">
             <h2 className="text-3xl italic font-light">Welcome to</h2>
-            <h1 className="font-base text-7xl">Wooz Studio</h1>
+            <h1 className="text-5xl font-base md:text-7xl">Wooz Studio</h1>
 
             <button
               onClick={handleButtonClick}
@@ -64,13 +64,13 @@ const IntroScreen = () => {
             >
               Start Experience
             </button>
-            <button
-              onClick={handleNoSoundClick}
-              className="py-3 underline underline-offset-2 text-primary"
-            >
-              Start Experience without sound
-            </button>
           </div>
+          <button
+            onClick={handleNoSoundClick}
+            className="absolute w-full py-3 underline -translate-x-1/2 bottom-2 left-1/2 underline-offset-2 text-primary"
+          >
+            Start Experience without sound
+          </button>
         </div>
       ) : (
         <div
