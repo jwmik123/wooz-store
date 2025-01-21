@@ -318,7 +318,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
           >
             <div className="text-center uppercase">Add To Cart</div>
           </button>
-          <div className="mb-10">
+          <div className="mb-24 md:mb-10">
             <h3 className="text-lg font-bold">Description:</h3>
             <div
               className="prose max-w-none"
