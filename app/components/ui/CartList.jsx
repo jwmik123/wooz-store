@@ -1,15 +1,22 @@
 import React from "react";
 import useCheckoutStore from "../../stores/checkoutStore";
 import Image from "next/image";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, InfoIcon } from "lucide-react";
 const CartList = () => {
   const { checkout, updateQuantity, removeFromCart, clearCheckout } =
     useCheckoutStore();
 
   if (!checkout || !checkout.lineItems.length) {
     return (
-      <div className="flex items-center justify-center h-[80vh]">
+      <div className="flex items-center flex-col justify-center h-[80vh]">
         <p className="text-xl text-gray-500">Your cart is empty</p>
+        <div className="absolute flex items-center gap-2 p-2 text-white rounded-md bottom-4 bg-primary">
+          <InfoIcon className="w-6 h-6" />
+
+          <span className="text-center text-white">
+            click on the pulsing dots to interact with the products.
+          </span>
+        </div>
       </div>
     );
   }
