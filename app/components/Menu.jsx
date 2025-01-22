@@ -96,16 +96,19 @@ const Menu = ({
             </div>
             <div
               ref={(el) => (linkRefs.current[4] = el)}
-              className="flex flex-col gap-2 pt-16 mx-8 underline underline-offset-4"
+              className="flex flex-col gap-2 pt-16 mx-8"
             >
               <Link
                 data-animation-link="no-animation"
+                className="transition-all duration-200 hover:font-bold"
+                target="_blank"
                 href="https://wooz.store/policies/terms-of-service"
               >
-                Disclaimer
+                Terms of Service
               </Link>
               <Link
                 data-animation-link="no-animation"
+                className="transition-all duration-200 hover:font-bold"
                 href="https://wooz.store/"
                 target="_blank"
               >
