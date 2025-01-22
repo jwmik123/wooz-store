@@ -160,7 +160,9 @@ export default function StudioNew({ showDebug, ...props }) {
     const { width, height } = window.screen;
     const screenHeight = Math.max(width, height); // Works in any orientation
 
-    return screenHeight > 850 ? 70 : 0;
+    alert("Screen Height: " + screenHeight);
+
+    return screenHeight > 900 ? 70 : 0;
   };
 
   // const getIOSOffset = () => {
