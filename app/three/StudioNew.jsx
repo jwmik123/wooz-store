@@ -185,6 +185,12 @@ export default function StudioNew({ showDebug, ...props }) {
       );
     };
 
+    const getIOSOffset = () => {
+      const height = window.screen.height;
+      if (height <= 844) return 0; // iPhone 13 and smaller
+      return 50; // default offset
+    };
+
     // Update points
     for (const point of points) {
       if (point.element) {
@@ -194,7 +200,9 @@ export default function StudioNew({ showDebug, ...props }) {
         const viewPort = window.visualViewport;
 
         const translateX = (screenPosition.x * viewPort.width) / 2;
-        const translateY = -(screenPosition.y * viewPort.height) / 2;
+        const translateY =
+          -(screenPosition.y * (viewPort.height / 2)) +
+          (isMobile() ? getIOSOffset() : 0);
 
         // Apply dynamic offset based on viewport differences
         // const viewportOffset = isMobile() ? getDeviceSpecificOffset() : 0;
