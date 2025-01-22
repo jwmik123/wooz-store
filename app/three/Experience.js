@@ -10,7 +10,7 @@ import StudioNew from "./StudioNew";
 
 import Birds from "./Bird";
 import collectionStore from "../stores/collectionStore";
-
+import useCameraStore from "../stores/cameraStore";
 export default function Experience() {
   const [showDebug, setShowDebug] = useState(false);
   const ref = useRef();
@@ -40,6 +40,22 @@ export default function Experience() {
   spotLight3.angle = 1;
   spotLight3.decay = 0;
   spotLight3.penumbra = 1;
+
+  const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
+  const { resetCamera } = useCameraStore();
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const keyDownHandler = (e) => {
+      if (e.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", keyDownHandler, {
+      signal: abortController.signal,
+    });
+    return () => abortController.abort();
+  });
 
   useEffect(() => {
     setTimeout(() => {

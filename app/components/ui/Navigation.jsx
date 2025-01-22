@@ -16,7 +16,13 @@ const Navigation = () => {
 
   const { updateCameraConfig } = useCameraStore();
 
+  const currentIndex = useMemo(
+    () => PRODUCT_ORDER.findIndex((product) => product === productHandle),
+    [productHandle]
+  );
+
   useEffect(() => {
+    const abortController = new AbortController();
     const keyDownHandler = (e) => {
       if (e.key === "ArrowRight") {
         handleNavigation("next");
@@ -26,14 +32,11 @@ const Navigation = () => {
         setSidebarOpen(false);
       }
     };
-    window.addEventListener("keydown", keyDownHandler);
-    return () => window.removeEventListener("keydown", keyDownHandler);
+    window.addEventListener("keydown", keyDownHandler, {
+      signal: abortController.signal,
+    });
+    return () => abortController.abort();
   });
-
-  const currentIndex = useMemo(
-    () => PRODUCT_ORDER.findIndex((product) => product === productHandle),
-    [productHandle]
-  );
 
   const handleNavigation = (direction) => {
     let newIndex;

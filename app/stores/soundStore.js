@@ -73,15 +73,17 @@ class Sound {
 }
 
 const createSounds = () => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   if (typeof window === "undefined") return {};
 
   return {
     swoosh: new Sound("/assets/sounds/swoosh.mp3", {
-      volume: 0.2,
+      volume: isMobile ? 0.3 : 0.2,
       fadeTime: 200,
     }),
     ambient: new Sound("/assets/sounds/ambient.mp3", {
-      volume: 0.05,
+      volume: isMobile ? 0.03 : 0.05,
       loop: true,
       fadeTime: 1000,
     }),
@@ -96,7 +98,7 @@ const controller = new AbortController();
 
 const useSoundStore = create((set, get) => ({
   isSoundEnabled: true,
-  volume: 0.1,
+  volume: 0.05,
   sounds: {},
   isInitialized: false,
 
