@@ -158,19 +158,6 @@ export default function StudioNew({ showDebug, ...props }) {
   //   return 70; // default offset
   // };
 
-  const needsOffset = () => {
-    // Check if content is actually shifted by browser UI
-    const testElement = document.createElement("div");
-    testElement.style.position = "fixed";
-    testElement.style.top = "0";
-    document.body.appendChild(testElement);
-
-    const actualTop = testElement.getBoundingClientRect().top;
-    document.body.removeChild(testElement);
-
-    return actualTop > 0;
-  };
-
   useFrame(({ camera }) => {
     if (orbitControlsRef.current) {
       gsap.to(orbitControlsRef.current.object.position, {
@@ -210,7 +197,7 @@ export default function StudioNew({ showDebug, ...props }) {
           (screenPosition.x * (viewPort.width || window.innerWidth)) / 2;
         const translateY =
           -(screenPosition.y * (viewPort.height || window.innerHeight)) / 2 +
-          (needsOffset() ? 70 : 0);
+          (isMobile() ? 70 : 0);
 
         point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
