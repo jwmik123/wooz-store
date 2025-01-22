@@ -17,6 +17,7 @@ export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
 
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [openModel, setOpenModel] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
   const { setSoundEnabled } = useSoundStore();
 
@@ -108,7 +109,10 @@ export default function Home() {
       <div className="fixed z-50 flex items-center gap-10 text-white top-4 left-4">
         <div
           className="flex items-center gap-2 cursor-pointer"
-          onClick={() => setIsNavOpen(!isNavOpen)}
+          onClick={() => {
+            setIsNavOpen(!isNavOpen);
+            setOpenModel(false);
+          }}
         >
           <AlignLeft className="w-8 h-8 stroke-[1.5]" />
           <span className="text-sm">Menu</span>
@@ -144,7 +148,12 @@ export default function Home() {
         </div>
       </div>
 
-      <Menu isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
+      <Menu
+        isNavOpen={isNavOpen}
+        setIsNavOpen={setIsNavOpen}
+        openModel={openModel}
+        setOpenModel={setOpenModel}
+      />
 
       {introScreen && <IntroScreen />}
 

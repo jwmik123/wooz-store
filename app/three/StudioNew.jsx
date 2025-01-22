@@ -204,9 +204,6 @@ export default function StudioNew({ showDebug, ...props }) {
           -(screenPosition.y * (viewPort.height / 2)) +
           (isMobile() ? getIOSOffset() : 0);
 
-        // Apply dynamic offset based on viewport differences
-        // const viewportOffset = isMobile() ? getDeviceSpecificOffset() : 0;
-
         point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
     }

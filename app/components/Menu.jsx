@@ -5,11 +5,16 @@ import Link from "next/link";
 import gsap from "gsap";
 import { Instagram, Facebook, X } from "lucide-react";
 
-const Menu = ({ isNavOpen, setIsNavOpen, navRef, navContainer }) => {
+const Menu = ({
+  isNavOpen,
+  setIsNavOpen,
+  navRef,
+  navContainer,
+  openModel,
+  setOpenModel,
+}) => {
   const linkRefs = useRef([]);
   const modelRef = useRef(null);
-
-  const [openModel, setOpenModel] = useState(false);
 
   const [modelInfo, setModelInfo] = useState([]);
 
@@ -127,7 +132,7 @@ const Menu = ({ isNavOpen, setIsNavOpen, navRef, navContainer }) => {
 
       <div
         ref={modelRef}
-        className={`fixed z-30 inset-[200px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
+        className={`fixed z-30 inset-x-4 inset-y-40 md:inset-[200px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
       >
         <X
           className="absolute w-6 h-6 text-white cursor-pointer stroke-2 top-4 right-4"
@@ -137,9 +142,12 @@ const Menu = ({ isNavOpen, setIsNavOpen, navRef, navContainer }) => {
         />
         <div className="flex flex-col h-full gap-2 text-white">
           {modelInfo === "About" && (
-            <div className="flex flex-col items-center justify-center h-full px-24 text-center">
-              <h1 className="mb-6 text-5xl font-bold font-libre"> Our Story</h1>
-              <div className="text-lg prose max-w-none">
+            <div className="flex flex-col items-center justify-center h-full px-1 text-center md:px-24">
+              <h1 className="mb-6 text-2xl font-bold md:text-5xl font-libre">
+                {" "}
+                Our Story
+              </h1>
+              <div className="text-sm prose md:text-lg max-w-none">
                 <p className="mb-4">
                   Creating a community through our brand by sharing happy
                   moments together while wearing Wooz clothing. Let’s make the
@@ -168,21 +176,21 @@ const Menu = ({ isNavOpen, setIsNavOpen, navRef, navContainer }) => {
             </div>
           )}
           {modelInfo === "Sustainability" && (
-            <div className="flex flex-col items-center justify-center h-full px-24 text-center">
-              <h1 className="mb-6 text-5xl font-bold font-libre">
+            <div className="flex flex-col items-center justify-center h-full px-8 text-center md:px-24">
+              <h1 className="mb-6 text-2xl font-bold md:text-5xl font-libre">
                 What sustainability means to Wooz
               </h1>
-              <p className="text-lg prose max-w-none">
+              <p className="text-sm prose md:text-lg max-w-none">
                 Being sustainable is very important to us. We try to keep our
                 footprint as small as possible. We will also continue to
                 research and develop sustainable products to take the best care
                 of planet earth.
               </p>
 
-              <h1 className="mt-10 mb-6 text-4xl font-bold font-libre">
+              <h1 className="mt-10 mb-6 text-2xl font-bold md:text-4xl font-libre">
                 Made in Holland
               </h1>
-              <p className="text-lg prose max-w-none">
+              <p className="text-sm prose md:text-lg max-w-none">
                 The clothing of Wooz is produced in a responsible way in the
                 Netherlands. The production is close to 'home' so it doesn't
                 have to travel far :)
