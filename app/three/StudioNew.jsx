@@ -153,16 +153,23 @@ export default function StudioNew({ showDebug, ...props }) {
   };
 
   const getDeviceOffset = () => {
-    // Only apply offset on iOS devices
     if (!/iPhone/.test(navigator.userAgent)) return 0;
 
-    // Get device dimensions including orientation
     const { width, height } = window.screen;
-    const screenHeight = Math.max(width, height); // Works in any orientation
+    const screenHeight = Math.max(width, height);
+    const screenWidth = Math.min(width, height);
+    const pixelRatio = window.devicePixelRatio;
 
-    // alert("Screen Height: " + screenHeight);
+    // Device model check based on iOS version might be more reliable
+    const iOSVersion = parseInt(
+      (navigator.userAgent.match(/OS (\d+)_/i) || [])[1]
+    );
 
-    return screenHeight >= 844 ? 70 : 0;
+    if (screenHeight === 844 && screenWidth === 390) {
+      return iOSVersion >= 17 ? 70 : 0; // iOS 17+ (iPhone 15) needs offset
+    }
+
+    return screenHeight > 850 ? 70 : 0;
   };
 
   // const getIOSOffset = () => {
