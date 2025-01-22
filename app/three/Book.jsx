@@ -18,6 +18,7 @@ import {
 } from "three";
 import { degToRad } from "three/src/math/MathUtils.js";
 import { pageAtom, pages } from "./UI";
+import useSoundStore from "../stores/soundStore";
 
 const easingFactor = 0.5; // Controls the speed of the easing
 const easingFactorFold = 0.3; // Controls the speed of the easing
@@ -293,6 +294,7 @@ const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
         e.stopPropagation();
         setPage(opened ? number : number + 1);
         setHighlighted(false);
+        useSoundStore.getState().sounds.pageTurn?.play();
       }}
     >
       <primitive
@@ -318,6 +320,7 @@ export const Book = ({ ...props }) => {
           timeout = setTimeout(
             () => {
               goToPage();
+              useSoundStore.getState().sounds.pageTurn?.play();
             },
             Math.abs(page - delayedPage) > 2 ? 50 : 150
           );
@@ -334,7 +337,7 @@ export const Book = ({ ...props }) => {
     return () => {
       clearTimeout(timeout);
     };
-  }, [page]);
+  }, [page, useSoundStore]);
 
   return (
     <group {...props} rotation-y={-Math.PI / 2}>

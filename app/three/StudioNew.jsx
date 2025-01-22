@@ -346,15 +346,17 @@ export default function StudioNew({ showDebug, ...props }) {
               <mesh
                 position={[3, 0.75, 0]}
                 onPointerOver={() => {
-                  handlePointerOver();
+                  !bookVisible && handlePointerOver();
                 }}
                 onPointerOut={() => {
-                  handlePointerOut();
+                  !bookVisible && handlePointerOut();
                 }}
                 onClick={() => {
-                  setCameraPosition(new THREE.Vector3(0, -0.5, 1.9));
-                  setCameraTarget(new THREE.Vector3(0, -5, 0));
-                  setBookVisible(true);
+                  if (!bookVisible) {
+                    setCameraPosition(new THREE.Vector3(0, -0.5, 1.9));
+                    setCameraTarget(new THREE.Vector3(0, -5, 0));
+                    setBookVisible(true);
+                  }
                 }}
               >
                 <boxGeometry args={[0.3, 0.3, 0.5]} />
