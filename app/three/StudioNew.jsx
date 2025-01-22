@@ -187,7 +187,7 @@ export default function StudioNew({ showDebug, ...props }) {
 
     const getIOSOffset = () => {
       const height = window.screen.height;
-      if (height <= 844) return 20; // iPhone 13 and smaller
+      if (height <= 844) return 45; // iPhone 13 and smaller
       return 70; // default offset
     };
 
