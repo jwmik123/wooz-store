@@ -152,6 +152,17 @@ export default function StudioNew({ showDebug, ...props }) {
     );
   };
 
+  const getDeviceOffset = () => {
+    // Only apply offset on iOS devices
+    if (!/iPhone/.test(navigator.userAgent)) return 0;
+
+    // Get device dimensions including orientation
+    const { width, height } = window.screen;
+    const screenHeight = Math.max(width, height); // Works in any orientation
+
+    return screenHeight > 850 ? 70 : 0;
+  };
+
   // const getIOSOffset = () => {
   //   const height = window.screen.height;
   //   if (height <= 844) return 0; // iPhone 13 and smaller
@@ -197,7 +208,7 @@ export default function StudioNew({ showDebug, ...props }) {
           (screenPosition.x * (viewPort.width || window.innerWidth)) / 2;
         const translateY =
           -(screenPosition.y * (viewPort.height || window.innerHeight)) / 2 +
-          (isMobile() ? 70 : 0);
+          getDeviceOffset();
 
         point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
