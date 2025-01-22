@@ -135,7 +135,7 @@ const Menu = ({
 
       <div
         ref={modelRef}
-        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[200px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
+        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[180px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
       >
         <X
           className="absolute w-6 h-6 text-white cursor-pointer stroke-2 top-4 right-4"

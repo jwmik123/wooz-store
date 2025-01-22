@@ -124,28 +124,6 @@ export default function StudioNew({ showDebug, ...props }) {
     }, 100);
   };
 
-  // const getDeviceSpecificOffset = () => {
-  //   // Get device pixel ratio
-  //   const pixelRatio = window.devicePixelRatio;
-
-  //   // Get actual viewport dimensions
-  //   const viewportHeight = window.visualViewport
-  //     ? window.visualViewport.height
-  //     : window.innerHeight;
-
-  //   // Check for specific devices/conditions
-  //   const isIPhone = /iPhone/.test(navigator.userAgent);
-  //   const isSmallScreen = viewportHeight < 700; // adjust threshold as needed
-
-  //   if (isIPhone) {
-  //     return pixelRatio >= 3 ? -70 : -35; // adjust values based on testing
-  //   } else if (isSmallScreen) {
-  //     return -50;
-  //   }
-
-  //   return 0;
-  // };
-
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
@@ -171,12 +149,6 @@ export default function StudioNew({ showDebug, ...props }) {
 
     return screenHeight > 850 ? 70 : 0;
   };
-
-  // const getIOSOffset = () => {
-  //   const height = window.screen.height;
-  //   if (height <= 844) return 0; // iPhone 13 and smaller
-  //   return 70; // default offset
-  // };
 
   useFrame(({ camera }) => {
     if (orbitControlsRef.current) {
@@ -227,7 +199,6 @@ export default function StudioNew({ showDebug, ...props }) {
   const [points, setPoints] = useState([]);
 
   useEffect(() => {
-    // Initialize points after DOM is ready
     setPoints([
       {
         position: new THREE.Vector3(0, -1, -3),
