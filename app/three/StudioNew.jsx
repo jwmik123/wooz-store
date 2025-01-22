@@ -191,15 +191,15 @@ export default function StudioNew({ showDebug, ...props }) {
         const screenPosition = point.position.clone();
         screenPosition.project(camera);
 
-        const translateX = (screenPosition.x * window.innerWidth) / 2;
-        const translateY = -(screenPosition.y * window.innerHeight) / 2;
+        const viewPort = window.visualViewport;
+
+        const translateX = (screenPosition.x * viewPort.width) / 2;
+        const translateY = -(screenPosition.y * viewPort.height) / 2;
 
         // Apply dynamic offset based on viewport differences
-        const viewportOffset = isMobile() ? getDeviceSpecificOffset() : 0;
+        // const viewportOffset = isMobile() ? getDeviceSpecificOffset() : 0;
 
-        point.element.style.transform = `translateX(${translateX}px) translateY(${
-          translateY - viewportOffset
-        }px)`;
+        point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
     }
   });

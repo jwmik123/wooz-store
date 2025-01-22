@@ -3,7 +3,7 @@
 export default function About() {
   return (
     <main className="min-h-screen px-4 py-8 text-center bg-white">
-      <h1 className="mb-6 text-4xl font-bold"> Our Story</h1>
+      <h1 className="mb-6 text-4xl font-bold font-libre"> Our Story</h1>
       <div className="prose max-w-none">
         <p className="mb-4">
           Creating a community through our brand by sharing happy moments

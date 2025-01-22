@@ -144,7 +144,7 @@ export default function Home() {
         </div>
       </div>
 
-      <Menu isNavOpen={isNavOpen} />
+      <Menu isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
 
       {introScreen && <IntroScreen />}
 
