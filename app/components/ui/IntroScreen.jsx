@@ -14,7 +14,6 @@ const IntroScreen = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeFadeIn, setWelcomeFadeIn] = useState(false);
 
-  // Initialize sound store on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
@@ -34,7 +33,6 @@ const IntroScreen = () => {
   }, [progress]);
 
   const handleButtonClick = (withSound = true) => {
-    // First enable sound if requested
     if (withSound) {
       setSoundEnabled(true);
     } else {
@@ -59,7 +57,7 @@ const IntroScreen = () => {
 
             <button
               onClick={() => handleButtonClick(true)}
-              className="px-6 py-3 mt-12 text-white uppercase transition-opacity duration-200 border-2 border-white rounded-lg hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
+              className="px-6 py-3 mt-12 text-white uppercase duration-300 border-2 border-white rounded-lg transition-color hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
             >
               Start Experience
             </button>

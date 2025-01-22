@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --toastify-color-success: #4f7960;
+}
+
 body {
   background: rgb(41, 61, 85);
   background: linear-gradient(
@@ -30,7 +34,7 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  color: #fff;
+  color: #4f7960;
   pointer-events: none;
 }
 

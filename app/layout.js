@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
-
+import { ToastContainer } from "react-toastify";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -16,6 +16,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <GoogleAnalytics gaId="G-TDKEGF7JZ2" />
         {children}
+        <ToastContainer position="bottom-left" />
       </body>
     </html>
   );

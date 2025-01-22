@@ -8,7 +8,7 @@ import Product from "../three/Product";
 import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
 import { Suspense } from "react";
-
+import { toast } from "react-toastify";
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
   const { productHandle } = collectionStore();
@@ -113,6 +113,9 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
     const selectedVariant = findVariant();
     if (selectedVariant) {
       addToCart(selectedVariant.id);
+      toast.success("Added to cart", {
+        theme: "colored",
+      });
     } else {
       console.error("No variant selected or variant not found");
     }
