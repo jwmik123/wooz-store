@@ -135,7 +135,7 @@ const Menu = ({
 
       <div
         ref={modelRef}
-        className={`fixed z-30 inset-x-4 inset-y-40 md:inset-[200px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
+        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[200px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
       >
         <X
           className="absolute w-6 h-6 text-white cursor-pointer stroke-2 top-4 right-4"
@@ -146,7 +146,7 @@ const Menu = ({
         <div className="flex flex-col h-full gap-2 text-white">
           {modelInfo === "About" && (
             <div className="flex flex-col items-center justify-center h-full px-1 text-center md:px-24">
-              <h1 className="mb-6 text-2xl font-bold md:text-5xl font-libre">
+              <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:text-5xl font-libre">
                 {" "}
                 Our Story
               </h1>
@@ -180,7 +180,7 @@ const Menu = ({
           )}
           {modelInfo === "Sustainability" && (
             <div className="flex flex-col items-center justify-center h-full px-8 text-center md:px-24">
-              <h1 className="mb-6 text-2xl font-bold md:text-5xl font-libre">
+              <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:text-5xl font-libre">
                 What sustainability means to Wooz
               </h1>
               <p className="text-sm prose md:text-lg max-w-none">
@@ -190,7 +190,7 @@ const Menu = ({
                 of planet earth.
               </p>
 
-              <h1 className="mt-10 mb-6 text-2xl font-bold md:text-4xl font-libre">
+              <h1 className="mt-10 mb-6 text-2xl font-bold sm:text-3xl md:text-4xl font-libre">
                 Made in Holland
               </h1>
               <p className="text-sm prose md:text-lg max-w-none">
