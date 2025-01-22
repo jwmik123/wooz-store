@@ -124,32 +124,51 @@ export default function StudioNew({ showDebug, ...props }) {
     }, 100);
   };
 
-  const getDeviceSpecificOffset = () => {
-    // Get device pixel ratio
-    const pixelRatio = window.devicePixelRatio;
+  // const getDeviceSpecificOffset = () => {
+  //   // Get device pixel ratio
+  //   const pixelRatio = window.devicePixelRatio;
 
-    // Get actual viewport dimensions
-    const viewportHeight = window.visualViewport
-      ? window.visualViewport.height
-      : window.innerHeight;
+  //   // Get actual viewport dimensions
+  //   const viewportHeight = window.visualViewport
+  //     ? window.visualViewport.height
+  //     : window.innerHeight;
 
-    // Check for specific devices/conditions
-    const isIPhone = /iPhone/.test(navigator.userAgent);
-    const isSmallScreen = viewportHeight < 700; // adjust threshold as needed
+  //   // Check for specific devices/conditions
+  //   const isIPhone = /iPhone/.test(navigator.userAgent);
+  //   const isSmallScreen = viewportHeight < 700; // adjust threshold as needed
 
-    if (isIPhone) {
-      return pixelRatio >= 3 ? -70 : -35; // adjust values based on testing
-    } else if (isSmallScreen) {
-      return -50;
-    }
+  //   if (isIPhone) {
+  //     return pixelRatio >= 3 ? -70 : -35; // adjust values based on testing
+  //   } else if (isSmallScreen) {
+  //     return -50;
+  //   }
 
-    return 0;
-  };
+  //   return 0;
+  // };
 
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
+  };
+
+  // const getIOSOffset = () => {
+  //   const height = window.screen.height;
+  //   if (height <= 844) return 0; // iPhone 13 and smaller
+  //   return 70; // default offset
+  // };
+
+  const needsOffset = () => {
+    // Check if content is actually shifted by browser UI
+    const testElement = document.createElement("div");
+    testElement.style.position = "fixed";
+    testElement.style.top = "0";
+    document.body.appendChild(testElement);
+
+    const actualTop = testElement.getBoundingClientRect().top;
+    document.body.removeChild(testElement);
+
+    return actualTop > 0;
   };
 
   useFrame(({ camera }) => {
@@ -179,18 +198,6 @@ export default function StudioNew({ showDebug, ...props }) {
       orbitControlsRef.current.update();
     }
 
-    const isMobile = () => {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-    };
-
-    const getIOSOffset = () => {
-      const height = window.screen.height;
-      if (height <= 844) return 0; // iPhone 13 and smaller
-      return 70; // default offset
-    };
-
     // Update points
     for (const point of points) {
       if (point.element) {
@@ -199,10 +206,11 @@ export default function StudioNew({ showDebug, ...props }) {
 
         const viewPort = window.visualViewport;
 
-        const translateX = (screenPosition.x * viewPort.width) / 2;
+        const translateX =
+          (screenPosition.x * (viewPort.width || window.innerWidth)) / 2;
         const translateY =
-          -(screenPosition.y * (viewPort.height / 2)) +
-          (isMobile() ? getIOSOffset() : 0);
+          -(screenPosition.y * (viewPort.height || window.innerHeight)) / 2 +
+          (needsOffset() ? 70 : 0);
 
         point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
       }
@@ -243,7 +251,7 @@ export default function StudioNew({ showDebug, ...props }) {
         element: document.querySelector(".point-6"),
       },
     ]);
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   return (
     <>

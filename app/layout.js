@@ -13,7 +13,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head />
+      <head>
+        <meta
+          name="viewport"
+          content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, width=device-width, user-scalable=no"
+        />
+      </head>
       <body className={inter.className}>
         <Sound />
         <GoogleAnalytics gaId="G-TDKEGF7JZ2" />

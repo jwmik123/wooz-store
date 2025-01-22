@@ -75,7 +75,7 @@ const Menu = ({
         >
           <div className="flex flex-col justify-center h-full gap-5">
             <div className="flex flex-col">
-              {["Home", "About", "Sustainability"].map((path, index) => (
+              {["About", "Sustainability"].map((path, index) => (
                 <div
                   key={path}
                   className="px-8 py-4 overflow-hidden text-4xl transition-all duration-200 hover:font-bold"
