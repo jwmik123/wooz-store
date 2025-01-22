@@ -1,4 +1,6 @@
-import React, { useMemo } from "react";
+"use client";
+
+import React, { useRef, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
@@ -13,6 +15,20 @@ const Navigation = () => {
   const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
 
   const { updateCameraConfig } = useCameraStore();
+
+  useEffect(() => {
+    const keyDownHandler = (e) => {
+      if (e.key === "ArrowRight") {
+        handleNavigation("next");
+      } else if (e.key === "ArrowLeft") {
+        handleNavigation("prev");
+      } else if (e.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", keyDownHandler);
+    return () => window.removeEventListener("keydown", keyDownHandler);
+  });
 
   const currentIndex = useMemo(
     () => PRODUCT_ORDER.findIndex((product) => product === productHandle),
