@@ -6,8 +6,33 @@ import Sound from "./components/Sound";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Wooz Experience Store",
+  title: "WOOZ Experience",
   description: "A 3D webshop experience for the Wooz collection",
+
+  // Basic metadata
+  keywords:
+    "WOOZ, 3D webshop, fashion, sustainable, sustainability, collection, virtual shopping, e-commerce, Dutch, Dutch fashion, Dutch sustainable fashion, Dutch sustainable",
+  author: "WOOZ",
+  viewport: "width=device-width, initial-scale=1",
+  robots: "index, follow",
+  language: "en",
+
+  // Open Graph metadata for social sharing
+  openGraph: {
+    title: "WOOZ Experience",
+    description: "A 3D webshop experience for the Wooz collection",
+    type: "website",
+    url: "https://wooz.store/",
+    site_name: "WOOZ",
+    images: [
+      {
+        url: "/assets/coverimage.png",
+        width: 1200,
+        height: 630,
+        alt: "WOOZ Experience Preview",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({ children }) {
