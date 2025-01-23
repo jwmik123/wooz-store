@@ -102,14 +102,14 @@ const Menu = ({
                 data-animation-link="no-animation"
                 className="transition-all duration-200 hover:font-bold"
                 target="_blank"
-                href="https://wooz.store/policies/terms-of-service"
+                href="https://shop.wooz.store/policies/terms-of-service"
               >
                 Terms of Service
               </Link>
               <Link
                 data-animation-link="no-animation"
                 className="transition-all duration-200 hover:font-bold"
-                href="https://wooz.store/"
+                href="https://shop.wooz.store/"
                 target="_blank"
               >
                 2D Website
