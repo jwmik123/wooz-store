@@ -138,6 +138,10 @@ export default function StudioNew({ showDebug, ...props }) {
     const screenWidth = Math.min(width, height);
     const pixelRatio = window.devicePixelRatio;
 
+    const isInstagramBrowser = /Instagram/.test(navigator.userAgent);
+
+    if (isInstagramBrowser) return 0;
+
     // Device model check based on iOS version might be more reliable
     const iOSVersion = parseInt(
       (navigator.userAgent.match(/OS (\d+)_/i) || [])[1]
