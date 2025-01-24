@@ -139,8 +139,9 @@ export default function StudioNew({ showDebug, ...props }) {
     const pixelRatio = window.devicePixelRatio;
 
     const isInstagramBrowser = /Instagram/.test(navigator.userAgent);
+    const isLinkedInBrowser = /LinkedIn/.test(navigator.userAgent);
 
-    if (isInstagramBrowser) return 0;
+    if (isInstagramBrowser || isLinkedInBrowser) return 0;
 
     // Device model check based on iOS version might be more reliable
     const iOSVersion = parseInt(
