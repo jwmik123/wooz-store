@@ -1,54 +1,31 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { Loader2Icon } from "lucide-react";
 
 const SmoothProgress = ({ actualProgress }) => {
-  const [displayProgress, setDisplayProgress] = useState(0);
-  const animationFrameId = useRef(null);
-  const lastTimeRef = useRef(null);
-
-  // Animation settings
-  const ANIMATION_DURATION = 500; // milliseconds
-  const STEPS_PER_SECOND = 60;
-
-  // Easing function (ease-out cubic)
-  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const progressRef = useRef(null);
+  const displayRef = useRef({ value: 0 });
 
   useEffect(() => {
-    let startProgress = displayProgress;
-    let startTime = null;
-
-    const animate = (currentTime) => {
-      if (!startTime) startTime = currentTime;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
-
-      // Apply easing
-      const easedProgress = easeOutCubic(progress);
-
-      // Calculate the current display value
-      const currentValue =
-        startProgress + (actualProgress - startProgress) * easedProgress;
-
-      setDisplayProgress(Math.round(currentValue));
-
-      if (progress < 1) {
-        animationFrameId.current = requestAnimationFrame(animate);
-      }
-    };
-
-    // Start the animation
-    animationFrameId.current = requestAnimationFrame(animate);
-
-    // Cleanup
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
+    gsap.to(displayRef.current, {
+      value: actualProgress,
+      duration: 0.5,
+      ease: "power3.out",
+      onUpdate: () => {
+        if (progressRef.current) {
+          progressRef.current.textContent = `${Math.round(
+            displayRef.current.value
+          )}%`;
+        }
+      },
+    });
   }, [actualProgress]);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 ">
-      <div className="text-4xl font-light">{displayProgress}%</div>
+    <div className="flex flex-col items-center justify-center space-y-4">
+      <div ref={progressRef} className="font-light text-7xl">
+        0%
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useProgress } from "@react-three/drei";
 import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, LoaderIcon } from "lucide-react";
 import useSoundStore from "../../stores/soundStore";
 
 const IntroScreen = () => {
@@ -13,6 +13,7 @@ const IntroScreen = () => {
   const [fadeOut, setFadeOut] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeFadeIn, setWelcomeFadeIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     initialize();
@@ -24,6 +25,7 @@ const IntroScreen = () => {
         setFadeOut(true);
         setTimeout(() => {
           setShowWelcome(true);
+          setIsLoading(false);
           setTimeout(() => {
             setWelcomeFadeIn(true);
           }, 100);
@@ -45,7 +47,8 @@ const IntroScreen = () => {
 
   return (
     <>
-      {showWelcome ? (
+      {/* Welcome Screen */}
+      {showWelcome && (
         <div
           className={`fixed font-libre inset-0 z-50 flex items-center justify-center transition-opacity duration-1000 ${
             welcomeFadeIn ? "opacity-100" : "opacity-0"
@@ -69,29 +72,32 @@ const IntroScreen = () => {
             Start Experience without sound
           </button>
         </div>
-      ) : (
-        <div
-          className={`fixed font-libre inset-0 z-50 bg-white flex items-center justify-center transition-opacity duration-300 ${
-            fadeOut ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          <div className="absolute flex flex-col items-center justify-center w-full h-full gap-2">
-            <SmoothProgress actualProgress={progress} />
+      )}
 
-            <div
-              className="fixed bottom-0 left-0 h-4 bg-primary transition-[width] duration-300 will-change-transform"
-              style={{ width: `${progress}%` }}
-            ></div>
+      {/* Loading Screen */}
+      <div
+        className={`fixed font-libre inset-0 z-50 bg-white flex items-center justify-center transition-opacity duration-300 ${
+          fadeOut ? "opacity-0" : "opacity-100"
+        } ${!isLoading ? "pointer-events-none" : ""}`}
+      >
+        <div className="absolute flex flex-col items-center justify-center w-full h-full gap-2">
+          <SmoothProgress actualProgress={progress} />
+          <div className="text-4xl font-light">
+            <LoaderIcon className="animate-spin" />
           </div>
+          <div
+            className="fixed bottom-0 left-0 h-4 bg-primary transition-[width] duration-300 will-change-transform"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
 
-          <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
-            <InfoIcon className="w-6 h-6 cursor-pointer" />
-            <div className="text-center text-black">
-              click on the pulsing dots to interact.
-            </div>
+        <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
+          <InfoIcon className="w-6 h-6 cursor-pointer" />
+          <div className="text-center text-black">
+            click on the pulsing dots to interact.
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 };
