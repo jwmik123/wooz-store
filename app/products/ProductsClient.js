@@ -9,6 +9,8 @@ import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
 import { Suspense } from "react";
 import { toast } from "react-toastify";
+import ZoomImage from "../components/ui/ZoomImage";
+
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
   const { productHandle } = collectionStore();
@@ -183,17 +185,13 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
                     <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin"></div>
                   </div>
                 )}
-                <div className="relative flex justify-center w-full md:block md:w-auto">
-                  <Image
+                <div className="relative flex justify-center w-full selected-image md:block md:w-auto">
+                  <ZoomImage
                     src={selectedImage}
                     alt={product.title}
-                    className="object-cover w-[90%] rounded-lg md:w-full"
-                    quality={75}
-                    height={500}
                     width={500}
-                    placeholder="empty"
+                    height={500}
                     priority
-                    onLoad={() => setLoading(false)}
                   />
                   <button
                     className="absolute top-0 right-0 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
