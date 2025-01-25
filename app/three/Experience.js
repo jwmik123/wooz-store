@@ -11,6 +11,8 @@ import StudioNew from "./StudioNew";
 import Birds from "./Bird";
 import collectionStore from "../stores/collectionStore";
 import useCameraStore from "../stores/cameraStore";
+import { EffectComposer, Noise } from "@react-three/postprocessing";
+
 export default function Experience() {
   const [showDebug, setShowDebug] = useState(false);
   const ref = useRef();

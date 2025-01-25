@@ -149,7 +149,10 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
           className="relative flex flex-col justify-between mx-5 mb-5 space-y-4 overflow-hidden md:flex-row md:space-x-5 md:space-y-0"
         >
           {openCanvas ? (
-            <div ref={canvasRef} className="w-full h-[24rem] opacity-0">
+            <div
+              ref={canvasRef}
+              className="w-full h-[25rem] md:h-[28rem] opacity-0"
+            >
               <button
                 className="absolute top-0 right-0 z-10 flex items-center justify-center px-2 py-1 mt-2 mr-2 space-x-2 bg-white rounded-sm"
                 onClick={() => setOpenCanvas(false)}
@@ -322,7 +325,7 @@ function ProductItem({ product, addToCart, imagesPreloaded }) {
             <div className="text-center uppercase">Add To Cart</div>
           </button>
           <div className="mb-24 md:mb-10">
-            <h3 className="text-lg font-bold">Description:</h3>
+            <h3 className="mb-4 text-xl font-bold">Description:</h3>
             <div
               className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}

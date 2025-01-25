@@ -13,7 +13,6 @@ export const metadata = {
   keywords:
     "WOOZ, 3D webshop, fashion, sustainable, sustainability, collection, virtual shopping, e-commerce, Dutch, Dutch fashion, Dutch sustainable fashion, Dutch sustainable",
   author: "WOOZ",
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   language: "en",
 
