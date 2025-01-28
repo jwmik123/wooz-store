@@ -44,7 +44,7 @@ const ZoomImage = ({
   return (
     <div
       ref={imageContainerRef}
-      className="relative w-full overflow-hidden "
+      className="relative w-full overflow-hidden"
       onMouseEnter={() => setShowZoom(true)}
       onMouseLeave={() => setShowZoom(false)}
       onMouseMove={handleMouseMove}
@@ -64,7 +64,7 @@ const ZoomImage = ({
 
       {showZoom && (
         <div
-          className="absolute flex items-center justify-center transition-transform duration-75 ease-out transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-50 border rounded-lg shadow-lg pointer-events-none"
+          className="absolute items-center justify-center hidden transition-transform duration-75 ease-out transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-50 border rounded-lg shadow-lg pointer-events-none md:flex"
           style={{
             width: "200px",
             height: "200px",
