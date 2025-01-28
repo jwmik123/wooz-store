@@ -1,10 +1,212 @@
-// stores/checkoutStore.js
 import { create } from "zustand";
 import client from "@/lib/shopify";
 
-const STORAGE_KEY = "shopify_checkout";
+const STORAGE_KEY = "shopify_cart";
 
-const getStoredCheckout = () => {
+const CREATE_CART = `
+  mutation CreateCart {
+    cartCreate {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 100) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
+                    altText
+                  }
+                  product {
+                    title
+                    handle
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const ADD_TO_CART = `
+  mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 100) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
+                    altText
+                  }
+                  product {
+                    title
+                    handle
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const REMOVE_FROM_CART = `
+  mutation RemoveFromCart($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 100) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
+                    altText
+                  }
+                  product {
+                    title
+                    handle
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_CART = `
+  mutation UpdateCart($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+    cartLinesUpdate(cartId: $cartId, lines: $lines) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 100) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
+                    altText
+                  }
+                  product {
+                    title
+                    handle
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const GET_CART = `
+  query GetCart($cartId: ID!) {
+    cart(id: $cartId) {
+      id
+      checkoutUrl
+      lines(first: 100) {
+        edges {
+          node {
+            id
+            quantity
+            merchandise {
+              ... on ProductVariant {
+                id
+                title
+                selectedOptions {
+                  name
+                  value
+                }
+                price {
+                  amount
+                  currencyCode
+                }
+                image {
+                  url
+                  altText
+                }
+                product {
+                  title
+                  handle
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const getStoredCart = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY));
   } catch {
@@ -13,33 +215,35 @@ const getStoredCheckout = () => {
 };
 
 const useCheckoutStore = create((set, get) => ({
-  checkout: getStoredCheckout(),
+  cart: getStoredCart(),
   isLoading: false,
   error: null,
 
-  initializeCheckout: async () => {
+  initializeCart: async () => {
     try {
-      const { checkout } = get();
-      if (checkout) {
+      const { cart } = get();
+      if (cart?.id) {
         try {
-          const currentCheckout = await client.checkout.fetch(checkout.id);
+          // Verify if the cart still exists and is valid
+          const response = await client.request(GET_CART, {
+            variables: { cartId: cart.id },
+          });
 
-          // if the checkout is empty or completed, create a new one
-          if (
-            currentCheckout.completedAt ||
-            currentCheckout.lineItems.length === 0
-          ) {
-            throw new Error("Checkout expired or empty");
+          if (response.data.cart) {
+            set({ cart: response.data.cart });
+            return;
           }
-          return;
         } catch {
           localStorage.removeItem(STORAGE_KEY);
         }
       }
-      // Create a new checkout
-      const newCheckout = await client.checkout.create();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
-      set({ checkout: newCheckout });
+
+      // Create a new cart
+      const response = await client.request(CREATE_CART);
+      const newCart = response.data.cartCreate.cart;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCart));
+      set({ cart: newCart });
     } catch (error) {
       set({ error: error.message });
     }
@@ -48,72 +252,78 @@ const useCheckoutStore = create((set, get) => ({
   addToCart: async (variantId) => {
     set({ isLoading: true, error: null });
     try {
-      const { checkout } = get();
+      const { cart } = get();
 
-      if (!checkout) {
-        await get().initializeCheckout();
+      if (!cart?.id) {
+        await get().initializeCart();
       }
 
-      const currentCheckout = await client.checkout.fetch(get().checkout.id);
-      const lineItemsToAdd = [{ variantId, quantity: 1 }];
+      const response = await client.request(ADD_TO_CART, {
+        variables: {
+          cartId: get().cart.id,
+          lines: [{ merchandiseId: variantId, quantity: 1 }],
+        },
+      });
 
-      const newCheckout = await client.checkout.addLineItems(
-        currentCheckout.id,
-        lineItemsToAdd
-      );
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
-      set({ checkout: newCheckout, isLoading: false });
-      return newCheckout;
+      const updatedCart = response.data.cartLinesAdd.cart;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCart));
+      set({ cart: updatedCart, isLoading: false });
+      return updatedCart;
     } catch (error) {
       console.error("Error adding to cart:", error);
-      // If checkout not found, reinitialize and retry
-      if (error.message.includes("Checkout not found")) {
-        await get().initializeCheckout();
+      if (error.message.includes("Cart not found")) {
+        await get().initializeCart();
         return get().addToCart(variantId);
       }
       set({ error: error.message, isLoading: false });
     }
   },
 
-  removeFromCart: async (lineItemId) => {
+  removeFromCart: async (lineId) => {
     set({ isLoading: true, error: null });
     try {
-      const { checkout } = get();
-      if (!checkout) return;
+      const { cart } = get();
+      if (!cart?.id) return;
 
-      const newCheckout = await client.checkout.removeLineItems(checkout.id, [
-        lineItemId,
-      ]);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
-      set({ checkout: newCheckout, isLoading: false });
-    } catch (error) {
-      set({ error: error.message, isLoading: false });
-    }
-  },
-
-  updateQuantity: async (lineItemId, quantity) => {
-    set({ isLoading: true, error: null });
-    try {
-      const { checkout } = get();
-      if (!checkout) return;
-
-      const newCheckout = await client.checkout.updateLineItems(checkout.id, [
-        {
-          id: lineItemId,
-          quantity,
+      const response = await client.request(REMOVE_FROM_CART, {
+        variables: {
+          cartId: cart.id,
+          lineIds: [lineId],
         },
-      ]);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newCheckout));
-      set({ checkout: newCheckout, isLoading: false });
+      });
+
+      const updatedCart = response.data.cartLinesRemove.cart;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCart));
+      set({ cart: updatedCart, isLoading: false });
     } catch (error) {
       set({ error: error.message, isLoading: false });
     }
   },
 
-  clearCheckout: () => {
+  updateQuantity: async (lineId, quantity) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { cart } = get();
+      if (!cart?.id) return;
+
+      const response = await client.request(UPDATE_CART, {
+        variables: {
+          cartId: cart.id,
+          lines: [{ id: lineId, quantity }],
+        },
+      });
+
+      const updatedCart = response.data.cartLinesUpdate.cart;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCart));
+      set({ cart: updatedCart, isLoading: false });
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+
+  clearCart: () => {
     localStorage.removeItem(STORAGE_KEY);
-    set({ checkout: null });
+    set({ cart: null });
   },
 }));
 
