@@ -190,8 +190,7 @@ function ProductItem({ product, addToCart }) {
       <div className="flex items-center justify-between mx-5 font-inter">
         <h2 className="mb-2 text-xl font-bold md:text-2xl">{product.title}</h2>
         <h3 className="text-xl font-medium text-black">
-          {product.priceRange.minVariantPrice.currencyCode}
-          {product.priceRange.minVariantPrice.amount}
+          €{parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
         </h3>
       </div>
 
