@@ -63,7 +63,7 @@ const PRODUCT_QUERY = `
 export default function ProductsClientComponent() {
   const [product, setProduct] = useState();
   const { productHandle } = collectionStore();
-  const { cart, initializeCart, addToCart } = useCheckoutStore();
+  const { initializeCart, addToCart } = useCheckoutStore();
 
   useEffect(() => {
     async function fetchProducts() {
@@ -129,6 +129,14 @@ function ProductItem({ product, addToCart }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [openCanvas, setOpenCanvas] = useState(true);
   const canvasRef = useRef();
+
+  useEffect(() => {
+    setSelectedColor(colors[0]);
+    setSelectedSize(sizes.length === 1 ? sizes[0] : null);
+    setSelectedImage(product.images.edges[0]?.node.url);
+    setLoading(true);
+    setIsLoaded(false);
+  }, [product.id]);
 
   useEffect(() => {
     if (selectedColor) {
