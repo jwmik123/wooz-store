@@ -143,13 +143,7 @@ export default function StudioNew({ showDebug, ...props }) {
     const isTwitterBrowser = /Twitter/.test(navigator.userAgent);
     // const isXBrowser = /X/.test(navigator.userAgent);
 
-    if (
-      isInstagramBrowser ||
-      isLinkedInBrowser ||
-      isTwitterBrowser ||
-      isXBrowser
-    )
-      return 0;
+    if (isInstagramBrowser || isLinkedInBrowser || isTwitterBrowser) return 0;
 
     // Device model check based on iOS version might be more reliable
     const iOSVersion = parseInt(
