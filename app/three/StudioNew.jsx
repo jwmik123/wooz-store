@@ -141,7 +141,7 @@ export default function StudioNew({ showDebug, ...props }) {
     const isInstagramBrowser = /Instagram/.test(navigator.userAgent);
     const isLinkedInBrowser = /LinkedIn/.test(navigator.userAgent);
     const isTwitterBrowser = /Twitter/.test(navigator.userAgent);
-    const isXBrowser = /X/.test(navigator.userAgent);
+    // const isXBrowser = /X/.test(navigator.userAgent);
 
     if (
       isInstagramBrowser ||
