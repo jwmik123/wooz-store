@@ -50,7 +50,13 @@ export default function RootLayout({ children }) {
         <ToastContainer position="bottom-left" />
         <div
           id="awwwards"
-          style="position: fixed; z-index: 999; transform: translateY(-50%); top: 50%;  left: 0"
+          style={{
+            position: "fixed",
+            zIndex: 999,
+            transform: "translateY(-50%)",
+            top: "50%",
+            left: "0",
+          }}
         >
           <a
             href="https://www.awwwards.com/sites/wooz-experience"
