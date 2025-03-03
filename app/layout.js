@@ -3,6 +3,7 @@ import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "react-toastify";
 import Sound from "./components/Sound";
+import AwwwardsRibbon from "./components/AwwwardsRibbon";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -48,7 +49,7 @@ export default function RootLayout({ children }) {
         <GoogleAnalytics gaId="G-TDKEGF7JZ2" />
         {children}
         <ToastContainer position="bottom-left" />
-        <div
+        {/* <div
           id="awwwards"
           style={{
             position: "fixed",
@@ -73,7 +74,9 @@ export default function RootLayout({ children }) {
               </g>
             </svg>
           </a>
-        </div>
+        </div> */}
+
+        <AwwwardsRibbon />
       </body>
     </html>
   );
