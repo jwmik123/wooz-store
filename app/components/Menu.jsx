@@ -71,7 +71,7 @@ const Menu = ({
       ></div> */}
         <div
           ref={navRef}
-          className="fixed left-0 z-10 w-full md:w-[500px] h-full bg-primary"
+          className="fixed left-0 z-10 w-full md:w-[500px] h-full bg-primary border-r-2 border-white"
         >
           <div className="flex flex-col justify-center h-full gap-5">
             <div className="flex flex-col">
@@ -135,14 +135,17 @@ const Menu = ({
 
       <div
         ref={modelRef}
-        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[180px] bg-primary rounded-lg translate-y-[150%] opacity-0}`}
+        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[180px] bg-primary border-2 border-white rounded-lg translate-y-[150%] opacity-0}`}
       >
-        <X
-          className="absolute w-6 h-6 text-white cursor-pointer stroke-2 top-4 right-4"
-          onClick={() => {
-            setOpenModel(false);
-          }}
-        />
+        <div className="absolute p-2 border-2 border-white rounded-lg bg-primary -top-2 -right-2">
+          <X
+            className="w-6 h-6 text-white cursor-pointer stroke-2"
+            onClick={() => {
+              setOpenModel(false);
+            }}
+          />
+        </div>
+
         <div className="flex flex-col h-full gap-2 text-white">
           {modelInfo === "About" && (
             <div className="flex flex-col items-center justify-center h-full px-1 text-center md:px-24">
