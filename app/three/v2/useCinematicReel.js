@@ -13,22 +13,24 @@ import { moosBody } from "./moos/moosBody";
 
 /*
  * Coffee-cup cinematic (cameraStore.cinematic): loops CINEMATIC_SHOTS until the
- * store flag drops. Each shot is a hard cut hidden under a dissolve to the ink
- * tint (#wz-cin-fade, CinematicOverlay), then one slow eased move along a
+ * store flag drops. Each cut is a real crossfade: the last frame of the shot is
+ * snapshotted into #wz-cin-snap (CinematicOverlay) right after it renders and
+ * faded out over the new shot, which plays one slow eased move along a
  * Catmull-Rom path with its own look ease, fov and focus pull. The DOF is
  * driven through focusPull (amount 1 = pinned focus, shallower blur).
  * On exit (unless something else took the camera) it dissolves back to a pose
  * just in front of the studio and eases into the overview.
  */
 
-const FADE = 0.85; // dissolve half (to tint, then from tint)
+const XFADE = 1.6; // crossfade duration (s)
+const XFADE_REDUCED = 2.2;
 const MOOS_X = 1.85; // keep the orbit inside the side walls
 const _fwd = new Vector3();
 const _d = new Vector3();
 const rackEase = gsap.parseEase("power2.inOut");
 
 const portrait = () => window.innerWidth / window.innerHeight < 0.8;
-const fadeEl = () => document.getElementById("wz-cin-fade");
+const snapEl = () => document.getElementById("wz-cin-snap");
 
 /** Resolve a shot to concrete from/to poses, path and focus points (orbit uses Moos' live spot). */
 function resolveShot(s) {
@@ -63,6 +65,27 @@ export default function useCinematicReel(position, target, animating) {
   const camera = useThree((s) => s.camera);
   const live = useRef(null); // { focusFrom, focusTo, fovFrom, fovTo, k }
   const baseFov = useRef(null);
+  // Crossfade: a callback run right after the next frame has rendered
+  // (priority 2 > the post pipeline's 1), once its pixels are frozen in #wz-cin-snap.
+  const snapRequest = useRef(null);
+
+  useFrame(({ gl }) => {
+    const cb = snapRequest.current;
+    if (!cb) return;
+    snapRequest.current = null;
+    const el = snapEl();
+    if (el) {
+      const src = gl.domElement;
+      if (el.width !== src.width || el.height !== src.height) {
+        el.width = src.width;
+        el.height = src.height;
+      }
+      el.getContext("2d").drawImage(src, 0, 0);
+      gsap.killTweensOf(el);
+      el.style.opacity = "1";
+    }
+    cb(el);
+  }, 2);
 
   useEffect(() => {
     const timelines = new Set();
@@ -71,6 +94,7 @@ export default function useCinematicReel(position, target, animating) {
     const stop = () => {
       timelines.forEach((t) => t.kill());
       timelines.clear();
+      snapRequest.current = null;
     };
 
     const playShot = (first) => {
@@ -102,31 +126,29 @@ export default function useCinematicReel(position, target, animating) {
         state.k = reduced ? 1 : t;
       };
 
-      const tl = gsap.timeline({ onComplete: () => timelines.delete(tl) });
-      timelines.add(tl);
-      // Dissolve to tint (the very first one starts from the live view).
-      tl.to(fadeEl(), { opacity: 1, duration: first ? 0.6 : FADE, ease: "sine.in" });
-      tl.add(() => {
-        // The previous shot's move is done (it eased out under the dissolve).
-        timelines.forEach((t) => t !== tl && t.kill());
-        timelines.forEach((t) => t !== tl && timelines.delete(t));
+      // Freeze the current frame, cut underneath it, fade the freeze away.
+      snapRequest.current = (el) => {
+        timelines.forEach((t) => t.kill());
+        timelines.clear();
         animating.current = true;
         live.current = state;
         apply();
         useCameraStore.setState({ cinematicShot: i });
-      });
-      tl.to(fadeEl(), { opacity: 0, duration: reduced ? 1.4 : FADE * 1.2, ease: "sine.out" });
-      // The move: starts under the dissolve so the cut never feels static.
-      tl.to(
-        p,
-        { t: 1, duration: s.duration, ease: "power1.inOut", onUpdate: apply },
-        "<"
-      );
-      // The next dissolve overlaps this shot's last beat (the move keeps easing under it).
-      tl.add(() => {
-        index++;
-        playShot(false);
-      }, `>-${FADE}`);
+        if (el)
+          gsap.to(el, {
+            opacity: 0,
+            duration: reduced ? XFADE_REDUCED : XFADE,
+            ease: "sine.inOut",
+          });
+        const tl = gsap.timeline({ onComplete: () => timelines.delete(tl) });
+        timelines.add(tl);
+        tl.to(p, { t: 1, duration: s.duration, ease: "power1.inOut", onUpdate: apply });
+        // Cut a beat before the move fully settles, so it never feels static.
+        tl.add(() => {
+          index++;
+          playShot(false);
+        }, ">-0.4");
+      };
     };
 
     const enter = () => {
@@ -153,22 +175,20 @@ export default function useCinematicReel(position, target, animating) {
       };
       if (takenOver) {
         restore();
-        gsap.to(fadeEl(), { opacity: 0, duration: 0.5, overwrite: true });
+        const el = snapEl();
+        if (el) gsap.to(el, { opacity: 0, duration: 0.5, overwrite: true });
         return;
       }
       const { introScreen } = collectionStore.getState();
-      gsap
-        .timeline()
-        .to(fadeEl(), { opacity: 1, duration: 0.45, ease: "sine.in", overwrite: true })
-        .add(() => {
-          restore();
-          // Just in front of the open front, then the usual ease into the overview.
-          position.current.set(0.5, 0.35, 7.2);
-          target.current.set(0, -0.2, -6);
-          useCameraStore.getState().resetCamera(introScreen);
-          if (!introScreen) setOverlayPointsVisible(true);
-        })
-        .to(fadeEl(), { opacity: 0, duration: 0.9, ease: "sine.out" });
+      snapRequest.current = (el) => {
+        restore();
+        // Just in front of the open front, then the usual ease into the overview.
+        position.current.set(0.5, 0.35, 7.2);
+        target.current.set(0, -0.2, -6);
+        useCameraStore.getState().resetCamera(introScreen);
+        if (!introScreen) setOverlayPointsVisible(true);
+        if (el) gsap.to(el, { opacity: 0, duration: 1.2, ease: "sine.inOut" });
+      };
     };
 
     const unsub = useCameraStore.subscribe((s, prev) => {

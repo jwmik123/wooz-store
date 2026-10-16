@@ -7,11 +7,12 @@
   pointer-events: none;
 }
 
-/* Dissolve tint the reel cuts under (opacity driven by useCinematicReel). */
-.wz-cin-fade {
+/* Frozen last frame the reel crossfades from (useCinematicReel). */
+.wz-cin-snap {
   position: absolute;
   inset: 0;
-  background: rgb(var(--wz-ink));
+  width: 100%;
+  height: 100%;
   opacity: 0;
 }
 

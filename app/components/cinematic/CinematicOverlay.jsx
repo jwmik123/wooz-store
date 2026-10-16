@@ -14,8 +14,8 @@ const CREDITS = [
 ];
 
 /**
- * Coffee-cup cinematic chrome: thin letterbox bars, the dissolve tint the
- * reel cuts under (#wz-cin-fade, animated by useCinematicReel) and a credit
+ * Coffee-cup cinematic chrome: thin letterbox bars, the frozen frame the
+ * reel crossfades from (#wz-cin-snap, animated by useCinematicReel) and a credit
  * line per shot. Any click / tap / Esc / scroll ends the reel. While it runs,
  * <html> gets .wz-cinematic so the floating UI and hotspot dots step aside.
  */
@@ -98,7 +98,7 @@ export default function CinematicOverlay() {
 
   return (
     <div ref={root} className="wz-cin" aria-hidden={!cinematic}>
-      <div id="wz-cin-fade" className="wz-cin-fade" />
+      <canvas id="wz-cin-snap" className="wz-cin-snap" />
       <div className="wz-cin-bar wz-cin-bar--top">
         <span className="wz-cin-hint wz-eyebrow">
           <span className="wz-cin-hint-dot" aria-hidden />
