@@ -13,7 +13,6 @@ import Glass from "./glass/Glass";
 import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
 import Signs from "./signs/Signs";
-import Badges from "./signs/Badges";
 import Birds from "./Birds";
 import Clouds from "./clouds/Clouds";
 import Garden from "./garden/Garden";
@@ -71,7 +70,6 @@ export default function Scene() {
             <Hotspots isMobile={isMobile} />
           </StudioRoot>
           <Signs />
-          <Badges isMobile={isMobile} />
           <Glass />
           <Birds />
           <WindStrokes />

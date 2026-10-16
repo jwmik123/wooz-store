@@ -27,8 +27,8 @@ export function openCollection(type) {
 }
 
 /**
- * What clicking a table piece does (Hotspots.jsx hit boxes + the floating
- * badges in signs/Badges.jsx): coffee cup -> cinematic reel, lookbook -> open
+ * What clicking a table piece does (Hotspots.jsx hit boxes; the light pools
+ * live in signs/tableSpots.js): coffee cup -> cinematic reel, lookbook -> open
  * the book, totebag -> its shop panel.
  */
 export function openTablePiece(key) {
