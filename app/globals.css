@@ -400,3 +400,7 @@ html[data-wz-chat="open"] #awwwards-embed {
 @media (prefers-reduced-motion: reduce) {
   .wz-moos-launcher::after { animation: none; opacity: 0; }
 }
+
+/* 3D product viewer: it's a grab-and-spin toy. */
+.wz-product-canvas canvas { cursor: grab; }
+.wz-product-canvas canvas[data-dragging] { cursor: grabbing; }
