@@ -3,7 +3,12 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import Product from "./Product";
+import { PCFShadowMap } from "three/webgpu";
 import { createRenderer } from "./v2/renderer";
+
+// R3F turns `shadows={false}` into type = PCFSoftShadowMap, which WebGPURenderer
+// no longer has (console warning); keep shadows off with a supported type.
+const NO_SHADOWS = { enabled: false, type: PCFShadowMap };
 
 /**
  * Sidebar 3D product viewer (WiggleBone garment). Client-only, lazy-loaded.
@@ -43,6 +48,7 @@ export default function ProductCanvas({
       <Canvas
         className="wz-product-canvas !absolute inset-0"
         frameloop={running ? "always" : "never"}
+        shadows={NO_SHADOWS}
         dpr={isMobile ? [1, 1.5] : [1, 1.75]}
         camera={{ position: [0, 0.18, 4], fov: 30 }}
         gl={createRenderer}

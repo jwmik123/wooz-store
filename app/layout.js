@@ -32,6 +32,8 @@ const libre = localFont({
 });
 
 export const metadata = {
+  // Resolves the relative OG / Twitter image URLs below.
+  metadataBase: new URL("https://wooz.store"),
   title: "WOOZ Experience",
   description: "A 3D webshop experience for the Wooz collection",
 
