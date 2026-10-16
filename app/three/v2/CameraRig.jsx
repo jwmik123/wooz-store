@@ -26,19 +26,6 @@ const POINTS = [
 const DEFAULT_POSITION = new Vector3(0, 0, 5);
 const TWEEN = { duration: 1.5, ease: "power2.out", overwrite: true };
 
-function getDeviceOffset() {
-  if (!/iPhone/.test(navigator.userAgent)) return 0;
-  if (/Instagram|LinkedIn|Twitter/.test(navigator.userAgent)) return 0;
-
-  const { width, height } = window.screen;
-  const screenHeight = Math.max(width, height);
-  const screenWidth = Math.min(width, height);
-  const iOSVersion = parseInt((navigator.userAgent.match(/OS (\d+)_/i) || [])[1]);
-
-  if (screenHeight === 844 && screenWidth === 390) return iOSVersion >= 17 ? 70 : 0;
-  return screenHeight > 850 ? 70 : 0;
-}
-
 /**
  * Drives the camera from cameraStore (gsap tween per change, not per frame),
  * adds a subtle mouse parallax at the default view, and projects the HTML
@@ -204,7 +191,7 @@ export default function CameraRig({ debug, isMobile = false }) {
   const projected = useRef(new Vector3());
   const moosAnchor = useRef({ x: null, z: null });
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera, size }, delta) => {
     const c = controls.current;
     if (c && (!debug || animating.current)) {
       // Subtle parallax only at the overview position.
@@ -236,15 +223,14 @@ export default function CameraRig({ debug, isMobile = false }) {
       }
     } else anchor.x = null;
 
-    const viewport = window.visualViewport;
-    const w = viewport?.width || window.innerWidth;
-    const h = viewport?.height || window.innerHeight;
-    const offset = getDeviceOffset();
+    // Project in canvas CSS pixels: the dots' overlay covers the canvas exactly,
+    // so no viewport/address-bar guesswork (real phones differ from emulation).
+    const { width: w, height: h } = size;
     for (const point of points.current) {
       if (!point.element) continue;
       projected.current.copy(point.position).project(camera);
       const x = (projected.current.x * w) / 2;
-      const y = -(projected.current.y * h) / 2 + offset;
+      const y = -(projected.current.y * h) / 2;
       point.element.style.transform = `translateX(${x}px) translateY(${y}px)`;
     }
   });
