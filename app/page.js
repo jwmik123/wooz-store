@@ -10,6 +10,7 @@ import Navigation from "./components/ui/Navigation";
 import cameraStore from "./stores/cameraStore";
 import Menu from "./components/Menu";
 import MoosChat from "./components/moos/MoosChat";
+import TimeClock from "./components/ui/TimeClock";
 import useSoundStore from "./stores/soundStore";
 import gsap from "gsap";
 import { X, AlignLeft } from "lucide-react";
@@ -180,6 +181,7 @@ export default function Home() {
       <Cart />
       <Navigation />
       <MoosChat />
+      <TimeClock />
     </main>
   );
 }
