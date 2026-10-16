@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Sidebar } from "./components/ui/Sidebar";
-import IntroScreen from "./components/ui/IntroScreen";
+import Loader from "./components/loader/Loader";
 import collectionStore from "./stores/collectionStore";
 import PointsOfInterest from "./three/overlay/Overlay";
 import Cart from "./components/ui/Cart";
@@ -22,8 +22,9 @@ export default function Home() {
 
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [openModel, setOpenModel] = useState(false);
-  const [soundOn, setSoundOn] = useState(true);
-  const { setSoundEnabled } = useSoundStore();
+  // The chip mirrors the store, so "Step inside without sound" shows as muted.
+  const soundOn = useSoundStore((s) => s.isSoundEnabled);
+  const setSoundOn = (on) => useSoundStore.getState().setSoundEnabled(on);
 
   const cinematic = cameraStore((state) => state.cinematic);
   const setCinematic = cameraStore((state) => state.setCinematic);
@@ -39,11 +40,6 @@ export default function Home() {
       useSoundStore.getState().cleanup();
     };
   }, []);
-
-  // Update sound state when toggle is clicked
-  useEffect(() => {
-    setSoundEnabled(soundOn);
-  }, [soundOn, setSoundEnabled]);
 
   useEffect(() => {
     if (cinematic) {
@@ -167,7 +163,7 @@ export default function Home() {
         setOpenModel={setOpenModel}
       />
 
-      {introScreen && <IntroScreen />}
+      <Loader />
 
       {bookVisible && (
         <div

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { postState } from "../post/PostPipeline";
+import useLoadingStore from "../../../components/loader/loadingStore";
 import useQualityStore, { TIERS, TIER_ORDER, isMobileDevice, tierDpr } from "./quality";
 
 /*
@@ -69,10 +70,12 @@ export default function QualityMonitor() {
     // --- calibration (once, while the loader hides the canvas) ---
     if (!q.calibrated) {
       if (busy.current) return;
-      const loaded = scene.getObjectByName("studio") && postState.pipeline;
+      // After the loader's shader warm-up (loading/WarmUp.jsx) compiled every pipeline.
+      const loaded =
+        scene.getObjectByName("studio") && postState.pipeline && useLoadingStore.getState().compiled;
       ready.current = loaded ? ready.current + 1 : 0;
-      // A few frames after everything streamed in, so pipelines are compiled.
-      if (ready.current < 20) return;
+      // A few frames more for what compileAsync can't reach (shadow map, post quads, compute).
+      if (ready.current < 8) return;
       busy.current = true;
       const state = get();
       const startTier = q.tier;

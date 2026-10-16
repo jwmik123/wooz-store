@@ -19,6 +19,7 @@ import Moos from "./moos/Moos";
 import Debug from "./debug/Debug";
 import useDebug from "./debug/useDebug";
 import QualityMonitor from "./perf/QualityMonitor";
+import WarmUp from "./loading/WarmUp";
 import useQualityStore, { VEILED_DPR } from "./perf/quality";
 
 const isMobileUA = () =>
@@ -53,6 +54,7 @@ export default function Scene() {
       >
         <SharedUniforms />
         <QualityMonitor />
+        <WarmUp />
         <CameraRig debug={debug} isMobile={isMobile} />
         <Lights />
         <Clouds />

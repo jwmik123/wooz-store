@@ -32,12 +32,23 @@ const CAMERA_POSITIONS = {
     // frame height, ridge just below the title), the two apple trees framing
     // it left and right and the path leading in from the bottom.
     position: new THREE.Vector3(2.2, 1.0, 13.5),
-    target: new THREE.Vector3(-0.3, 0.3, 0),
+    target: new THREE.Vector3(-0.3, 0.02, 0),
   },
   // Portrait screens (fov 75): straighter on, the path runs up to the gate.
   introPortrait: {
     position: new THREE.Vector3(1.2, 0.2, 15),
     target: new THREE.Vector3(0, -0.7, 0),
+  },
+  // Where the intro reveal starts (loader → intro): higher, farther and tilted
+  // up into the sky, so the loader's sky dissolves into the real one before the
+  // crane settles down onto the garden.
+  introStart: {
+    position: new THREE.Vector3(5.2, 5.0, 23),
+    target: new THREE.Vector3(-0.4, 3.2, 0),
+  },
+  introPortraitStart: {
+    position: new THREE.Vector3(2.8, 4.6, 24),
+    target: new THREE.Vector3(0, 2.6, 0),
   },
   // Chat with Moos (CameraRig): frame him left of centre, room for the chat
   // panel on the right. `focus` = where the depth of field focuses (his chest).
@@ -58,7 +69,63 @@ const CAMERA_POSITIONS = {
   },
 };
 
+const isPortrait = () =>
+  typeof window !== "undefined" && window.innerWidth / window.innerHeight < 0.8;
+
+/*
+ * Intro choreography (CameraRig plays a `move`: one gsap tween along a
+ * centripetal Catmull-Rom path through `via`, the look target eased separately).
+ *   reveal  loader → intro shot: a slow crane down out of the sky.
+ *   enter   "Step inside": down the garden path and through the open front.
+ */
+export const INTRO_MOVES = {
+  reveal: { duration: 5.6, ease: "power2.inOut", lookEase: "power2.inOut" },
+  enter: { duration: 3.2, ease: "power2.inOut", lookEase: "sine.inOut", lookLead: 0.18 },
+};
+// Garden path waypoints for the enter move (just above the path, centred on the door).
+const ENTER_VIA = {
+  landscape: [new THREE.Vector3(1.1, -0.05, 9.6)],
+  portrait: [new THREE.Vector3(0.55, -0.2, 10.2)],
+};
+
+/** Starting pose of the intro reveal (CameraRig holds it while the loader is up). */
+export const getIntroStart = () =>
+  CAMERA_POSITIONS[isPortrait() ? "introPortraitStart" : "introStart"];
+
 const useCameraStore = create((set) => ({
+  /** Choreographed move for CameraRig ({ name, duration, ease, via, ... }), see INTRO_MOVES. */
+  move: null,
+
+  /** Loader hand-over: crane from introStart to the intro shot. `instant` for reduced motion. */
+  playIntroReveal: ({ instant = false } = {}) => {
+    const config = CAMERA_POSITIONS[isPortrait() ? "introPortrait" : "intro"];
+    set({
+      targetCameraPosition: new THREE.Vector3().copy(config.position),
+      targetCameraTarget: new THREE.Vector3().copy(config.target),
+      targetFocus: null,
+      preset: "intro",
+      move: { name: "reveal", ...INTRO_MOVES.reveal, duration: instant ? 0 : INTRO_MOVES.reveal.duration },
+    });
+  },
+
+  /** "Step inside": from the intro shot through the open front to the overview. */
+  playEnter: ({ instant = false } = {}) => {
+    useSoundStore.getState().playSound("swoosh");
+    const config = CAMERA_POSITIONS.default;
+    set({
+      targetCameraPosition: new THREE.Vector3().copy(config.position),
+      targetCameraTarget: new THREE.Vector3().copy(config.target),
+      targetFocus: null,
+      preset: "default",
+      move: {
+        name: "enter",
+        ...INTRO_MOVES.enter,
+        via: ENTER_VIA[isPortrait() ? "portrait" : "landscape"],
+        duration: instant ? 0 : INTRO_MOVES.enter.duration,
+      },
+    });
+  },
+
   // Camera positions
   targetCameraPosition: new THREE.Vector3(),
   targetCameraTarget: new THREE.Vector3(),
