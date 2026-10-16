@@ -11,6 +11,8 @@ import Studio, { StudioRoot } from "./Studio";
 import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
 import Birds from "./Birds";
+import Clouds from "./clouds/Clouds";
+import PostPipeline from "./post/PostPipeline";
 import WindStrokes from "./wind/WindStrokes";
 import Moos from "./moos/Moos";
 import Debug from "./debug/Debug";
@@ -47,6 +49,7 @@ export default function Scene() {
         <SharedUniforms />
         <CameraRig debug={debug} />
         <Lights />
+        <Clouds />
         <Suspense fallback={null}>
           <StudioRoot>
             <Studio />
@@ -57,6 +60,7 @@ export default function Scene() {
           <WindStrokes />
           <Moos isMobile={isMobile} />
         </Suspense>
+        <PostPipeline />
         {debug && <Debug />}
       </Canvas>
     </>
