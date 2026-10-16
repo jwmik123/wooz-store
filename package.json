@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.81",
     "@ai-sdk/react": "^4.0.146",
     "@next/third-parties": "^15.5.0",
     "@react-three/drei": "^10.7.9",

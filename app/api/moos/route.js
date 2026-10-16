@@ -1,4 +1,5 @@
 import { convertToModelMessages, isStepCount, streamText, tool } from "ai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import client from "@/lib/shopify";
 
@@ -30,8 +31,19 @@ function rateLimited(ip) {
   return arr.length > RATE_LIMIT.max;
 }
 
-// ---- model (ids verified against https://ai-gateway.vercel.sh/v1/models) ----
-const MODEL = process.env.MOOS_MODEL || "anthropic/claude-haiku-5.5";
+// ---- model ------------------------------------------------------------
+// ANTHROPIC_API_KEY set → Anthropic API directly. Otherwise the Vercel AI
+// Gateway (OIDC / AI_GATEWAY_API_KEY) with a fallback model.
+const useAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
+const anthropic = useAnthropic
+  ? createAnthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      baseURL: "https://api.anthropic.com/v1",
+    })
+  : null;
+const MODEL = useAnthropic
+  ? anthropic(process.env.MOOS_MODEL || "claude-haiku-5-5")
+  : process.env.MOOS_MODEL || "anthropic/claude-haiku-5.5";
 const FALLBACK_MODEL =
   process.env.MOOS_FALLBACK_MODEL || "anthropic/claude-sonnet-5.5";
 const COLLECTIONS = ["longsleeve", "polo", "splatter", "hoodie"];
@@ -188,9 +200,13 @@ export async function POST(req) {
     stopWhen: isStepCount(MAX_STEPS),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     temperature: 0.7,
-    providerOptions: {
-      gateway: { models: [FALLBACK_MODEL], tags: ["moos"] },
-    },
+    ...(useAnthropic
+      ? {}
+      : {
+          providerOptions: {
+            gateway: { models: [FALLBACK_MODEL], tags: ["moos"] },
+          },
+        }),
     onError: ({ error }) =>
       console.error("[moos] stream error:", error?.message ?? error),
   });
