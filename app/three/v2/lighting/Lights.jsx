@@ -51,7 +51,7 @@ export const shadowSettings = {
    * Raise this (e.g. 30) if animated geometry such as wind-blown clothes must
    * cast moving shadows; or call requestShadowUpdate() yourself.
    */
-  refreshHz: 0,
+  refreshHz: 24, // wind-blown clothes (wind/) need moving shadows
 };
 
 export const lightSettings = {
