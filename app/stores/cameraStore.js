@@ -136,10 +136,17 @@ export const CINEMATIC_SHOTS = [
     duration: 8,
   }),
   // Exterior: low through the grass and flowers towards the greenhouse.
-  shot([-3.4, -1.78, 9.2], [0.1, -0.7, 0.4], [-2.3, -1.72, 7.3], [-0.3, -0.6, 0.6], {
-    focus: [v(-2.9, -1.8, 8.2), v(-0.2, -0.6, 2.8)],
+  // (mirrored to the right side of the path: the Sale sign stands on the left)
+  shot([3.4, -1.78, 9.2], [-0.1, -0.7, 0.4], [2.3, -1.72, 7.3], [0.3, -0.6, 0.6], {
+    focus: [v(2.9, -1.8, 8.2), v(0.2, -0.6, 2.8)],
     fov: [36, 33],
     duration: 9,
+  }),
+  // Low hero push up at the marquee Sale sign, bulbs chasing (garden/SaleSign.jsx).
+  shot([0.6, -1.45, 11.6], [-2.4, 0.3, 8.0], [-0.35, -1.6, 10.6], [-2.55, 0.4, 7.95], {
+    focus: [v(-2.4, 0.3, 8.0), v(-2.5, 0.35, 8.0)],
+    fov: [40, 33],
+    duration: 7.5,
   }),
   // Tracking shot down the garden path.
   shot([1.9, -1.3, 16], [0.2, -0.85, 0], [0.95, -1.38, 9.2], [0, -0.8, 0], {
