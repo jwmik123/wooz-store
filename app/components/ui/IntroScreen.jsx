@@ -1,6 +1,10 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
+import useEnvironmentStore from "../../stores/environmentStore";
+
+// Same window the lamps/stars use: dusk → dawn.
+const isDark = (h) => h >= 20.6 || h < 6.1;
 
 /*
  * Welcome card over the intro shot (title, copy, the two entry buttons).
@@ -19,10 +23,15 @@ const IntroScreen = forwardRef(function IntroScreen(
   { onStart, interactive },
   ref,
 ) {
+  // Read after mount: the server has no idea what time it is for the visitor.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const dark = useEnvironmentStore((s) => isDark(s.timeOfDay)) && mounted;
   return (
     <div
       ref={ref}
-      className="fixed inset-0 z-[55] flex flex-col items-center justify-between px-6 pt-[13vh] pb-[max(7vh,env(safe-area-inset-bottom))] text-ink pointer-events-none"
+      data-dark={dark || undefined}
+      className="wz-intro fixed inset-0 z-[55] flex flex-col items-center justify-between px-6 pt-[13vh] pb-[max(7vh,env(safe-area-inset-bottom))] text-ink pointer-events-none"
       aria-hidden={!interactive}
       style={{ visibility: "hidden" }}
     >

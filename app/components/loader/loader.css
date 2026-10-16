@@ -252,3 +252,17 @@ html[data-wz-stage="inside"] .z-wz-chrome {
     0 0 10px rgb(var(--wz-paper) / 0.85),
     0 0 22px rgb(var(--wz-paper) / 0.6);
 }
+
+/* Night: the intro type turns white against the dark sky (IntroScreen data-dark). */
+.wz-intro[data-dark] { color: rgb(var(--wz-paper)); }
+.wz-intro[data-dark] .text-ink,
+.wz-intro[data-dark] .wz-eyebrow { color: rgb(var(--wz-paper) / 0.92) !important; }
+.wz-intro[data-dark] .text-primary { color: rgb(var(--wz-mint, 190 226 205)) !important; }
+.wz-intro[data-dark] .wz-intro-copy {
+  text-shadow: 0 0 12px rgb(0 0 0 / 0.45), 0 0 26px rgb(0 0 0 / 0.3);
+}
+.wz-intro[data-dark] .decoration-ink\/30 { text-decoration-color: rgb(var(--wz-paper) / 0.4); }
+.wz-intro[data-dark] .wz-btn-primary {
+  background: rgb(var(--wz-paper));
+  color: rgb(var(--wz-ink));
+}
