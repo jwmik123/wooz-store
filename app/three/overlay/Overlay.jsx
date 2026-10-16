@@ -1,61 +1,44 @@
-import { useEffect, useState, useRef } from "react";
-import gsap from "gsap";
-import collectionStore from "../../stores/collectionStore";
+import { useEffect, useRef, useState } from "react";
 import { InfoIcon } from "lucide-react";
-import { useSaleHandles } from "@/lib/sale";
+import { useRackHover } from "../v2/tags/tagState";
 
-const PointsOfInterest = () => {
-  const pointRef = useRef([]);
-  const selectedCollection = collectionStore(
-    (state) => state.selectedCollection
-  );
-
-  const [showInfo, setShowInfo] = useState(false);
-  const saleHandles = useSaleHandles();
-
-  const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"];
+/**
+ * Small chip next to the cursor while a rack / garment tag is hovered
+ * ("Hoodies · 4 colours"). Positioned from pointermove events only.
+ */
+function HoverChip() {
+  const label = useRackHover((s) => s.label);
+  const ref = useRef(null);
+  const last = useRef(null); // keep the text while the chip fades out
+  if (label) last.current = label;
 
   useEffect(() => {
-    if (selectedCollection) {
-      const selectedIndex = collections.findIndex(
-        (label) => label.toLowerCase() === selectedCollection.toLowerCase()
-      );
+    const onMove = (e) => {
+      const el = ref.current;
+      if (el) el.style.transform = `translate3d(${e.clientX + 16}px, ${e.clientY + 18}px, 0)`;
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
 
-      if (selectedIndex !== -1 && pointRef.current[selectedIndex]) {
-        // Animate selected text characters
-        const chars = pointRef.current[selectedIndex].querySelectorAll(".char");
-        gsap.to(chars, {
-          y: -40,
-          opacity: 0.9,
-          duration: 0.3,
-          stagger: 0.05,
-        });
-      }
-    }
-  }, [selectedCollection]);
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="wz-glass-chip wz-hover-chip"
+      data-on={label ? "true" : "false"}
+    >
+      {last.current}
+    </div>
+  );
+}
+
+const PointsOfInterest = () => {
+  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <>
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {[
-          "Hoodie",
-          "Splatter",
-          "Polo",
-          "Longsleeve",
-          "Totebag",
-          "Coffee",
-          "Lookbook",
-        ].map((label, index) => (
-          <div key={index} className={`point point-${index}`}>
-            <div className="label ripple"></div>
-            {saleHandles.has(label.toLowerCase()) && (
-              <span className="wz-sale-tag" aria-label={`${label} on sale`}>
-                Sale
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      <HoverChip />
       <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
         <InfoIcon
           className="w-6 h-6 cursor-pointer"
@@ -65,7 +48,7 @@ const PointsOfInterest = () => {
         />
         {showInfo && (
           <div className="text-center text-black">
-            click on the pulsing dots to interact.
+            tap a hanging tag (or a rack) to shop it.
           </div>
         )}
       </div>

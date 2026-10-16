@@ -5,8 +5,12 @@ import {
   Vector3,
 } from "three/webgpu";
 import {
+  abs,
   attribute,
+  cameraPosition,
   cameraViewMatrix,
+  clamp,
+  color,
   dot,
   faceDirection,
   float,
@@ -16,13 +20,22 @@ import {
   modelWorldMatrixInverse,
   normalWorld,
   normalize,
+  pow,
   positionLocal,
   sin,
   smoothstep,
   vec3,
   vec4,
 } from "three/tsl";
-import { uTime, uWindDirection, uWindIndoor, uWindStrength } from "../uniforms";
+import { uNightFactor, uTime, uWindDirection, uWindIndoor, uWindStrength } from "../uniforms";
+import {
+  uGlowAmt,
+  uGlowRack,
+  uSweepMax,
+  uSweepMin,
+  uSweepRack,
+  uSweepT,
+} from "../tags/tagState";
 
 /*
  * Cloth wind
@@ -84,6 +97,17 @@ export function bakeWindAttribute(geometry, quaternion) {
   geometry.setAttribute("windData", new BufferAttribute(data, 4));
   return geometry;
 }
+
+/** Per-vertex rack id (float) for the hover glow / idle sweep (idempotent). */
+export function bakeRackId(geometry, id) {
+  if (geometry.getAttribute("rackId")) return geometry;
+  const n = geometry.getAttribute("position").count;
+  geometry.setAttribute("rackId", new BufferAttribute(new Float32Array(n).fill(id), 1));
+  return geometry;
+}
+
+/** World axis the idle light sweep travels along (diagonal, top-left -> bottom-right). */
+export const SWEEP_AXIS = new Vector3(1, -0.55, 0.35).normalize();
 
 const EPS = 0.025;
 
@@ -169,6 +193,25 @@ export function createClothMaterial(baked) {
   // Evaluated per vertex and interpolated (varying), not per pixel.
   const nView = cameraViewMatrix.mul(vec4(nWorld, 0)).xyz.toVarying("windNormal");
   material.normalNode = normalize(nView).mul(faceDirection);
+
+  // Rack highlight (add to the emissive after the baked lighting is applied,
+  // see Clothes.jsx): soft fresnel rim on the hovered rack + an occasional
+  // diagonal light sweep over one rack (discoverability hint when idle).
+  const rackId = attribute("rackId", "float");
+  const pWorld = worldPos.add(d0).toVarying("clothWorldPos");
+  const viewDir = normalize(cameraPosition.sub(pWorld));
+  const facing = abs(dot(normalize(nWorld.toVarying("clothWorldNormal")), viewDir));
+  const rim = pow(clamp(float(1).sub(facing), 0, 1), 2.5);
+  const isGlow = float(1).sub(clamp(abs(rackId.sub(uGlowRack)), 0, 1));
+  // Warmer, a bit stronger at night (the scene is darker, emissive reads more).
+  const glowColor = mix(color("#fff1d6"), color("#ffcf9a"), uNightFactor);
+  const glow = rim.mul(0.55).add(0.05).mul(isGlow).mul(uGlowAmt);
+  const isSweep = float(1).sub(clamp(abs(rackId.sub(uSweepRack)), 0, 1));
+  const s = dot(pWorld, vec3(SWEEP_AXIS.x, SWEEP_AXIS.y, SWEEP_AXIS.z));
+  const head = mix(uSweepMin, uSweepMax, uSweepT);
+  const band = smoothstep(0.16, 0.0, abs(s.sub(head)));
+  const sweep = band.mul(rim.mul(0.6).add(0.12)).mul(isSweep);
+  material.userData.highlightNode = glowColor.mul(glow.add(sweep));
 
   return material;
 }
