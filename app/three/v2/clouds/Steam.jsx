@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { AdditiveBlending, MeshBasicNodeMaterial } from "three/webgpu";
+import { MeshBasicNodeMaterial } from "three/webgpu";
 import {
   Fn,
   cameraPosition,
@@ -34,7 +34,6 @@ function makeMaterial() {
   const material = new MeshBasicNodeMaterial({
     transparent: true,
     depthWrite: false,
-    blending: AdditiveBlending,
     fog: false,
   });
   material.name = "coffeeSteam";
@@ -59,7 +58,7 @@ function makeMaterial() {
     const fade = smoothstep(0.0, 0.12, p.y).mul(smoothstep(1.0, 0.35, p.y));
     const a = column.mul(wisps.mul(1.6).sub(0.3).max(0)).mul(fade).mul(0.22);
     const tint = uSkyHorizon.mul(0.6).add(uSunColor.mul(0.4));
-    return vec4(tint.mul(a), 1);
+    return vec4(tint, a);
   })();
 
   return material;

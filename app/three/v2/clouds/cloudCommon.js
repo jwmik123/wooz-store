@@ -19,6 +19,7 @@ import {
   uSkyHorizon,
   uSkyZenith,
   uSunColor,
+  uKeyLightDirection,
   uSunDirection,
 } from "../uniforms";
 
@@ -35,18 +36,17 @@ export const uCloudBrightness = uniform(0.75);
 export const uCloudFogDensity = uniform(1.0);
 
 /**
- * Key light for clouds: the sun, or at night its mirror above the horizon so the
- * moon (whose colour the lighting workstream puts in uSunColor) lights the tops.
+ * Key light for clouds: the lighting workstream's key light (sun by day, moon
+ * by night), kept just above the horizon so cloud tops always catch some light.
  */
 export const cloudLightDir = Fn(() => {
-  const s = uSunDirection;
-  return normalize(vec3(s.x, abs(s.y).max(0.04), s.z));
+  const k = uKeyLightDirection;
+  return normalize(vec3(k.x, k.y.max(0.04), k.z));
 })();
 
-/** How much direct light reaches the cloud tops (fades around the horizon crossing). */
+/** Direct key light reaching the cloud tops (uSunColor already fades at dusk). */
 export const cloudDirect = Fn(() => {
-  const horizonFade = smoothstep(0.0, 0.12, abs(uSunDirection.y));
-  return uSunColor.mul(horizonFade).mul(uCloudBrightness);
+  return uSunColor.mul(uCloudBrightness);
 })();
 
 /** Sky light from the shared atmosphere colours, by world normal Y. */

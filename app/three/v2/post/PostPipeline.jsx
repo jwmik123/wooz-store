@@ -11,19 +11,21 @@ import {
   mix,
   normalize,
   pass,
+  renderOutput,
   pow,
   smoothstep,
   uniform,
   uv,
-  vec3,
   vec4,
 } from "three/tsl";
 import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { ao } from "three/addons/tsl/display/GTAONode.js";
 import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
+import { fxaa } from "three/addons/tsl/display/FXAANode.js";
 import { uSkyHorizon, uSkyZenith } from "../uniforms";
 import useAutoFocus from "./useAutoFocus";
+import { lensBlur } from "./lensBlur";
 import useCameraStore from "../../../stores/cameraStore";
 
 /*
@@ -32,6 +34,9 @@ import useCameraStore from "../../../stores/cameraStore";
  *   scene pass (MSAA) ─┬─ GTAO (half res, blurred)  ──┐  optional
  *                      │                              ▼
  *                      └─ colour × AO ── over sky backdrop ── DOF ── + bloom ── renderOutput
+ *
+ * DOF defaults to the cheap gaussian-pyramid lensBlur (./lensBlur.js); three's
+ * bokeh DepthOfFieldNode is kept as a leva option for comparison.
  *
  * Tone mapping + output colour space come from renderer.toneMapping /
  * toneMappingExposure / outputColorSpace (owned by lighting) and are applied
@@ -43,11 +48,15 @@ import useCameraStore from "../../../stores/cameraStore";
 const uFocusDistance = uniform(5);
 const uFocusRange = uniform(1);
 const uBokehScale = uniform(3);
+const uBlurStrength = uniform(1);
 const uAoIntensity = uniform(1);
 
 function buildPipeline(renderer, scene, camera, opts) {
   const pipeline = new RenderPipeline(renderer);
-  const scenePass = pass(scene, camera);
+  // GTAO cannot read a multisampled depth buffer, so with AO the scene pass is
+  // rendered without MSAA and FXAA runs on the final (tone-mapped) image.
+  const msaa = !opts.ao;
+  const scenePass = msaa ? pass(scene, camera) : pass(scene, camera, { samples: 0 });
   const color = scenePass.getTextureNode("output");
   const viewZ = scenePass.getViewZNode();
 
@@ -83,8 +92,10 @@ function buildPipeline(renderer, scene, camera, opts) {
 
   let out = withSky;
 
-  if (opts.dof) {
-    const focalRange = max(uFocusDistance.mul(uFocusRange), 1.2);
+  const focalRange = max(uFocusDistance.mul(uFocusRange), 1.2);
+  if (opts.dof === "lens") {
+    out = lensBlur(withSky, viewZ, uFocusDistance, focalRange, uBlurStrength);
+  } else if (opts.dof === "bokeh") {
     out = dof(withSky, viewZ, uFocusDistance, focalRange, uBokehScale);
   }
 
@@ -92,6 +103,11 @@ function buildPipeline(renderer, scene, camera, opts) {
   if (opts.bloom) {
     bloomNode = bloom(out, opts.bloomStrength, 0.4, opts.bloomThreshold);
     out = out.add(bloomNode);
+  }
+
+  if (!msaa) {
+    pipeline.outputColorTransform = false;
+    out = fxaa(renderOutput(out));
   }
 
   pipeline.outputNode = out;
@@ -111,20 +127,22 @@ export default function PostPipeline() {
     "Post",
     {
       enabled: true,
-      dof: true,
-      focusRange: { value: 1.4, min: 0.1, max: 3, step: 0.01 },
-      bokehScale: { value: 2, min: 0, max: 10, step: 0.1 },
-      ao: false,
-      aoIntensity: { value: 1, min: 0, max: 1, step: 0.01 },
+      dof: { value: "lens", options: ["lens", "bokeh", "off"] },
+      focusRange: { value: 0.8, min: 0.1, max: 3, step: 0.01 },
+      blur: { value: 1, min: 0, max: 1.5, step: 0.01, label: "blur (lens)" },
+      bokehScale: { value: 2, min: 0, max: 10, step: 0.1, label: "bokeh (bokeh)" },
+      ao: true,
+      aoIntensity: { value: 0.7, min: 0, max: 1, step: 0.01 },
       bloom: true,
-      bloomStrength: { value: 0.12, min: 0, max: 1, step: 0.01 },
-      bloomThreshold: { value: 0.9, min: 0, max: 2, step: 0.01 },
+      bloomStrength: { value: 0.2, min: 0, max: 1, step: 0.01 },
+      bloomThreshold: { value: 1.1, min: 0, max: 3, step: 0.01 },
     },
     { collapsed: true }
   );
 
   uFocusRange.value = c.focusRange;
   uBokehScale.value = c.bokehScale;
+  uBlurStrength.value = c.blur;
   uAoIntensity.value = c.aoIntensity;
 
   const enabled = c.enabled;

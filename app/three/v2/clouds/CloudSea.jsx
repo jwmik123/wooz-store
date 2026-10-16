@@ -9,7 +9,6 @@ import {
   dot,
   float,
   length,
-  max,
   mix,
   normalize,
   positionWorld,
