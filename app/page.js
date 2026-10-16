@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
-import Experience from "./three/Experience";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Sidebar } from "./components/ui/Sidebar";
 import IntroScreen from "./components/ui/IntroScreen";
 import collectionStore from "./stores/collectionStore";
@@ -12,6 +12,9 @@ import Menu from "./components/Menu";
 import useSoundStore from "./stores/soundStore";
 import gsap from "gsap";
 import { X, AlignLeft } from "lucide-react";
+
+// WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
+const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
 
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
@@ -166,7 +169,7 @@ export default function Home() {
         </div>
       )}
 
-      <Experience />
+      <Scene />
       <Sidebar />
       <PointsOfInterest />
       <Cart />

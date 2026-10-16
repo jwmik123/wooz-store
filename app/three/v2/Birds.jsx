@@ -1,12 +1,12 @@
 import { useRef, useMemo } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
-import { SkeletonUtils } from "three-stdlib";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 function Bird({ timeOffset = 0, ...props }) {
   const group = useRef();
   const { scene, animations } = useGLTF("/models/bird.glb");
-  const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+  const clone = useMemo(() => cloneSkinned(scene), [scene]);
   const { nodes, materials } = useGraph(clone);
   const { actions } = useAnimations(animations, group);
 

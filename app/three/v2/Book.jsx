@@ -1,6 +1,6 @@
 import { useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 import { easing } from "maath";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -16,9 +16,34 @@ import {
   Uint16BufferAttribute,
   Vector3,
 } from "three";
-import { degToRad } from "three/src/math/MathUtils.js";
-import { pageAtom, pages } from "./UI";
-import useSoundStore from "../stores/soundStore";
+import useSoundStore from "../../stores/soundStore";
+
+const { degToRad } = MathUtils;
+
+const pictures = [
+  "wz04",
+  "wz05",
+  "wz06",
+  "wz07",
+  "wz08",
+  "wz10",
+  "wz11",
+  "wz12",
+  "wz13",
+  "wz14",
+  "wz15",
+  "wz16",
+];
+
+export const pageAtom = atom(0);
+export const pages = [{ front: "book-cover", back: pictures[0] }];
+for (let i = 1; i < pictures.length - 1; i += 2) {
+  pages.push({
+    front: pictures[i % pictures.length],
+    back: pictures[(i + 1) % pictures.length],
+  });
+}
+pages.push({ front: pictures[pictures.length - 1], back: "book-back" });
 
 const easingFactor = 0.5; // Controls the speed of the easing
 const easingFactorFold = 0.3; // Controls the speed of the easing

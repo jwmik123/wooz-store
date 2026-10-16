@@ -3,13 +3,23 @@ import Image from "next/image";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
-import { Canvas } from "@react-three/fiber";
-import Product from "../three/Product";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
 import { Suspense } from "react";
 import { toast } from "react-toastify";
 import ZoomImage from "../components/ui/ZoomImage";
+
+const ProductCanvasLoader = () => (
+  <div className="flex items-center justify-center w-full h-full overflow-hidden border rounded-lg bg-primary">
+    <Loader className="w-10 h-10 text-white animate-spin" />
+  </div>
+);
+
+const ProductCanvas = dynamic(() => import("../three/ProductCanvas"), {
+  ssr: false,
+  loading: ProductCanvasLoader,
+});
 
 const PRODUCT_QUERY = `
   query GetProductByHandle($handle: String!) {
@@ -215,19 +225,8 @@ function ProductItem({ product, addToCart }) {
               <p className="text-sm text-primary">View Product Images</p>
               <ImageIcon className="w-5 h-5" />
             </button>
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center w-full h-full overflow-hidden border rounded-lg bg-primary">
-                  <Loader className="w-10 h-10 text-white animate-spin" />
-                </div>
-              }
-            >
-              <Canvas
-                className="w-full h-full overflow-hidden border rounded-lg bg-primary"
-                camera={{ position: [0, 0, 1.3], fov: 55 }}
-              >
-                <Product selectedColor={selectedColor} />
-              </Canvas>
+            <Suspense fallback={<ProductCanvasLoader />}>
+              <ProductCanvas selectedColor={selectedColor} />
             </Suspense>
           </div>
         ) : (
