@@ -267,7 +267,7 @@ export function makeGrassMaterial() {
 
   // Wind: stiffer short (mown) grass, gusts travel across the meadow.
   const stiff = mix(float(2.6), float(1), smoothstep(0.06, 0.3, iPar.x));
-  const lean = windLean(rootXZ, seed.add(aRoot.w.mul(0.3)), stiff);
+  const lean = windLean(rootXZ, seed, stiff, float(0));
   const wind = bendOffset(lean.xy, t.mul(H), H);
 
   const local = vec3(

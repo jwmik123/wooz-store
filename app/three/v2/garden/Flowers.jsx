@@ -253,7 +253,7 @@ function makeFlowerMaterial() {
 
   const root = iPos.xyz;
   const distCam = length(root.sub(cameraPosition));
-  const lean = windLean(root.xz, seed, float(1.4));
+  const lean = windLean(root.xz, seed, float(1.4), float(0.9));
   const restLean = iExt.xy;
 
   // Point on the (leaning, wind-bent) stem axis at height h.
