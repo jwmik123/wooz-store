@@ -1,24 +1,20 @@
-import { useEffect, useState, useRef } from "react";
+"use client";
+
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import gsap from "gsap";
+import { Rotate3d, Images, ChevronLeft, ChevronRight, ChevronDown, Hand } from "lucide-react";
 import client from "@/lib/shopify";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
-import dynamic from "next/dynamic";
-import gsap from "gsap";
-import { Rotate3d, Image as ImageIcon, Loader } from "lucide-react";
-import { Suspense } from "react";
-import { toast } from "react-toastify";
 import ZoomImage from "../components/ui/ZoomImage";
-
-const ProductCanvasLoader = () => (
-  <div className="flex items-center justify-center w-full h-full overflow-hidden border rounded-lg bg-primary">
-    <Loader className="w-10 h-10 text-white animate-spin" />
-  </div>
-);
+import { EASE, STAGGER, formatPrice, prefersReducedMotion } from "../components/ui/tokens";
+import { swatchFor, isLightSwatch } from "./swatches";
 
 const ProductCanvas = dynamic(() => import("../three/ProductCanvas"), {
   ssr: false,
-  loading: ProductCanvasLoader,
+  loading: () => null,
 });
 
 const PRODUCT_QUERY = `
@@ -26,16 +22,11 @@ const PRODUCT_QUERY = `
     productByHandle(handle: $handle) {
       id
       title
+      handle
       descriptionHtml
       priceRange {
-        minVariantPrice {
-          amount
-          currencyCode
-        }
-        maxVariantPrice {
-          amount
-          currencyCode
-        }
+        minVariantPrice { amount currencyCode }
+        maxVariantPrice { amount currencyCode }
       }
       variants(first: 100) {
         edges {
@@ -43,348 +34,791 @@ const PRODUCT_QUERY = `
             id
             title
             availableForSale
-            selectedOptions {
-              name
-              value
-            }
-            image {
-              url
-              altText
-            }
+            price { amount currencyCode }
+            selectedOptions { name value }
+            image { url altText }
           }
         }
       }
-      options {
-        name
-        values
-      }
+      options { name values }
       images(first: 20) {
-        edges {
-          node {
-            url
-            altText
-          }
-        }
+        edges { node { url altText } }
       }
     }
   }
 `;
 
-export default function ProductsClientComponent() {
-  const [product, setProduct] = useState();
-  const { productHandle } = collectionStore();
-  const { initializeCart, addToCart } = useCheckoutStore();
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+const productCache = new Map();
+const opt = (node, name) => node.selectedOptions.find((o) => o.name === name)?.value;
 
+function useReducedMotion() {
+  const [reduce, setReduce] = useState(false);
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        if (!productHandle || typeof productHandle !== "string") {
-          console.log("Invalid product handle:", productHandle);
-          return;
-        }
-
-        const response = await client.request(PRODUCT_QUERY, {
-          variables: { handle: productHandle },
-        });
-
-        if (response?.data?.productByHandle) {
-          setProduct(response.data.productByHandle);
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error.message);
-        console.error("Query variables:", { handle: productHandle });
-      }
-    }
-
-    fetchProducts();
-    initializeCart();
-  }, [productHandle, initializeCart]);
-
-  return product ? (
-    <ProductItem product={product} addToCart={addToCart} />
-  ) : null;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduce(mq.matches);
+    const on = () => setReduce(mq.matches);
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return reduce;
 }
 
-function ProductItem({ product, addToCart }) {
-  const colors = [
-    ...new Set(
-      product.variants.edges
-        .map(
-          ({ node }) =>
-            node.selectedOptions.find((opt) => opt.name === "Color")?.value
-        )
-        .filter(Boolean)
-    ),
-  ];
-
-  const sizes = [
-    ...new Set(
-      product.variants.edges
-        .map(
-          ({ node }) =>
-            node.selectedOptions.find((opt) => opt.name === "Size")?.value
-        )
-        .filter(Boolean)
-    ),
-  ];
-
-  const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [selectedSize, setSelectedSize] = useState(
-    sizes.length === 1 ? sizes[0] : null
-  );
-  const [selectedImage, setSelectedImage] = useState(
-    product.images.edges[0]?.node.url
-  );
-  const [loading, setLoading] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [openCanvas, setOpenCanvas] = useState(true);
-  const canvasRef = useRef();
+export default function ProductsClient({ active = true }) {
+  const productHandle = collectionStore((s) => s.productHandle);
+  const initializeCart = useCheckoutStore((s) => s.initializeCart);
+  const [product, setProduct] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    setSelectedColor(colors[0]);
-    setSelectedSize(sizes.length === 1 ? sizes[0] : null);
-    setSelectedImage(product.images.edges[0]?.node.url);
-    setLoading(true);
-    setIsLoaded(false);
-  }, [product.id]);
+    initializeCart();
+  }, [initializeCart]);
 
   useEffect(() => {
-    if (selectedColor) {
-      const colorVariantImage = product.variants.edges.find(
-        ({ node }) =>
-          node.selectedOptions.find((opt) => opt.name === "Color")?.value ===
-          selectedColor
-      )?.node.image?.url;
-
-      if (colorVariantImage) {
-        setSelectedImage(colorVariantImage);
-      }
+    if (!productHandle || typeof productHandle !== "string") return;
+    let cancelled = false;
+    setError(null);
+    if (productCache.has(productHandle)) {
+      setProduct(productCache.get(productHandle));
+      return;
     }
-  }, [selectedColor, product.variants.edges]);
+    client
+      .request(PRODUCT_QUERY, { variables: { handle: productHandle } })
+      .then((res) => {
+        const p = res?.data?.productByHandle;
+        if (!p) throw new Error(res?.errors?.message || "Product not found");
+        productCache.set(productHandle, p);
+        if (!cancelled) setProduct(p);
+      })
+      .catch((e) => {
+        console.error("Error fetching product:", e.message, { handle: productHandle });
+        if (!cancelled) setError(e.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [productHandle]);
 
-  const findVariant = () => {
-    return product.variants.edges.find(
-      ({ node }) =>
-        node.selectedOptions.find((opt) => opt.name === "Color")?.value ===
-          selectedColor &&
-        node.selectedOptions.find((opt) => opt.name === "Size")?.value ===
-          selectedSize
-    )?.node;
-  };
-
-  const isSizeAvailable = (size) => {
-    return product.variants.edges.some(
-      ({ node }) =>
-        node.selectedOptions.find((opt) => opt.name === "Color")?.value ===
-          selectedColor &&
-        node.selectedOptions.find((opt) => opt.name === "Size")?.value ===
-          size &&
-        node.availableForSale
+  if (!productHandle) return null;
+  if (error && !product)
+    return (
+      <div className="px-6 py-16 text-center text-ink-soft">
+        Couldn&apos;t load this piece right now. Please try again.
+      </div>
     );
-  };
-
-  const handleAddToCart = () => {
-    const selectedVariant = findVariant();
-    if (selectedVariant) {
-      addToCart(selectedVariant.id);
-      toast.success("Added to cart", { theme: "colored" });
-    } else {
-      console.error("No variant selected or variant not found");
-    }
-  };
-
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoaded(true);
-    }, 1500);
-
-    if (openCanvas) {
-      gsap.to(canvasRef.current, { opacity: 1, duration: 0.5 });
-    }
-  }, [isLoaded, openCanvas]);
 
   return (
-    <div className="relative flex flex-col w-full pt-5 space-y-4 overflow-hidden text-primary font-inter">
-      <div className="flex items-center justify-between mx-5 font-inter">
-        <h2 className="mb-2 text-xl font-bold md:text-2xl">{product.title}</h2>
-        <h3 className="text-xl font-medium text-black">
-          €{parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
-        </h3>
+    <ProductView
+      product={product && product.handle === productHandle ? product : null}
+      productHandle={productHandle}
+      active={active}
+    />
+  );
+}
+
+function ProductView({ product, productHandle, active }) {
+  const addToCart = useCheckoutStore((s) => s.addToCart);
+  const reduceMotion = useReducedMotion();
+  const rootRef = useRef(null);
+  const sizeGroupRef = useRef(null);
+
+  const variants = useMemo(() => product?.variants.edges.map((e) => e.node) || [], [product]);
+  const colors = useMemo(
+    () => [...new Set(variants.map((v) => opt(v, "Color")).filter(Boolean))],
+    [variants]
+  );
+  const sizes = useMemo(
+    () => [...new Set(variants.map((v) => opt(v, "Size")).filter(Boolean))],
+    [variants]
+  );
+  const images = useMemo(() => product?.images.edges.map((e) => e.node) || [], [product]);
+
+  const [mode, setMode] = useState("3d");
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [status, setStatus] = useState("idle"); // idle | loading | added
+  const [openSection, setOpenSection] = useState("details");
+
+  // Reset choices when the collection changes.
+  useEffect(() => {
+    if (!product) return;
+    setSelectedColor(colors[0] || null);
+    setSelectedSize(sizes.length === 1 ? sizes[0] : null);
+    setImageIndex(0);
+    setStatus("idle");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
+
+  // Jump the gallery to the photo of the chosen colourway.
+  useEffect(() => {
+    if (!selectedColor) return;
+    const url = variants.find((v) => opt(v, "Color") === selectedColor)?.image?.url;
+    const i = url ? images.findIndex((img) => img.url === url) : -1;
+    if (i >= 0) setImageIndex(i);
+  }, [selectedColor, variants, images]);
+
+  // Staggered reveal of the details whenever a new product lands.
+  useIsoLayoutEffect(() => {
+    if (!product || !rootRef.current) return;
+    const items = rootRef.current.querySelectorAll("[data-reveal]");
+    const reduce = prefersReducedMotion();
+    gsap.fromTo(
+      items,
+      { y: 22, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        duration: reduce ? 0.001 : 0.8,
+        ease: EASE.out,
+        stagger: STAGGER,
+        delay: reduce ? 0 : 0.12,
+      }
+    );
+  }, [product?.id]);
+
+  const isSizeAvailable = (size) =>
+    variants.some(
+      (v) => opt(v, "Color") === selectedColor && opt(v, "Size") === size && v.availableForSale
+    );
+  const colorAvailable = (color) => variants.some((v) => opt(v, "Color") === color && v.availableForSale);
+
+  const selectedVariant = variants.find(
+    (v) =>
+      (!colors.length || opt(v, "Color") === selectedColor) &&
+      (!sizes.length || opt(v, "Size") === selectedSize)
+  );
+  const price = selectedVariant?.price || product?.priceRange.minVariantPrice;
+  const soldOut = selectedColor && sizes.length > 0 && !sizes.some(isSizeAvailable);
+
+  // If the chosen size isn't available in the new colour, clear it.
+  useEffect(() => {
+    if (selectedSize && sizes.length > 1 && !isSizeAvailable(selectedSize)) setSelectedSize(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedColor]);
+
+  const nudgeSizes = () => {
+    const el = sizeGroupRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+    if (!prefersReducedMotion())
+      gsap.to(el, { duration: 0.5, ease: "none", keyframes: { x: [0, -8, 8, -5, 5, 0] } });
+    el.querySelector("input:not(:disabled)")?.focus({ preventScroll: true });
+  };
+
+  const handleAddToCart = async () => {
+    if (!selectedVariant || !selectedVariant.availableForSale) return nudgeSizes();
+    setStatus("loading");
+    const res = await addToCart(selectedVariant.id);
+    if (!res) {
+      setStatus("idle");
+      return;
+    }
+    setStatus("added");
+    setTimeout(() => setStatus("idle"), 2200);
+  };
+
+  const [kind, title] = useMemo(() => {
+    if (!product) return ["", ""];
+    const parts = product.title.split(/\s[-–]\s/);
+    if (parts.length > 1) return [parts.slice(1).join(" – "), parts[0]];
+    return [productHandle, product.title];
+  }, [product, productHandle]);
+
+  return (
+    <div ref={rootRef} className="relative flex flex-col min-h-full">
+      <div className="px-3 md:px-4">
+        <ProductStage
+          productHandle={productHandle}
+          product={product}
+          images={images}
+          mode={mode}
+          setMode={setMode}
+          color={selectedColor}
+          imageIndex={imageIndex}
+          setImageIndex={setImageIndex}
+          active={active}
+          reduceMotion={reduceMotion}
+        />
       </div>
 
-      <div className="relative flex flex-col justify-between mx-5 mb-5 space-y-4 overflow-hidden md:flex-row md:space-x-5 md:space-y-0">
-        {openCanvas ? (
-          <div
-            ref={canvasRef}
-            className="w-full h-[25rem] md:h-[28rem] opacity-0"
-          >
-            <button
-              className="absolute top-0 right-0 z-10 flex items-center justify-center px-2 py-1 mt-2 mr-2 space-x-2 bg-white rounded-sm"
-              onClick={() => setOpenCanvas(false)}
-            >
-              <p className="text-sm text-primary">View Product Images</p>
-              <ImageIcon className="w-5 h-5" />
-            </button>
-            <Suspense fallback={<ProductCanvasLoader />}>
-              <ProductCanvas selectedColor={selectedColor} />
-            </Suspense>
+      {!product ? (
+        <DetailsSkeleton />
+      ) : (
+        <div className="flex flex-col gap-7 px-5 pt-6 pb-8 md:px-7">
+          {/* Title */}
+          <div data-reveal className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <span className="capitalize wz-eyebrow">{kind}</span>
+              <span className="w-1 h-1 rounded-full bg-ink/25" aria-hidden />
+              <span className="wz-eyebrow !text-leaf">Made in Holland</span>
+            </div>
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="wz-display text-wz-display text-ink text-balance">{title}</h2>
+              <p className="pb-1 text-xl font-display tabular-nums whitespace-nowrap text-ink">
+                {price && formatPrice(price.amount, price.currencyCode)}
+              </p>
+            </div>
           </div>
-        ) : (
-          <>
-            <div className="flex justify-center w-full md:block md:w-auto">
-              {loading && (
-                <div className="absolute top-[280px] left-1/2 md:left-[30%] transform -translate-x-1/2 flex items-center justify-center">
-                  <div className="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full animate-spin" />
-                </div>
-              )}
-              <div className="relative flex justify-center w-full selected-image md:block md:w-auto">
-                <ZoomImage
-                  src={selectedImage}
-                  alt={product.title}
-                  width={500}
-                  height={500}
-                  priority
-                  onLoadingComplete={() => setLoading(false)}
-                />
-                <button
-                  className="absolute top-0 right-0 flex items-center justify-center w-12 h-12 mt-2 mr-2 bg-white rounded-md"
-                  onClick={() => setOpenCanvas(true)}
-                >
-                  <Rotate3d />
-                </button>
+
+          {/* Colour */}
+          {colors.length > 0 && (
+            <fieldset data-reveal className="flex flex-col gap-3">
+              <legend className="flex items-baseline justify-between w-full mb-3">
+                <span className="wz-eyebrow">Colour</span>
+                <span className="text-sm text-ink">{selectedColor}</span>
+              </legend>
+              <div className="flex flex-wrap gap-2.5">
+                {colors.map((color) => {
+                  const hex = swatchFor(color);
+                  const checked = selectedColor === color;
+                  const available = colorAvailable(color);
+                  return (
+                    <label key={color} className="relative cursor-pointer group" title={color}>
+                      <input
+                        type="radio"
+                        name="wz-color"
+                        value={color}
+                        checked={checked}
+                        onChange={() => setSelectedColor(color)}
+                        className="sr-only peer"
+                        aria-label={`${color}${available ? "" : " (sold out)"}`}
+                      />
+                      <span
+                        className={`block w-10 h-10 rounded-full transition-transform duration-wz-base ease-wz-spring
+                          ring-offset-2 ring-offset-paper peer-focus-visible:ring-2 peer-focus-visible:ring-primary
+                          group-hover:scale-[1.06] group-active:scale-95
+                          ${checked ? "ring-2 ring-ink scale-[1.06]" : "ring-0"}`}
+                        style={{
+                          background: `radial-gradient(circle at 32% 28%, rgb(255 255 255 / 0.45), transparent 46%), ${hex}`,
+                          boxShadow: `inset 0 -3px 6px rgb(0 0 0 / 0.14), inset 0 0 0 1px ${
+                            isLightSwatch(hex) ? "rgb(27 51 39 / 0.14)" : "rgb(0 0 0 / 0.06)"
+                          }`,
+                        }}
+                      />
+                      {!available && (
+                        <span className="absolute inset-0 grid pointer-events-none place-items-center" aria-hidden>
+                          <span className="block w-[120%] h-px rotate-45 bg-ink/50" />
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
-            </div>
+            </fieldset>
+          )}
 
-            <div className="flex flex-row w-full gap-2 max-h-[31rem] overflow-x-auto md:flex-col md:w-2/5 md:overflow-y-auto products-scrollbar">
-              {product.images.edges.map(({ node }, index) => (
-                <Image
-                  key={index}
-                  src={node.url}
-                  alt={
-                    node.altText || `${product.title} thumbnail ${index + 1}`
-                  }
-                  className="flex-shrink-0 object-cover w-24 rounded-lg cursor-pointer md:w-full aspect-square"
-                  quality={50}
-                  height={100}
-                  width={100}
-                  onClick={() => setSelectedImage(node.url)}
-                  placeholder="empty"
-                  priority={index < 4}
-                />
-              ))}
-            </div>
-
-            <div className="absolute bottom-0 right-0 z-10 w-12 h-24 pointer-events-none md:w-28 md:h-12 bg-gradient-to-l md:bg-gradient-to-t from-white to-transparent" />
-          </>
-        )}
-      </div>
-
-      {/* Color selection */}
-      <div className="w-full px-4 md:px-10">
-        <label htmlFor="color" className="text-base font-light">
-          Color: {selectedColor}
-        </label>
-        <div className="flex mt-1 space-x-4">
-          {colors.map((color) => {
-            const colorClass = {
-              Black: "bg-black",
-              Brown: "bg-brown",
-              "Dark grey/Taupe": "bg-gray-600",
-              "Light Grey": "bg-gray-300",
-              "Light Grey Melange": "bg-[#596878]",
-              "Sage Green": "bg-[#B9BD8C]",
-              "Foam Green": "bg-[#BDCFBD]",
-              Green: "bg-[#028370]",
-              Navy: "bg-blue-900",
-              Blue: "bg-blue-700",
-              White: "bg-white",
-              "Sky Blue": "bg-[#68B0C6]",
-              "Ice Blue": "bg-blue-500",
-              Beige: "bg-[#C8C5B9]",
-            }[color];
-
-            return (
-              <label key={color} className="flex items-center">
-                <input
-                  type="radio"
-                  name="color"
-                  value={color}
-                  checked={selectedColor === color}
-                  onChange={(e) => setSelectedColor(e.target.value)}
-                  className="hidden"
-                />
-                <span
-                  className={`relative p-4 shadow-inner shadow-gray-400/50 rounded-full cursor-pointer ${
-                    selectedColor === color
-                      ? `${colorClass} border-green-500`
-                      : `${colorClass} border-primary`
-                  } after:content-[''] ${
-                    selectedColor === color
-                      ? "after:absolute after:-bottom-3 after:left-[15px] after:w-1 after:h-1 after:rounded-full after:bg-primary"
-                      : ""
-                  }`}
-                />
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Size selection */}
-      <div className="w-full px-4 md:px-10">
-        <label htmlFor="size" className="text-base font-light">
-          Size: {selectedSize}
-        </label>
-        <div className="flex w-full gap-2 mt-1">
-          {sizes.map((size) => (
-            <label key={size} className="w-full">
-              <input
-                type="radio"
-                name="size"
-                value={size}
-                checked={selectedSize === size}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                className="hidden"
-                disabled={!isSizeAvailable(size)}
-              />
-              <span
-                className={`block w-full text-center rounded-lg p-2 border-2 ${
-                  isSizeAvailable(size)
-                    ? "hover:border-green-500 hover:text-green-500 cursor-pointer"
-                    : "cursor-not-allowed opacity-30"
-                } ${
-                  selectedSize === size
-                    ? "border-green-500 text-green-500"
-                    : "border-primary text-primary"
-                }`}
+          {/* Size */}
+          {sizes.length > 0 && (
+            <fieldset data-reveal ref={sizeGroupRef} className="flex flex-col">
+              <legend className="flex items-baseline justify-between w-full mb-3">
+                <span className="wz-eyebrow">Size</span>
+                <span className="text-sm text-ink-soft">
+                  {selectedSize ? selectedSize : "Pick your fit"}
+                </span>
+              </legend>
+              <div
+                className="grid gap-2"
+                style={{ gridTemplateColumns: `repeat(${Math.min(sizes.length, 5)}, minmax(0, 1fr))` }}
               >
-                {size}
-              </span>
-            </label>
-          ))}
-        </div>
+                {sizes.map((size) => {
+                  const available = isSizeAvailable(size);
+                  const checked = selectedSize === size;
+                  return (
+                    <label key={size} className={available ? "cursor-pointer" : "cursor-not-allowed"}>
+                      <input
+                        type="radio"
+                        name="wz-size"
+                        value={size}
+                        checked={checked}
+                        disabled={!available}
+                        onChange={() => setSelectedSize(size)}
+                        className="sr-only peer"
+                        aria-label={`Size ${size}${available ? "" : " (sold out)"}`}
+                      />
+                      <span
+                        className={`relative flex items-center justify-center h-12 rounded-wz-sm text-sm font-semibold
+                          transition-[background-color,color,box-shadow,transform] duration-wz-base ease-wz-out
+                          peer-focus-visible:shadow-wz-focus active:scale-[0.97]
+                          ${
+                            checked
+                              ? "bg-ink text-paper shadow-wz-md"
+                              : available
+                              ? "bg-paper/70 text-ink shadow-[inset_0_0_0_1px_var(--wz-line-strong)] hover:bg-paper hover:shadow-[inset_0_0_0_1.5px_rgb(var(--wz-ink))]"
+                              : "bg-transparent text-ink/30 line-through shadow-[inset_0_0_0_1px_var(--wz-line)]"
+                          }`}
+                      >
+                        {size}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
 
-        <button
-          onClick={handleAddToCart}
-          disabled={!selectedColor || !selectedSize}
-          className={`w-full bg-primary transition-colors duration-200 
-            hover:bg-white hover:text-primary border border-primary 
-            text-white rounded-lg mt-4 mb-6 p-4 text-lg
-            ${
-              !selectedColor || !selectedSize
-                ? "opacity-50 pointer-events-none"
-                : ""
-            }`}
-        >
-          <div className="text-center uppercase">Add To Cart</div>
-        </button>
-        <div className="mb-24 md:mb-10">
-          <h3 className="mb-4 text-xl font-bold">Description:</h3>
-          <div
-            className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+          {/* Details accordion */}
+          <div data-reveal className="border-t border-[color:var(--wz-line)]">
+            <Accordion
+              id="details"
+              title="Details"
+              open={openSection === "details"}
+              onToggle={(id) => setOpenSection((s) => (s === id ? null : id))}
+            >
+              <div className="wz-prose" dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+            </Accordion>
+            <Accordion
+              id="care"
+              title="Made with care"
+              open={openSection === "care"}
+              onToggle={(id) => setOpenSection((s) => (s === id ? null : id))}
+            >
+              <div className="wz-prose">
+                <p>
+                  Every Wooz piece is handmade by experienced tailors close to home in the
+                  Netherlands, so it doesn&apos;t have to travel far. Made to carry a happy message.
+                </p>
+                <p>
+                  <a
+                    className="underline rounded-sm underline-offset-4 decoration-ink/30 hover:decoration-ink wz-focus"
+                    href="https://shop.wooz.store/policies/terms-of-service"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Terms of service
+                  </a>
+                </p>
+              </div>
+            </Accordion>
+          </div>
+        </div>
+      )}
+
+      {/* Sticky add to bag */}
+      {product && (
+        <div className="sticky bottom-0 z-10 px-3 pt-6 pb-3 mt-auto md:px-4 md:pb-4 bg-gradient-to-t from-paper via-paper/85 to-transparent">
+          <AddToBagButton
+            status={status}
+            soldOut={soldOut}
+            needsSize={!selectedSize && sizes.length > 0}
+            price={price}
+            summary={[selectedColor, selectedSize].filter(Boolean).join(" · ")}
+            onClick={handleAddToCart}
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ───────────────────────────── Stage ───────────────────────────── */
+
+function ProductStage({
+  productHandle,
+  product,
+  images,
+  mode,
+  setMode,
+  color,
+  imageIndex,
+  setImageIndex,
+  active,
+  reduceMotion,
+}) {
+  const threeRef = useRef(null);
+  const photoRef = useRef(null);
+  const trackRef = useRef(null);
+  const thumbsRef = useRef(null);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [hint, setHint] = useState(true);
+  const [zoomed, setZoomed] = useState(false);
+  const firstMode = useRef(true);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("wz-drag-hint") === "seen") setHint(false);
+    } catch {}
+  }, []);
+
+  const onInteract = useCallback(() => {
+    setHint((h) => {
+      if (h) {
+        try {
+          sessionStorage.setItem("wz-drag-hint", "seen");
+        } catch {}
+      }
+      return false;
+    });
+  }, []);
+
+  // 3D <-> photo morph.
+  useIsoLayoutEffect(() => {
+    const show = mode === "3d" ? threeRef.current : photoRef.current;
+    const hide = mode === "3d" ? photoRef.current : threeRef.current;
+    const reduce = prefersReducedMotion();
+    if (firstMode.current || reduce) {
+      firstMode.current = false;
+      gsap.set(show, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+      gsap.set(hide, { autoAlpha: 0 });
+      return;
+    }
+    gsap.killTweensOf([show, hide]);
+    gsap.to(hide, {
+      autoAlpha: 0,
+      scale: mode === "3d" ? 1.04 : 0.92,
+      filter: "blur(10px)",
+      duration: 0.45,
+      ease: EASE.inOut,
+    });
+    gsap.fromTo(
+      show,
+      { autoAlpha: 0, scale: mode === "3d" ? 0.9 : 1.06, filter: "blur(12px)" },
+      { autoAlpha: 1, scale: 1, filter: "blur(0px)", duration: 0.75, ease: EASE.out, delay: 0.12 }
+    );
+  }, [mode]);
+
+  // Keep the scroll-snap track in sync with imageIndex.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const x = imageIndex * track.clientWidth;
+    if (Math.abs(track.scrollLeft - x) > 2)
+      track.scrollTo({ left: x, behavior: prefersReducedMotion() || mode !== "photo" ? "auto" : "smooth" });
+  }, [imageIndex, mode, images.length]);
+
+  // Keep the active thumbnail in view (horizontal only; never scrolls the panel).
+  useEffect(() => {
+    const strip = thumbsRef.current;
+    const thumb = strip?.children[imageIndex];
+    if (!strip || !thumb) return;
+    const left = thumb.offsetLeft - strip.clientWidth / 2 + thumb.clientWidth / 2;
+    strip.scrollTo({ left, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }, [imageIndex]);
+
+  const onTrackScroll = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const i = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+    if (i !== imageIndex) setImageIndex(i);
+  };
+
+  const step = (dir) => {
+    if (!images.length) return;
+    setImageIndex((imageIndex + dir + images.length) % images.length);
+  };
+
+  const hex = swatchFor(color);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        className="relative w-full overflow-hidden aspect-square md:aspect-[5/6] max-h-[52dvh] md:max-h-[60vh] rounded-wz-lg isolate shadow-wz-inner"
+        style={{
+          backgroundColor: `color-mix(in oklab, ${hex} ${isLightSwatch(hex) ? 34 : 16}%, rgb(var(--wz-paper)))`,
+          transition: "background-color 700ms var(--wz-ease-out)",
+        }}
+      >
+        {/* Studio backdrop: soft top light + floor fade */}
+        <div
+          className="absolute inset-0 pointer-events-none -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 50% 18%, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0) 62%), linear-gradient(to bottom, transparent 62%, rgb(27 51 39 / 0.06))",
+          }}
+        />
+
+        {/* 3D layer */}
+        <div ref={threeRef} className="absolute inset-0" style={{ visibility: "hidden" }}>
+          <svg
+            viewBox="0 0 100 100"
+            className="absolute left-1/2 top-1/2 w-[112%] -translate-x-1/2 -translate-y-1/2 text-paper/50 pointer-events-none"
+            aria-hidden
+          >
+            <circle cx="35" cy="34" r="6.5" fill="currentColor" />
+            <circle cx="65" cy="34" r="6.5" fill="currentColor" />
+            <path d="M18 54 Q50 92 82 54" fill="none" stroke="currentColor" strokeWidth="9" strokeLinecap="round" />
+          </svg>
+          <div
+            className="absolute inset-0 transition-opacity duration-700 ease-wz-out"
+            style={{ opacity: canvasReady ? 1 : 0 }}
+          >
+            <ProductCanvas
+              productHandle={productHandle}
+              selectedColor={color}
+              active={active && mode === "3d"}
+              onInteract={onInteract}
+              onReady={() => setCanvasReady(true)}
+              reducedMotion={reduceMotion}
+            />
+          </div>
+          {!canvasReady && (
+            <div className="absolute inset-0 grid place-items-center" aria-hidden>
+              <span className="w-10 h-10 border-2 rounded-full border-ink/15 border-t-ink/60 animate-spin" />
+            </div>
+          )}
+          <div
+            className={`absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-wz-slow ease-wz-out pointer-events-none ${
+              hint && canvasReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            }`}
+            aria-hidden={!hint}
+          >
+            <div className="flex items-center gap-2 py-2 pl-3 pr-4 rounded-full wz-glass-chip text-ink">
+              <Hand className="w-4 h-4 wz-nudge" strokeWidth={1.75} />
+              <span className="text-xs font-semibold tracking-wide">Drag to play</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Photo layer */}
+        <div ref={photoRef} className="absolute inset-0 group/photos" style={{ visibility: "hidden" }}>
+          <div
+            ref={trackRef}
+            onScroll={onTrackScroll}
+            tabIndex={mode === "photo" ? 0 : -1}
+            aria-roledescription="carousel"
+            aria-label="Product photos"
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                e.preventDefault();
+                e.stopPropagation();
+                step(e.key === "ArrowRight" ? 1 : -1);
+              }
+            }}
+            className={`flex w-full h-full wz-no-scrollbar snap-x snap-mandatory outline-none focus-visible:shadow-[inset_0_0_0_3px_rgb(var(--wz-green))] ${
+              zoomed ? "overflow-hidden" : "overflow-x-auto"
+            }`}
+          >
+            {images.map((img, i) => (
+              <div
+                key={img.url}
+                className="relative w-full h-full snap-center shrink-0"
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${images.length}`}
+              >
+                {(mode === "photo" || Math.abs(i - imageIndex) < 1) && (
+                  <ZoomImage
+                    src={img.url}
+                    alt={img.altText || `${product?.title || "Product"} photo ${i + 1}`}
+                    priority={i === 0}
+                    onZoomChange={setZoomed}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                aria-label="Previous photo"
+                className="absolute hidden -translate-y-1/2 opacity-0 md:grid left-3 top-1/2 wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-opacity duration-wz-base"
+              >
+                <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => step(1)}
+                aria-label="Next photo"
+                className="absolute hidden -translate-y-1/2 opacity-0 md:grid right-3 top-1/2 wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-opacity duration-wz-base"
+              >
+                <ChevronRight className="w-4 h-4" strokeWidth={2} />
+              </button>
+              {images.length <= 8 ? (
+                <div className="absolute flex gap-1.5 -translate-x-1/2 bottom-4 left-1/2 px-2.5 py-2 rounded-full wz-glass-chip" aria-hidden>
+                  {images.map((img, i) => (
+                    <span
+                      key={img.url}
+                      className={`h-1.5 rounded-full transition-all duration-wz-slow ease-wz-out ${
+                        i === imageIndex ? "w-5 bg-ink" : "w-1.5 bg-ink/25"
+                      }`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="absolute px-3 py-1.5 text-xs font-semibold -translate-x-1/2 rounded-full bottom-4 left-1/2 wz-glass-chip tabular-nums text-ink" aria-live="polite">
+                  {imageIndex + 1}
+                  <span className="mx-1 text-ink-soft/60">/</span>
+                  <span className="text-ink-soft">{images.length}</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* View switch */}
+        <ViewSwitch mode={mode} setMode={setMode} />
+      </div>
+
+      {/* Thumbnails (photo mode) */}
+      <div className="wz-collapse" data-open={mode === "photo" && images.length > 1}>
+        <div>
+          <div ref={thumbsRef} className="relative flex gap-2 px-0.5 pt-0.5 pb-1 overflow-x-auto wz-no-scrollbar" role="tablist" aria-label="Choose photo">
+            {images.map((img, i) => (
+              <button
+                key={img.url}
+                type="button"
+                role="tab"
+                aria-selected={i === imageIndex}
+                aria-label={`Photo ${i + 1}`}
+                tabIndex={mode === "photo" ? 0 : -1}
+                onClick={() => setImageIndex(i)}
+                className={`relative shrink-0 w-14 h-14 overflow-hidden rounded-wz-sm transition-all duration-wz-base ease-wz-out wz-focus ${
+                  i === imageIndex ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : "opacity-60 hover:opacity-100"
+                }`}
+              >
+                <Image src={img.url} alt="" fill sizes="56px" quality={50} className="object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViewSwitch({ mode, setMode }) {
+  const options = [
+    { id: "3d", label: "3D", Icon: Rotate3d },
+    { id: "photo", label: "Photos", Icon: Images },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Product view"
+      className="absolute top-3 left-3 z-10 grid grid-cols-2 p-1 rounded-full wz-glass-chip"
+    >
+      <span
+        aria-hidden
+        className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-ink shadow-wz-md transition-transform duration-wz-slow ease-wz-spring"
+        style={{ transform: `translateX(${mode === "3d" ? "0%" : "100%"})` }}
+      />
+      {options.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          role="radio"
+          aria-checked={mode === id}
+          onClick={() => setMode(id)}
+          className={`relative z-10 flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors duration-wz-base wz-focus ${
+            mode === id ? "text-paper" : "text-ink hover:text-ink/70"
+          }`}
+        >
+          <Icon className="w-3.5 h-3.5" strokeWidth={2} />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ───────────────────────────── Bits ───────────────────────────── */
+
+function Accordion({ id, title, open, onToggle, children }) {
+  return (
+    <div className="border-b border-[color:var(--wz-line)]">
+      <h3>
+        <button
+          type="button"
+          id={`acc-${id}`}
+          aria-expanded={open}
+          aria-controls={`acc-panel-${id}`}
+          onClick={() => onToggle(id)}
+          className="flex items-center justify-between w-full py-4 text-left rounded-sm group wz-focus"
+        >
+          <span className="text-wz-base font-semibold text-ink">{title}</span>
+          <ChevronDown
+            className={`w-4 h-4 text-ink-soft transition-transform duration-wz-slow ease-wz-out ${open ? "rotate-180" : ""}`}
+            strokeWidth={2}
+          />
+        </button>
+      </h3>
+      <div className="wz-collapse" data-open={open} id={`acc-panel-${id}`} role="region" aria-labelledby={`acc-${id}`}>
+        <div>
+          <div className="pb-5">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Smiley({ drawn }) {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden>
+      <circle cx="8.5" cy="9" r="1.6" fill="currentColor" className="transition-transform duration-300 origin-center" style={{ transform: drawn ? "scale(1)" : "scale(0)", transformBox: "fill-box" }} />
+      <circle cx="15.5" cy="9" r="1.6" fill="currentColor" className="transition-transform duration-300 delay-75 origin-center" style={{ transform: drawn ? "scale(1)" : "scale(0)", transformBox: "fill-box" }} />
+      <path
+        d="M5.5 13.5 Q12 21 18.5 13.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        pathLength="1"
+        strokeDasharray="1"
+        style={{ strokeDashoffset: drawn ? 0 : 1, transition: "stroke-dashoffset 520ms var(--wz-ease-out) 120ms" }}
+      />
+    </svg>
+  );
+}
+
+function AddToBagButton({ status, soldOut, needsSize, price, summary, onClick }) {
+  const added = status === "added";
+  const loading = status === "loading";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={soldOut || loading}
+      aria-live="polite"
+      className={`wz-btn-primary w-full h-14 px-5 text-wz-base overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed ${
+        added ? "!bg-leaf" : ""
+      }`}
+    >
+      <span className="relative flex items-center justify-between w-full gap-3">
+        {added ? (
+          <span className="flex items-center justify-center w-full gap-2">
+            <Smiley drawn />
+            Added to your bag
+          </span>
+        ) : loading ? (
+          <span className="flex items-center justify-center w-full gap-2">
+            <span className="w-4 h-4 border-2 rounded-full border-paper/30 border-t-paper animate-spin" />
+            Adding…
+          </span>
+        ) : (
+          <>
+            <span className="flex flex-col items-start leading-tight">
+              <span>{soldOut ? "Sold out" : needsSize ? "Select a size" : "Add to bag"}</span>
+              {summary && !soldOut && (
+                <span className="text-[11px] font-medium tracking-wide text-paper/60">{summary}</span>
+              )}
+            </span>
+            {price && (
+              <span className="font-display text-lg tabular-nums">
+                {formatPrice(price.amount, price.currencyCode)}
+              </span>
+            )}
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
+function DetailsSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-8 md:px-7" aria-busy="true" aria-label="Loading product">
+      <div className="w-24 h-3 rounded-full wz-skeleton" />
+      <div className="w-3/4 h-10 rounded-wz-sm wz-skeleton" />
+      <div className="flex gap-2.5">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="w-10 h-10 rounded-full wz-skeleton" />
+        ))}
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-12 rounded-wz-sm wz-skeleton" />
+        ))}
       </div>
     </div>
   );

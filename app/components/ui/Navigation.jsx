@@ -1,95 +1,66 @@
 "use client";
 
-import React, { useRef, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useMemo } from "react";
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
 
-const PRODUCT_ORDER = ["splatter", "hoodie", "polo", "longsleeve", "totebag"];
+export const PRODUCT_ORDER = ["splatter", "hoodie", "polo", "longsleeve", "totebag"];
 
-const Navigation = () => {
-  const setProductHandle = collectionStore((state) => state.setProductHandle);
-  const productHandle = collectionStore((state) => state.productHandle);
-  const sidebarOpen = collectionStore((state) => state.sidebarOpen);
-  const cartOpen = collectionStore((state) => state.cartOpen);
-  const setSidebarOpen = collectionStore((state) => state.setSidebarOpen);
+/** Previous / next collection (moves the 3D camera + swaps the sidebar). */
+export function useCollectionNav() {
+  const productHandle = collectionStore((s) => s.productHandle);
+  const index = useMemo(() => PRODUCT_ORDER.indexOf(productHandle), [productHandle]);
 
-  const { updateCameraConfig } = useCameraStore();
-
-  const currentIndex = useMemo(
-    () => PRODUCT_ORDER.findIndex((product) => product === productHandle),
-    [productHandle]
+  const go = useCallback(
+    (direction) => {
+      const { sidebarOpen, setProductHandle, setSidebarOpen } =
+        collectionStore.getState();
+      const n = PRODUCT_ORDER.length;
+      const next =
+        direction === "next" ? (index + 1 + n) % n : (index - 1 + n) % n;
+      const handle = PRODUCT_ORDER[next];
+      setProductHandle(handle);
+      useCameraStore.getState().updateCameraConfig(handle);
+      if (!sidebarOpen) setTimeout(() => setSidebarOpen(true), 500);
+      document
+        .querySelectorAll(".point")
+        .forEach((p) => p.classList.remove("visible"));
+    },
+    [index]
   );
+
+  return { index, total: PRODUCT_ORDER.length, productHandle, go };
+}
+
+/**
+ * Global keyboard shortcuts for the shop panel. The visible prev/next controls
+ * live in the Sidebar header (see Sidebar.jsx).
+ *  ← / →  previous / next collection (while the product panel is open)
+ *  Esc    close the panel
+ */
+const Navigation = () => {
+  const { go } = useCollectionNav();
 
   useEffect(() => {
-    const abortController = new AbortController();
-    const keyDownHandler = (e) => {
-      if (e.key === "ArrowRight") {
-        handleNavigation("next");
-      } else if (e.key === "ArrowLeft") {
-        handleNavigation("prev");
-      } else if (e.key === "Escape") {
+    const onKey = (e) => {
+      const { sidebarOpen, cartOpen, productHandle, setSidebarOpen } =
+        collectionStore.getState();
+      const tag = e.target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable)
+        return;
+      if (e.key === "Escape") {
         setSidebarOpen(false);
+        return;
       }
+      if (!productHandle || (sidebarOpen && cartOpen)) return;
+      if (e.key === "ArrowRight") go("next");
+      else if (e.key === "ArrowLeft") go("prev");
     };
-    window.addEventListener("keydown", keyDownHandler, {
-      signal: abortController.signal,
-    });
-    return () => abortController.abort();
-  });
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go]);
 
-  const handleNavigation = (direction) => {
-    let newIndex;
-    if (direction === "next") {
-      newIndex = currentIndex < PRODUCT_ORDER.length - 1 ? currentIndex + 1 : 0;
-    } else {
-      newIndex = currentIndex > 0 ? currentIndex - 1 : PRODUCT_ORDER.length - 1;
-    }
-
-    const newProduct = PRODUCT_ORDER[newIndex];
-    setProductHandle(newProduct);
-    updateCameraConfig(newProduct);
-
-    // If sidebar isn't open, open it after camera transition
-    if (!sidebarOpen) {
-      setTimeout(() => {
-        setSidebarOpen(true);
-      }, 500);
-    }
-
-    // Hide points during transition
-    document.querySelectorAll(".point").forEach((point) => {
-      point.classList.remove("visible");
-    });
-  };
-
-  if (!productHandle) return null;
-
-  return (
-    <>
-      {sidebarOpen && !cartOpen && (
-        <div className="fixed flex items-center w-full justify-between md:w-[150px] transform -translate-x-1/2 bottom-0 md:bottom-4 px-4 py-2 md:py-0 md:px-0 left-1/2 bg-primary md:bg-transparent">
-          <button
-            className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary "
-            onClick={() => handleNavigation("prev")}
-            aria-label="Previous product"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div className="text-sm text-white">
-            {currentIndex + 1} / {PRODUCT_ORDER.length}
-          </div>
-          <button
-            className="flex items-center gap-2 p-2 transition-colors bg-white rounded-lg text-primary"
-            onClick={() => handleNavigation("next")}
-            aria-label="Next product"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-      )}
-    </>
-  );
+  return null;
 };
 
 export default Navigation;

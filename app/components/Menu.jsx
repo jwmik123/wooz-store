@@ -57,7 +57,7 @@ const Menu = ({
     <>
       <nav
         ref={navContainer}
-        className={`fixed inset-0 z-40 w-full h-full transition-transform duration-500 text-white pointer-events-none ${
+        className={`fixed inset-0 z-40 w-full h-full transition-transform duration-700 ease-wz-out text-ink pointer-events-none ${
           isNavOpen
             ? "-translate-x-0 pointer-events-auto"
             : "-translate-x-full pointer-events-none"
@@ -71,18 +71,23 @@ const Menu = ({
       ></div> */}
         <div
           ref={navRef}
-          className="fixed left-0 z-10 w-full md:w-[500px] h-full bg-primary border-r-2 border-white"
+          className="fixed z-10 overflow-hidden wz-glass inset-y-[var(--wz-panel-inset)] left-[var(--wz-panel-inset)] w-[calc(100%-2*var(--wz-panel-inset))] md:w-[460px] rounded-wz-xl"
         >
           <div className="flex flex-col justify-center h-full gap-5">
             <div className="flex flex-col">
               {["About", "Sustainability"].map((path, index) => (
                 <div
                   key={path}
-                  className="px-8 py-4 overflow-hidden text-4xl transition-all duration-200 hover:font-bold"
+                  className="px-8 py-3 overflow-hidden text-5xl wz-display transition-colors duration-wz-base hover:text-primary"
                 >
                   <div
                     ref={(el) => (linkRefs.current[index] = el)}
                     className="flex items-center justify-between w-full opacity-100 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.currentTarget.click();
+                    }}
                     onClick={() => {
                       setIsNavOpen(false);
                       setOpenModel(true);
@@ -96,7 +101,7 @@ const Menu = ({
             </div>
             <div
               ref={(el) => (linkRefs.current[4] = el)}
-              className="flex flex-col gap-2 pt-16 mx-8"
+              className="flex flex-col gap-2 pt-16 mx-8 text-wz-sm text-ink-soft"
             >
               <Link
                 data-animation-link="no-animation"
@@ -135,25 +140,27 @@ const Menu = ({
 
       <div
         ref={modelRef}
-        className={`fixed z-30 inset-x-4 inset-y-28 md:inset-[150px] lg:inset-[180px] bg-primary border-2 border-white rounded-lg translate-y-[150%] opacity-0}`}
+        className="fixed z-30 inset-x-4 inset-y-24 md:inset-[120px] lg:inset-[160px] wz-glass rounded-wz-xl translate-y-[150%] opacity-0 overflow-y-auto wz-no-scrollbar"
       >
-        <div className="absolute p-2 border-2 border-white rounded-lg bg-primary -top-2 -right-2">
-          <X
-            className="w-6 h-6 text-white cursor-pointer stroke-2"
-            onClick={() => {
-              setOpenModel(false);
-            }}
-          />
-        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          className="absolute z-10 wz-icon-btn top-3 right-3"
+          onClick={() => {
+            setOpenModel(false);
+          }}
+        >
+          <X className="w-5 h-5" strokeWidth={1.75} />
+        </button>
 
-        <div className="flex flex-col h-full gap-2 text-white">
+        <div className="flex flex-col h-full gap-2 text-ink">
           {modelInfo === "About" && (
             <div className="flex flex-col items-center justify-center h-full px-1 text-center md:px-24">
-              <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:text-5xl font-libre">
+              <h1 className="mb-6 text-2xl sm:text-3xl md:text-5xl wz-display">
                 {" "}
                 Our Story
               </h1>
-              <div className="text-sm prose md:text-lg max-w-none">
+              <div className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
                 <p className="mb-4">
                   Creating a community through our brand by sharing happy
                   moments together while wearing Wooz clothing. Let’s make the
@@ -183,20 +190,20 @@ const Menu = ({
           )}
           {modelInfo === "Sustainability" && (
             <div className="flex flex-col items-center justify-center h-full px-8 text-center md:px-24">
-              <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:text-5xl font-libre">
+              <h1 className="mb-6 text-2xl sm:text-3xl md:text-5xl wz-display">
                 What sustainability means to Wooz
               </h1>
-              <p className="text-sm prose md:text-lg max-w-none">
+              <p className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
                 Being sustainable is very important to us. We try to keep our
                 footprint as small as possible. We will also continue to
                 research and develop sustainable products to take the best care
                 of planet earth.
               </p>
 
-              <h1 className="mt-10 mb-6 text-2xl font-bold sm:text-3xl md:text-4xl font-libre">
+              <h1 className="mt-10 mb-6 text-2xl sm:text-3xl md:text-4xl wz-display">
                 Made in Holland
               </h1>
-              <p className="text-sm prose md:text-lg max-w-none">
+              <p className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
                 The clothing of Wooz is produced in a responsible way in the
                 Netherlands. The production is close to 'home' so it doesn't
                 have to travel far :)
