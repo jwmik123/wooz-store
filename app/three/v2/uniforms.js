@@ -53,7 +53,7 @@ export const uWindStrength = uniform(0.4);
  * (grass, trees, wind strokes) use the full uWindStrength. Tweakable in Leva
  * (Environment > windIndoor, owned by Clothes.jsx).
  */
-export const uWindIndoor = uniform(0.3);
+export const uWindIndoor = uniform(1.0);
 
 // --- Atmosphere colours ------------------------------------------------------
 // Driven by the lighting workstream (lighting/atmosphere.js), read by clouds,
