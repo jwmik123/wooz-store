@@ -1,5 +1,7 @@
 # Wooz Store V2 — WebGPU + TSL
 
+> Update: concept is nu een glazen kas in een procedurele pastel-tuin (niet meer zwevend in de wolken). Licht = gebakken Cycles GI + realtime zon.
+
 Branch: `v2-webgpu`. Doel: portfolio-showcase van wat Three.js/WebGPU/TSL kan, in de stijl van de bestaande Wooz studio (zachte pastels, licht hout, planten, kleding aan rekken, studio zwevend in de wolken).
 
 ## Bron-asset: `studioMat4.glb` (van kevkev)

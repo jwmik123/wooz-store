@@ -90,7 +90,7 @@ const IntroScreen = () => {
             Wooz <em className="italic font-[350] text-primary">Studio</em>
           </h1>
           <p className="max-w-xs mt-2 text-wz-sm text-ink/75">
-            A tiny studio in the clouds. Tap a rack, play with the clothes, take something happy home.
+            A tiny glasshouse studio in a wild garden. Tap a rack, play with the clothes, take something happy home.
           </p>
         </div>
 
