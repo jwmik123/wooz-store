@@ -15,7 +15,13 @@ class Sound {
     if (!this.audio) return;
 
     this.audio.volume = 0;
-    await this.audio.play();
+    try {
+      await this.audio.play();
+    } catch {
+      // Autoplay blocked until the first user gesture (e.g. the camera swoosh
+      // on load): stay silent instead of an unhandled rejection.
+      return;
+    }
 
     const steps = 60; // Fade steps
     const stepTime = this.fadeTime / steps;

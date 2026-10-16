@@ -90,9 +90,10 @@ export default function QualityMonitor() {
           const budget = mobile.current ? BUDGET_MS.mobile : BUDGET_MS.desktop;
           let tier = startTier;
           if (ms != null) {
+            // Tiers above the start tier (e.g. "high" on a fast phone) need 2× headroom.
             const from = TIER_ORDER.indexOf(startTier);
             tier =
-              TIER_ORDER.slice(from).find((t) => predict(ms, dpr, startTier, t) <= budget) ??
+              TIER_ORDER.find((t, i) => predict(ms, dpr, startTier, t) <= (i < from ? budget / 2 : budget)) ??
               "low";
           }
           useQualityStore.getState().setCalibrated(

@@ -116,8 +116,8 @@ function createMaterial() {
   const len = mix(0.8, 2.0, rnd(4)).mul(float(0.8).add(clamp(uWindStrength, 0, 1.2).mul(0.3)));
   const origin = vec3(
     mix(-9, 9, rnd(1)),
-    float(GROUND_Y).add(mix(0.2, 2.3, rnd(2))),
-    mix(-6, 14, rnd(3))
+    float(GROUND_Y).add(mix(0.2, 1.7, rnd(2))), // low: knee to just above head height
+    mix(-6, 11, rnd(3)) // in front of the intro camera (z 13.5), never in its face
   );
   const amp = mix(0.05, 0.16, rnd(5));
   const freq = mix(0.5, 1.1, rnd(6));

@@ -90,7 +90,8 @@ export default function CameraRig({ debug, isMobile = false }) {
   useEffect(() => {
     if (!sidebarOpen) {
       restCamera(isMobile);
-      setOverlayPointsVisible(true);
+      // Hotspot dots only once inside (they clutter the intro shot).
+      setOverlayPointsVisible(!introScreen);
     }
   }, [sidebarOpen, introScreen, isMobile]);
 
@@ -124,7 +125,10 @@ export default function CameraRig({ debug, isMobile = false }) {
       position: p,
       element: document.querySelector(`.point-${i}`),
     }));
-    const t = setTimeout(() => setOverlayPointsVisible(true), 1000);
+    const t = setTimeout(
+      () => setOverlayPointsVisible(!collectionStore.getState().introScreen),
+      1000
+    );
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("keydown", onKey);

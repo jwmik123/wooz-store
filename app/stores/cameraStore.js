@@ -28,9 +28,16 @@ const CAMERA_POSITIONS = {
     target: new THREE.Vector3(1, -5, 0),
   },
   intro: {
-    // Slightly raised (garden ws8) so the studio reads above the front fence.
-    position: new THREE.Vector3(0, 0.7, 20),
-    target: new THREE.Vector3(0, -0.35, 0),
+    // 3/4 view from the front-right, the greenhouse as the hero (≈ 40 % of the
+    // frame height, ridge just below the title), the two apple trees framing
+    // it left and right and the path leading in from the bottom.
+    position: new THREE.Vector3(2.2, 1.0, 13.5),
+    target: new THREE.Vector3(-0.3, 0.3, 0),
+  },
+  // Portrait screens (fov 75): straighter on, the path runs up to the gate.
+  introPortrait: {
+    position: new THREE.Vector3(1.2, 0.2, 15),
+    target: new THREE.Vector3(0, -0.7, 0),
   },
   // Chat with Moos (CameraRig): frame him left of centre, room for the chat
   // panel on the right. `focus` = where the depth of field focuses (his chest).
@@ -94,8 +101,10 @@ const useCameraStore = create((set) => ({
   // Reset to default or intro position based on intro screen state
   resetCamera: (isIntroScreen = false) => {
     useSoundStore.getState().playSound("swoosh");
+    const portrait =
+      typeof window !== "undefined" && window.innerWidth / window.innerHeight < 0.8;
     const config = isIntroScreen
-      ? CAMERA_POSITIONS.intro
+      ? CAMERA_POSITIONS[portrait ? "introPortrait" : "intro"]
       : CAMERA_POSITIONS.default;
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
