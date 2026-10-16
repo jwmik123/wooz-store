@@ -27,23 +27,23 @@ import { EASE, STAGGER, d } from "../ui/tokens";
  */
 
 const STARTERS = [
-  { label: "Wat past bij mij?", text: "Wat past bij mij?" },
-  { label: "Laat de hoodies zien", text: "Laat de hoodies zien" },
-  { label: "Wie ben jij?", text: "Wie ben jij?" },
+  { label: "What suits me?", text: "What would suit me?" },
+  { label: "Show me the hoodies", text: "Show me the hoodies" },
+  { label: "Who are you?", text: "Who are you?" },
 ];
 
 const ACTION_LABEL = {
   openCollection: (i) => {
     const names = {
       hoodie: "hoodies",
-      polo: "polo's",
+      polo: "polos",
       longsleeve: "longsleeves",
       splatter: "splatter shirts",
     };
-    return `Moos opent de ${names[i?.type] ?? i?.type ?? "collectie"}…`;
+    return `Moos is opening the ${names[i?.type] ?? i?.type ?? "collection"}…`;
   },
-  searchProducts: () => "Moos zoekt in de collectie…",
-  getProduct: () => "Moos kijkt het even na…",
+  searchProducts: () => "Moos is looking through the collection…",
+  getProduct: () => "Moos is checking…",
 };
 
 export function MoosAvatar({ size = 40 }) {
@@ -79,7 +79,7 @@ function ToolNote({ part }) {
 
 function Typing() {
   return (
-    <div className="flex gap-1 px-3.5 py-3 w-fit rounded-wz-md rounded-bl-wz-xs bg-mint" aria-label="Moos typt">
+    <div className="flex gap-1 px-3.5 py-3 w-fit rounded-wz-md rounded-bl-wz-xs bg-mint" aria-label="Moos is typing">
       {[0, 150, 300].map((delay) => (
         <span
           key={delay}
@@ -243,7 +243,7 @@ export default function MoosChat() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Praat met Moos"
+          aria-label="Chat with Moos"
           className={`fixed z-wz-panel wz-btn-primary wz-moos-launcher !gap-2.5 h-14 pl-1.5 pr-5 shadow-[0_10px_30px_-8px_rgb(var(--wz-ink)/0.55)] wz-focus
             transition-[transform,opacity] duration-wz-base ease-wz-out hover:scale-[1.03] active:scale-[0.97]
             left-[var(--wz-panel-inset)] bottom-[calc(var(--wz-panel-inset)+56px)]
@@ -253,8 +253,8 @@ export default function MoosChat() {
             <MoosAvatar size={42} />
           </span>
           <span className="text-left leading-tight">
-            <span className="block text-wz-sm font-semibold">Vraag Moos</span>
-            <span className="block text-[11px] opacity-75">Je gids in de studio</span>
+            <span className="block text-wz-sm font-semibold">Ask Moos</span>
+            <span className="block text-[11px] opacity-75">Your studio guide</span>
           </span>
         </button>
       )}
@@ -263,7 +263,7 @@ export default function MoosChat() {
         <section
           ref={panelRef}
           role="dialog"
-          aria-label="Chat met Moos"
+          aria-label="Chat with Moos"
           className={`fixed z-wz-panel flex flex-col overflow-hidden wz-glass text-ink
             inset-x-0 bottom-0 h-[64dvh] rounded-t-wz-xl
             md:inset-x-auto md:h-[min(560px,calc(100dvh-6rem))] md:w-[380px] md:rounded-wz-xl md:bottom-[var(--wz-panel-inset)]
@@ -283,18 +283,18 @@ export default function MoosChat() {
             <header className="flex items-center gap-3 px-4 pt-2 pb-3 md:pt-4 md:px-5 border-b border-[color:var(--wz-line)]">
               <MoosAvatar size={40} />
               <div className="flex-1 min-w-0">
-                <div className="wz-eyebrow">Wooz-gids</div>
+                <div className="wz-eyebrow">Wooz guide</div>
                 <div className="text-wz-lg wz-display leading-tight">
                   Moos
                   <span className="ml-2 align-middle text-wz-sm font-sans font-normal tracking-normal text-ink-soft">
-                    {busy ? "typt…" : "online"}
+                    {busy ? "typing…" : "online"}
                   </span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Sluit chat"
+                aria-label="Close chat"
                 className="wz-icon-btn"
               >
                 <X className="w-[18px] h-[18px]" strokeWidth={1.75} />
@@ -365,9 +365,9 @@ export default function MoosChat() {
 
             {error && (
               <div className="text-wz-sm text-danger" role="alert">
-                {/rate|429|Te veel/i.test(error.message)
-                  ? "Even rustig aan, ik heb even tijd nodig. Probeer het zo opnieuw."
-                  : "Oeps, mijn verbinding hapert. Probeer het nog eens."}
+                {/rate|429|Too many/i.test(error.message)
+                  ? "Easy there — I need a moment. Try again in a bit."
+                  : "Oops, my connection hiccuped. Try again?"}
               </div>
             )}
           </div>
@@ -384,7 +384,7 @@ export default function MoosChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               maxLength={500}
-              placeholder="Vraag Moos iets…"
+              placeholder="Ask Moos anything…"
               aria-label="Bericht aan Moos"
               className="flex-1 min-w-0 h-11 px-4 text-wz-base rounded-full bg-paper/90 text-ink placeholder:text-ink-soft/80 border border-[color:var(--wz-line-strong)] outline-none transition-shadow duration-wz-fast ease-wz-out focus:shadow-wz-focus"
             />

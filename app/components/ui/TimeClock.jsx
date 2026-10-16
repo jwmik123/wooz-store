@@ -9,7 +9,7 @@ import { timeSettings } from "../../three/v2/uniforms";
  * visitor's local time unless they've played with it.
  *   tap        → a 24 h dial in sky colours; drag the sun/moon around it
  *   hold       → easter egg: time fast-forwards while pressed
- *   "Speel een dag" runs a full day in 24 s, "Nu" snaps back to live.
+ *   "Play a day" runs a full day in 24 s, "Now" snaps back to live.
  */
 
 const HOLD_MS = 350; // press longer than this = fast-forward instead of tap
@@ -22,13 +22,13 @@ const fmt = (h) => {
 };
 
 function phase(h) {
-  if (h < 5 || h >= 21.5) return { label: "Nacht", night: true };
-  if (h < 7) return { label: "Zonsopkomst", night: false };
-  if (h < 11) return { label: "Ochtend", night: false };
-  if (h < 15) return { label: "Middag", night: false };
-  if (h < 18.75) return { label: "Namiddag", night: false };
-  if (h < 20.25) return { label: "Gouden uur", night: false };
-  return { label: "Schemering", night: true };
+  if (h < 5 || h >= 21.5) return { label: "Night", night: true };
+  if (h < 7) return { label: "Sunrise", night: false };
+  if (h < 11) return { label: "Morning", night: false };
+  if (h < 15) return { label: "Midday", night: false };
+  if (h < 18.75) return { label: "Afternoon", night: false };
+  if (h < 20.25) return { label: "Golden hour", night: false };
+  return { label: "Dusk", night: true };
 }
 
 // Sky colour per hour for the dial ring (conic gradient, 0 h at the top).
@@ -174,7 +174,7 @@ export default function TimeClock() {
     <div ref={rootRef} className="fixed z-wz-chrome top-4 right-4 flex flex-col items-end gap-2">
       <button
         type="button"
-        aria-label={`Tijd in de studio: ${fmt(timeOfDay)}. Tik om de tijd te veranderen, houd ingedrukt om door te spoelen.`}
+        aria-label={`Studio time: ${fmt(timeOfDay)}. Tap to change the time, hold to fast-forward.`}
         aria-expanded={open}
         onPointerDown={onChipDown}
         onPointerUp={onChipUp}
@@ -197,7 +197,7 @@ export default function TimeClock() {
       {open && (
         <div className="wz-glass rounded-wz-xl p-4 w-[232px] text-ink shadow-xl">
           <div className="flex items-baseline justify-between mb-3">
-            <span className="wz-eyebrow !text-ink/60">Tijd in de tuin</span>
+            <span className="wz-eyebrow !text-ink/60">Garden time</span>
             <span className="text-[11px] font-semibold text-ink-soft">{label}</span>
           </div>
 
@@ -208,7 +208,7 @@ export default function TimeClock() {
             className="relative mx-auto w-[168px] h-[168px] rounded-full cursor-grab active:cursor-grabbing touch-none select-none"
             style={{ background: ringGradient }}
             role="slider"
-            aria-label="Tijd van de dag"
+            aria-label="Time of day"
             aria-valuemin={0}
             aria-valuemax={24}
             aria-valuenow={Math.round(timeOfDay * 10) / 10}
@@ -224,7 +224,7 @@ export default function TimeClock() {
               <div>
                 <div className="wz-display text-[2rem] leading-none tabular-nums">{fmt(timeOfDay)}</div>
                 <div className="mt-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-ink-soft">
-                  {live ? "Live" : playing ? "Een dag in 24s" : "Sleep de zon"}
+                  {live ? "Live" : playing ? "A day in 24s" : "Drag the sun"}
                 </div>
               </div>
             </div>
@@ -249,7 +249,7 @@ export default function TimeClock() {
 
           <div className="flex gap-2 mt-4">
             <button type="button" onClick={playDay} className="flex-1 h-9 rounded-full wz-btn-primary !text-xs">
-              {playing ? "Pauze" : "Speel een dag"}
+              {playing ? "Pause" : "Play a day"}
             </button>
             <button
               type="button"
@@ -257,11 +257,11 @@ export default function TimeClock() {
               disabled={live}
               className="h-9 px-4 rounded-full text-xs font-semibold border border-ink/15 hover:bg-ink/5 disabled:opacity-40 wz-focus"
             >
-              Nu
+              Now
             </button>
           </div>
           <p className="mt-3 text-[10px] leading-snug text-ink-soft text-center">
-            Psst: houd de klok ingedrukt om de tijd door te spoelen.
+            Psst: hold the clock to fast-forward time.
           </p>
         </div>
       )}
