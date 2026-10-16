@@ -9,6 +9,7 @@ import Cart from "./components/ui/Cart";
 import Navigation from "./components/ui/Navigation";
 import cameraStore from "./stores/cameraStore";
 import Menu from "./components/Menu";
+import MoosChat from "./components/moos/MoosChat";
 import useSoundStore from "./stores/soundStore";
 import gsap from "gsap";
 import { X, AlignLeft } from "lucide-react";
@@ -174,6 +175,7 @@ export default function Home() {
       <PointsOfInterest />
       <Cart />
       <Navigation />
+      <MoosChat />
     </main>
   );
 }

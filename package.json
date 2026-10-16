@@ -9,14 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.146",
     "@next/third-parties": "^15.5.0",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@shopify/storefront-api-client": "^1.0.4",
+    "ai": "^7.0.142",
     "gsap": "^3.12.5",
     "jotai": "^2.11.0",
     "leva": "^0.10.1",
     "lucide-react": "^0.454.0",
+    "maath": "^0.10.8",
     "next": "^15.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -25,8 +28,8 @@
     "simplex-noise": "3.0.1",
     "three": "^0.186.1",
     "wiggle": "^0.0.17",
-    "zustand": "^5.0.0",
-    "maath": "^0.10.8"
+    "zod": "^4.6.7",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "postcss": "^8",
