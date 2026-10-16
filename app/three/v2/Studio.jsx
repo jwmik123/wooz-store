@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { DoubleSide, MeshStandardNodeMaterial } from "three/webgpu";
 import { texture } from "three/tsl";
 import { useGLTFv2 } from "./loaders";
+import { studioEmissiveNode } from "./lighting/interior";
 
 export const STUDIO_URL = "/models/v2/studio.glb";
 
@@ -53,6 +54,7 @@ export function getBakedMaterial(map) {
     });
     material.name = "studioBaked";
     material.colorNode = texture(map);
+    material.emissiveNode = studioEmissiveNode(material.colorNode); // night lamp glow (lighting/)
     bakedMaterials.set(map, material);
   }
   return material;
