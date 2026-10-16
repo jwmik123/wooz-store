@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Box3, Matrix4, Vector3 } from "three/webgpu";
 import { useControls } from "leva";
 import collectionStore from "../../stores/collectionStore";
 import { applyBakedLighting, useBakedMaterial, useStudioGLTF } from "./Studio";
@@ -53,6 +54,42 @@ function ClothWindControls() {
   return null;
 }
 
+const _m = new Matrix4();
+
+/**
+ * One invisible box around a whole rack (garments + gaps between them), in the
+ * group's (studio-local) frame. The garments alone are a poor click target: the
+ * hoodie rack at the back is small on screen and the gaps between hanging pieces
+ * (plus the mouse parallax shifting the view between pointerdown and pointerup)
+ * made clicks fall through to nothing.
+ */
+function useRackHitBox(items) {
+  return useMemo(() => {
+    const box = new Box3();
+    for (const { node } of items) {
+      const g = node.geometry;
+      if (!g.boundingBox) g.computeBoundingBox();
+      _m.compose(node.position, node.quaternion, node.scale);
+      box.union(g.boundingBox.clone().applyMatrix4(_m));
+    }
+    box.expandByScalar(0.06);
+    return {
+      size: box.getSize(new Vector3()).toArray(),
+      center: box.getCenter(new Vector3()).toArray(),
+    };
+  }, [items]);
+}
+
+function RackHitBox({ items }) {
+  const { size, center } = useRackHitBox(items);
+  return (
+    <mesh position={center} name="rackHitBox">
+      <boxGeometry args={size} />
+      <meshBasicMaterial visible={false} />
+    </mesh>
+  );
+}
+
 /**
  * Each garment is its own mesh (placed by the GLB's node transform) sharing the
  * baked studio material. `userData.{type,color}` identify it; the wind
@@ -96,6 +133,7 @@ export default function Clothes() {
             openCollection(type);
           }}
         >
+          <RackHitBox items={items} />
           {items.map(({ node, color }) => (
             <mesh
               key={node.name}
