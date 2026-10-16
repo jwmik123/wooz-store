@@ -19,7 +19,7 @@ const ProductCanvas = dynamic(() => import("../three/ProductCanvas"), {
 
 const PRODUCT_QUERY = `
   query GetProductByHandle($handle: String!) {
-    productByHandle(handle: $handle) {
+    product(handle: $handle) {
       id
       title
       handle
@@ -85,7 +85,7 @@ export default function ProductsClient({ active = true }) {
     client
       .request(PRODUCT_QUERY, { variables: { handle: productHandle } })
       .then((res) => {
-        const p = res?.data?.productByHandle;
+        const p = res?.data?.product;
         if (!p) throw new Error(res?.errors?.message || "Product not found");
         productCache.set(productHandle, p);
         if (!cancelled) setProduct(p);

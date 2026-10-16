@@ -128,11 +128,11 @@ const tools = {
     execute: async ({ handle }) => {
       try {
         const data = await shopify(
-          `query($h: String!) { productByHandle(handle: $h) { ${PRODUCT_FIELDS} } }`,
+          `query($h: String!) { product(handle: $h) { ${PRODUCT_FIELDS} } }`,
           { h: handle }
         );
-        return data.productByHandle
-          ? shape(data.productByHandle)
+        return data.product
+          ? shape(data.product)
           : { error: "Product niet gevonden." };
       } catch {
         return { error: "Productcatalogus tijdelijk niet beschikbaar." };
