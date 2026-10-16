@@ -45,13 +45,18 @@ import useEnvironmentStore from "../../../stores/environmentStore";
 /** Studio + clothes bounds in world space (see Studio.jsx), with a little margin. */
 const STUDIO_BOUNDS = new Box3(new Vector3(-2.3, -2.15, -3.6), new Vector3(2.3, 2.3, 3.6));
 const STUDIO_CENTER = STUDIO_BOUNDS.getCenter(new Vector3());
-const LIGHT_DISTANCE = 12;
+/**
+ * Key light distance from the studio centre. Far enough that casters OUTSIDE
+ * the studio between it and the sun (the garden's apple-tree crowns overhang
+ * the roof, ~6.5 m high) sit inside the shadow camera's depth range.
+ */
+const LIGHT_DISTANCE = 22;
 
 export const shadowSettings = {
   mapSize: 2048,
   /** PCF filter radius in shadow-map texels (penumbra softness). */
   radius: 3,
-  bias: -0.0004,
+  bias: -0.00015, // depth range ≈ 26 m (tree casters), ≈ 4 mm
   normalBias: 0.012,
   /** Re-render the shadow map when the key light rotated more than this (degrees). */
   updateThreshold: 0.1,
@@ -99,7 +104,9 @@ function fitShadowCamera(light) {
   cam.right = _max.x;
   cam.bottom = _min.y;
   cam.top = _max.y;
-  cam.near = Math.max(0.1, -_max.z - 0.5);
+  // x/y fit the receivers (studio) tightly; depth starts at the light so
+  // off-studio casters (tree crowns) still shadow it.
+  cam.near = 0.1;
   cam.far = -_min.z + 0.5;
   cam.updateProjectionMatrix();
 }

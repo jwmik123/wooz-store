@@ -13,7 +13,7 @@ the albedo of the baked surface is NOT in the map; bounces DO use the real
 albedo atlas so wood/plant/lawn colour bleeding is captured):
 
   sky.exr    RGB  sky-dome irradiance (uniform white sky of radiance 1, no sun)
-                  over a grass-green lawn (garden). Direct + indirect.
+                  over the garden lawn (+ plinth, apple-tree crowns). Direct + indirect.
                   Value 1.0 = an unoccluded up-facing surface under that sky.
   lamp.exr   RGB  interior practicals only (table lamp + 2 rack lights, world
                   black). Direct + indirect. Stored as one channel.
@@ -66,8 +66,17 @@ if QUICK:
     RES, SAMPLES = 512, 32
 os.makedirs(OUT, exist_ok=True)
 
-GRASS = (0.20, 0.33, 0.11)  # linear ≈ sRGB #7d9a5a
-GROUND_Z = 0.02  # app y = -1.875: lawn level of the garden (studio floor top ≈ 0.025..0.06)
+# Garden (app/three/v2/garden/gardenCommon.js): lawn at app y = -2.02, pastel
+# green with straw tints; the studio slab sits on a 9 cm stone plinth.
+GRASS = (0.24, 0.37, 0.13)  # linear ≈ sRGB #86a463 (lawn average incl. straw)
+STONE = (0.55, 0.50, 0.42)  # linear ≈ sRGB #c4bba9 plinth
+LEAVES = (0.12, 0.25, 0.08)  # linear ≈ sRGB #5f8a4c..#86ad5f crowns
+GROUND_Y_APP = -2.02
+PLINTH_TOP_APP = -1.95
+# Apple trees (gardenCommon.js TREES): base x/z, height, crown radius. Crowns
+# are baked as half-transparent spheres (foliage gaps) + trunks, so the roof and
+# glass walls next to them get their soft sky occlusion / green tint.
+TREES = [(-5.3, -1.6, 5.6, 3.1), (6.1, -5.2, 6.4, 3.3)]
 
 
 def app_to_blender(x, y, z):
@@ -132,17 +141,49 @@ for o in meshes:
     if "UVMap.001" in uvl:
         uvl.remove(uvl["UVMap.001"])
 
-# Lawn: a big grass-green ground plane (not baked, only bounces light).
-bpy.ops.mesh.primitive_plane_add(size=80, location=(1.405, 0, GROUND_Z))
-ground = bpy.context.active_object
-ground.name = "lawn"
-gm = bpy.data.materials.new("lawn")
-gm.use_nodes = True
-gb = gm.node_tree.nodes["Principled BSDF"]
-gb.inputs["Base Color"].default_value = (*GRASS, 1)
-gb.inputs["Roughness"].default_value = 1.0
-gb.inputs["Specular IOR Level"].default_value = 0.0
-ground.data.materials.append(gm)
+def diffuse_material(name, color, transparency=0.0):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    d = nt.nodes.new("ShaderNodeBsdfDiffuse")
+    d.inputs["Color"].default_value = (*color, 1)
+    if transparency > 0:
+        t = nt.nodes.new("ShaderNodeBsdfTransparent")
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        mix.inputs["Fac"].default_value = transparency
+        nt.links.new(d.outputs["BSDF"], mix.inputs[1])
+        nt.links.new(t.outputs["BSDF"], mix.inputs[2])
+        nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+    else:
+        nt.links.new(d.outputs["BSDF"], out.inputs["Surface"])
+    return m
+
+
+def add_obj(obj, name, mat):
+    obj.name = name
+    obj.data.materials.append(mat)
+    return obj
+
+
+# Garden context (not baked, only occludes / bounces light).
+bpy.ops.mesh.primitive_plane_add(size=80, location=app_to_blender(0, GROUND_Y_APP, 0) + Vector((0, 0, 0)))
+add_obj(bpy.context.active_object, "lawn", diffuse_material("lawn", GRASS))
+plinth_h = PLINTH_TOP_APP - GROUND_Y_APP + 0.03
+bpy.ops.mesh.primitive_cube_add(size=1, location=app_to_blender(0, PLINTH_TOP_APP - plinth_h / 2, 0))
+pl = bpy.context.active_object
+pl.scale = (2 * 3.53, 2 * 2.21, plinth_h)  # blender x = app z, y = app x
+add_obj(pl, "plinth", diffuse_material("stone", STONE))
+leaf_mat = diffuse_material("crown", LEAVES, transparency=0.45)
+bark_mat = diffuse_material("bark", (0.12, 0.09, 0.07))
+for x, z, height, crown in TREES:
+    c = app_to_blender(x, GROUND_Y_APP + height - crown * 0.95, z)
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=crown, location=c, segments=24, ring_count=12)
+    add_obj(bpy.context.active_object, "crown", leaf_mat)
+    trunk_h = height - crown * 1.2
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.16, depth=trunk_h, location=app_to_blender(x, GROUND_Y_APP + trunk_h / 2, z))
+    add_obj(bpy.context.active_object, "trunk", bark_mat)
 
 # World
 world = bpy.data.worlds.new("sky")
@@ -167,7 +208,7 @@ scene.cycles.use_denoising = False
 scene.cycles.max_bounces = 6
 scene.cycles.diffuse_bounces = 4
 scene.cycles.glossy_bounces = 0
-scene.cycles.transparent_max_bounces = 2
+scene.cycles.transparent_max_bounces = 8
 scene.cycles.sample_clamp_indirect = 8.0
 bake = scene.render.bake
 bake.margin = max(4, RES // 128)
@@ -345,7 +386,7 @@ meta = {
     "sky": {"scale": round(sky_scale, 4)},
     "lamp": {"scale": round(lamp_scale, 4), "energyW": 40.0},
     "sunBounce": {"scale": round(sun_scale, 4)},
-    "grass": "#7d9a5a",
+    "grass": "#86a463",
     "bakeSeconds": round(time.time() - t0, 1),
 }
 with open(os.path.join(OUT, "lightmap.json"), "w") as f:

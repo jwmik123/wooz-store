@@ -5,12 +5,12 @@
     "scale": 1.0
   },
   "lamp": {
-    "scale": 6.3897,
+    "scale": 6.3614,
     "energyW": 40.0
   },
   "sunBounce": {
-    "scale": 0.2559
+    "scale": 0.258
   },
-  "grass": "#7d9a5a",
-  "bakeSeconds": 938.4
+  "grass": "#86a463",
+  "bakeSeconds": 714.2
 }
