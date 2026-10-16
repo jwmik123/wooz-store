@@ -46,22 +46,18 @@ const ACTION_LABEL = {
 };
 
 export function MoosAvatar({ size = 40 }) {
+  // Portrait rendered from the rigged 3D model (scripts/moos/rig_moos.py --portrait).
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="32" fill="#dff1e9" />
-      <path d="M8 64c2-14 12-20 24-20s22 6 24 20z" fill="#9fd8c4" />
-      <path d="M24 46c2 4 14 4 16 0l-2-6H26z" fill="#e9b894" />
-      <ellipse cx="32" cy="30" rx="11" ry="12.5" fill="#f1c7a4" />
-      {[
-        [19, 22, 6], [25, 15, 7], [33, 12, 7], [41, 15, 7], [46, 23, 6],
-        [21, 30, 4], [44, 30, 4], [29, 17, 5], [38, 17, 5],
-      ].map(([x, y, r], i) => (
-        <circle key={i} cx={x} cy={y} r={r} fill="#3a2a26" />
-      ))}
-      <circle cx="27.5" cy="31" r="1.4" fill="#2b2a33" />
-      <circle cx="36.5" cy="31" r="1.4" fill="#2b2a33" />
-      <path d="M28 36.5c2 2 6 2 8 0" stroke="#2b2a33" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-    </svg>
+    <img
+      src="/assets/moos/avatar.webp"
+      width={size}
+      height={size}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      className="rounded-full object-cover shrink-0"
+      style={{ width: size, height: size, background: "#dff1e9" }}
+    />
   );
 }
 
