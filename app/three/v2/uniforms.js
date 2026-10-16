@@ -46,6 +46,15 @@ export const uWindDirection = uniform(new Vector3(1, 0, 0));
 /** Wind strength, 0 = calm, ~1 = strong (float). */
 export const uWindStrength = uniform(0.4);
 
+/**
+ * Indoor wind factor (float): multiplies uWindStrength for the CLOTHES only.
+ * The studio is a greenhouse with an open front, so garments only feel a soft
+ * draught (hem moves ~1-2 cm at the default strength) while outdoor things
+ * (grass, trees, wind strokes) use the full uWindStrength. Tweakable in Leva
+ * (Environment > windIndoor, owned by Clothes.jsx).
+ */
+export const uWindIndoor = uniform(0.3);
+
 // --- Atmosphere colours ------------------------------------------------------
 // Driven by the lighting workstream (lighting/atmosphere.js), read by clouds,
 // wind strokes, post etc. so everything shares one sky. Linear-sRGB colours.

@@ -11,6 +11,7 @@ import {
   faceDirection,
   float,
   length,
+  mix,
   modelWorldMatrix,
   modelWorldMatrixInverse,
   normalWorld,
@@ -21,7 +22,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import { uTime, uWindDirection, uWindStrength } from "../uniforms";
+import { uTime, uWindDirection, uWindIndoor, uWindStrength } from "../uniforms";
 
 /*
  * Cloth wind
@@ -107,39 +108,40 @@ export function createClothMaterial(baked) {
   const travel = dot(pivotWorld, dir).mul(0.9).add(pivotWorld.y.mul(0.3));
   const idPhase = dot(pivotWorld, vec3(12.9898, 4.1414, 78.233));
 
-  // Slow gusts: 0.15..1 envelope.
-  const gust = float(0.55)
-    .add(
-      sin(uTime.mul(0.37).add(travel.mul(0.5)))
-        .mul(sin(uTime.mul(0.23).add(1.7)))
-        .mul(0.45)
-    )
-    .max(0.15);
+  // Soft draught: calm base with an occasional slow gust (rare product of two
+  // slow sines peaks) -> envelope ~0.5 .. 1.4.
+  const gustWave = sin(uTime.mul(0.16).add(travel.mul(0.25))).mul(
+    sin(uTime.mul(0.09).add(1.7))
+  );
+  const gust = float(0.5).add(smoothstep(0.35, 0.9, gustWave).mul(0.9));
+
+  // The front of the greenhouse is open (+Z): a bit more draught there, less at the back.
+  const zone = mix(0.55, 1.25, smoothstep(-3.0, 3.0, pivotWorld.z));
 
   // Displacement (metres, world space) of a world-space point `p`.
   const displace = (p, nrm) => {
-    const amp = uWindStrength.mul(weight).mul(0.1);
-    const main = sin(uTime.mul(1.3).sub(travel))
+    const amp = uWindStrength.mul(uWindIndoor).mul(zone).mul(weight).mul(0.1);
+    const main = sin(uTime.mul(0.5).sub(travel))
       .mul(0.5)
-      .add(sin(uTime.mul(2.1).sub(travel.mul(1.3)).add(1.7)).mul(0.25))
+      .add(sin(uTime.mul(0.8).sub(travel.mul(1.3)).add(1.7)).mul(0.25))
       .add(0.65);
     const along = dir.mul(main.mul(gust).mul(amp));
     const lateral = side.mul(
-      sin(uTime.mul(1.7).sub(travel.mul(0.8)).add(p.y.mul(3)).add(idPhase))
+      sin(uTime.mul(0.6).sub(travel.mul(0.8)).add(p.y.mul(3)).add(idPhase))
         .mul(0.35)
         .mul(amp)
     );
     // travelling ripples across the cloth, pushing along the surface normal
     const ripple = sin(
-      dot(p, dir).mul(14).sub(uTime.mul(4.5)).add(p.y.mul(6)).add(idPhase)
+      dot(p, dir).mul(14).sub(uTime.mul(1.8)).add(p.y.mul(6)).add(idPhase)
     )
       .mul(0.5)
       .mul(amp)
-      .mul(smoothstep(0.1, 0.7, gust));
+      .mul(smoothstep(0.45, 1.2, gust));
     const push = nrm.mul(ripple);
     // slight twist around the hanger
     const r = p.sub(pivotWorld).mul(vec3(1, 0, 1));
-    const ang = sin(uTime.mul(0.9).sub(travel)).mul(0.35).mul(gust).mul(amp);
+    const ang = sin(uTime.mul(0.35).sub(travel)).mul(0.35).mul(gust).mul(amp);
     const twist = vec3(r.z.negate(), 0, r.x).mul(ang);
     const horiz = along.add(lateral).add(push).add(twist);
     // cloth shortens as it swings out

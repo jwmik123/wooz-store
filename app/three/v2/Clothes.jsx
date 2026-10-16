@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
+import { useControls } from "leva";
 import collectionStore from "../../stores/collectionStore";
 import { useBakedMaterial, useStudioGLTF } from "./Studio";
 import { openCollection, setPointerCursor } from "./interactions";
+import useDebug from "./debug/useDebug";
+import { uWindIndoor } from "./uniforms";
 import { bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
 
 // GLB node name prefix -> Shopify collection handle.
@@ -36,54 +39,75 @@ export function useClothingItems() {
   }, [nodes]);
 }
 
+/** Debug-only: indoor draught factor for the clothes (see uWindIndoor). */
+function ClothWindControls() {
+  useControls("Environment", {
+    windIndoor: {
+      value: uWindIndoor.value,
+      min: 0,
+      max: 2,
+      step: 0.01,
+      onChange: (v) => (uWindIndoor.value = v),
+    },
+  });
+  return null;
+}
+
 /**
  * Each garment is its own mesh (placed by the GLB's node transform) sharing the
  * baked studio material. `userData.{type,color}` identify it; the wind
  * workstream can swap in a per-garment NodeMaterial with a positionNode.
  */
 export default function Clothes() {
+  const debug = useDebug();
   const groups = useClothingItems();
   const baked = useBakedMaterial();
   // One shared wind material for all garments (per-vertex windData attribute).
   const material = useMemo(() => createClothMaterial(baked), [baked]);
   useMemo(() => {
     for (const items of Object.values(groups))
-      for (const { node } of items) bakeWindAttribute(node.geometry, node.quaternion);
+      for (const { node } of items)
+        bakeWindAttribute(node.geometry, node.quaternion);
   }, [groups]);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
-  return Object.entries(groups).map(([type, items]) => (
-    <group
-      key={type}
-      name={`clothes-${type}`}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        setPointerCursor(true);
-        setSelectedCollection(type);
-      }}
-      onPointerOut={() => {
-        setPointerCursor(false);
-        setSelectedCollection(null);
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        openCollection(type);
-      }}
-    >
-      {items.map(({ node, color }) => (
-        <mesh
-          key={node.name}
-          name={node.name}
-          geometry={node.geometry}
-          material={material}
-          position={node.position}
-          quaternion={node.quaternion}
-          scale={node.scale}
-          userData={{ type, color }}
-          castShadow
-          receiveShadow
-        />
+  return (
+    <>
+      {debug && <ClothWindControls />}
+      {Object.entries(groups).map(([type, items]) => (
+        <group
+          key={type}
+          name={`clothes-${type}`}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            setPointerCursor(true);
+            setSelectedCollection(type);
+          }}
+          onPointerOut={() => {
+            setPointerCursor(false);
+            setSelectedCollection(null);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            openCollection(type);
+          }}
+        >
+          {items.map(({ node, color }) => (
+            <mesh
+              key={node.name}
+              name={node.name}
+              geometry={node.geometry}
+              material={material}
+              position={node.position}
+              quaternion={node.quaternion}
+              scale={node.scale}
+              userData={{ type, color }}
+              castShadow
+              receiveShadow
+            />
+          ))}
+        </group>
       ))}
-    </group>
-  ));
+    </>
+  );
 }
