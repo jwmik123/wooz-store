@@ -48,7 +48,7 @@ const PointsOfInterest = () => {
         />
         {showInfo && (
           <div className="text-center text-black">
-            tap a rack (or its sign) to shop it.
+            tap anything that glows to explore it.
           </div>
         )}
       </div>

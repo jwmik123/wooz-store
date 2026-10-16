@@ -1,3 +1,4 @@
+import { Vector3 } from "three/webgpu";
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
 import { setSignsVisible } from "./signs/signState";
@@ -23,4 +24,24 @@ export function openCollection(type) {
   camera.updateCameraConfig(type);
   camera.setCinematic(false);
   setTimeout(() => collectionStore.getState().setSidebarOpen(true), 100);
+}
+
+/**
+ * What clicking a table piece does (Hotspots.jsx hit boxes + the floating
+ * badges in signs/Badges.jsx): coffee cup -> cinematic reel, lookbook -> open
+ * the book, totebag -> its shop panel.
+ */
+export function openTablePiece(key) {
+  setPointerCursor(false);
+  if (key === "coffee") {
+    useCameraStore.getState().setCinematic(true);
+  } else if (key === "lookbook") {
+    if (collectionStore.getState().bookVisible) return;
+    const camera = useCameraStore.getState();
+    camera.setCameraPosition(new Vector3(0, -0.5, 1.9));
+    camera.setCameraTarget(new Vector3(0, -5, 0));
+    collectionStore.getState().setBookVisible(true);
+  } else {
+    openCollection(key);
+  }
 }

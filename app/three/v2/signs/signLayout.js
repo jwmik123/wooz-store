@@ -1,10 +1,13 @@
 import { Box3, Matrix4, Vector3 } from "three/webgpu";
 import { STUDIO_OFFSET } from "../Studio";
 import { SWEEP_AXIS } from "../wind/clothWind";
+import { TABLE_SPOTS } from "./tableSpots";
+
+export { TABLE_SPOTS };
 
 /*
  * Rack signboards: what they say and where they hang (WORLD space), plus the
- * table pieces' highlight boxes.
+ * red sale tags (table pieces: tableSpots.js).
  *
  * Board: SIGN_W × SIGN_H × SIGN_D, local origin at its centre, printed face
  * +Z. Hung on two steel wires from the roof straight above the rack.
@@ -15,8 +18,16 @@ export const SIGN_H = 0.19;
 export const SIGN_D = 0.016;
 /** Wire x offset from the board centre (board-local). */
 export const WIRE_X = SIGN_W * 0.38;
-/** Gap between the hanger tops and the board's bottom edge. */
-const SIGN_LIFT = 0.07;
+/**
+ * Gap between the garments' top and the board's bottom edge: the rack rail
+ * sits ~0.12 m above the garments, then ~0.2 m clear air.
+ */
+const SIGN_LIFT = 0.32;
+/** Sale swing tag: same aspect as the board (shares its atlas cell size). */
+export const SALE_SCALE = 0.42;
+const SALE_W = SIGN_W * SALE_SCALE;
+const SALE_H = SIGN_H * SALE_SCALE;
+const SALE_STRING = 0.045;
 
 /** Default overview camera (boards turn their face towards it). */
 const VIEW = new Vector3(0, 0, 5);
@@ -75,27 +86,11 @@ export function sweepRange(box) {
  * don't overlap from the overview camera (longsleeve sits in front of polo, near the right edge on phones).
  */
 const NUDGE = {
-  polo: [-0.24, 0.12, 0],
+  polo: [-0.24, 0.1, 0],
   longsleeve: [-0.12, 0, 0.12],
 };
 
-const faceYaw = (p) => Math.atan2(VIEW.x - p.x, VIEW.z - p.z);
-
-/**
- * Table pieces (part of the studio shell mesh; click boxes in Hotspots.jsx).
- * `at` / `size` are studio-local (as the hit boxes); `center` / `half` world.
- * The box bottom sits just above the table top so only the object lights up.
- */
-const spot = (key, label, at, size) => {
-  const center = studioToWorld(...at);
-  const half = new Vector3(size[2] / 2, size[1] / 2, size[0] / 2);
-  return { key, label, at, size, center, half };
-};
-export const TABLE_SPOTS = {
-  totebag: spot("totebag", "Totebag", [3.4, 0.93, -0.55], [0.34, 0.36, 0.36]),
-  coffee: spot("coffee", "Coffee break", [2.9, 0.79, 0.5], [0.14, 0.12, 0.14]),
-  lookbook: spot("lookbook", "Lookbook", [3.0, 0.76, 0.0], [0.34, 0.08, 0.44]),
-};
+export const faceYaw = (p) => Math.atan2(VIEW.x - p.x, VIEW.z - p.z);
 
 /**
  * One board per rack, centred over the rack's garments. `ceilingAt(x, z, fromY)`
@@ -131,4 +126,55 @@ export function layoutSigns(groups, ceilingAt) {
     });
   }
   return signs;
+}
+
+const _x = new Vector3();
+
+/**
+ * Small red "Sale −X%" swing tags for the handles in `sale` (Map handle -> %):
+ * one hanging off the lower right corner of an on-sale rack's board (short
+ * string, sways with it), one standing on the table beside the totebag.
+ * Each: { key, pct, signIndex (-1 = none), center, yaw, pitch, pivot, still,
+ * string?: { top, len } }.
+ */
+export function layoutSaleTags(signs, sale) {
+  const tags = [];
+  if (!sale?.size) return tags;
+  signs.forEach((s, i) => {
+    const pct = sale.get(s.key);
+    if (!pct) return;
+    _x.set(Math.cos(s.yaw), 0, -Math.sin(s.yaw));
+    const top = s.center
+      .clone()
+      .addScaledVector(_x, SIGN_W * 0.36)
+      .add(new Vector3(0, -SIGN_H / 2, 0));
+    const center = top.clone().add(new Vector3(0, -SALE_STRING - SALE_H / 2, 0));
+    tags.push({
+      key: s.key,
+      pct,
+      signIndex: i,
+      center,
+      yaw: s.yaw,
+      pitch: 0,
+      pivot: s.pivot,
+      still: 0,
+      string: { top, len: SALE_STRING },
+    });
+  });
+  const tote = sale.get("totebag");
+  if (tote) {
+    // Standing on the table beside the bag, leaning back a little.
+    const center = studioToWorld(3.42, 0.745 + SALE_H / 2, -0.28);
+    tags.push({
+      key: "totebag",
+      pct: tote,
+      signIndex: -1,
+      center,
+      yaw: faceYaw(center),
+      pitch: -0.35,
+      pivot: center,
+      still: 1,
+    });
+  }
+  return tags;
 }

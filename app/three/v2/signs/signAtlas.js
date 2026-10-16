@@ -2,11 +2,13 @@ import { CanvasTexture, SRGBColorSpace } from "three/webgpu";
 import { SIGN_H, SIGN_W } from "./signLayout";
 
 /*
- * One shared canvas atlas for every signboard face: 1 column × 4 rows.
- * Cell i = sign i. Redrawn in place when the brand fonts / sale data arrive.
+ * One shared canvas atlas for every signboard face + sale tag: 1 column ×
+ * ROWS. Cells 0..3 = signs, SALE_CELL0.. = sale tags (same aspect).
+ * Redrawn in place when the brand fonts / sale data arrive.
  */
 
-export const ROWS = 4;
+export const ROWS = 9;
+export const SALE_CELL0 = 4;
 const CW = 1024;
 const CH = Math.round((CW * SIGN_H) / SIGN_W);
 const CREAM = "#f3ead9";
@@ -49,11 +51,9 @@ function grain(g, w, h, seed) {
   g.globalAlpha = 1;
 }
 
-function drawCell(g, i, sign, salePct, fonts) {
-  const y0 = i * CH;
-  const sale = salePct > 0;
+function drawCell(g, i, sign, fonts) {
   g.save();
-  g.translate(0, y0);
+  g.translate(0, i * CH);
   g.fillStyle = CREAM;
   g.fillRect(0, 0, CW, CH);
   grain(g, CW, CH, i + 1);
@@ -61,33 +61,36 @@ function drawCell(g, i, sign, salePct, fonts) {
   g.strokeStyle = EDGE;
   g.lineWidth = 10;
   g.strokeRect(5, 5, CW - 10, CH - 10);
-
-  const stripH = sale ? Math.round(CH * 0.27) : 0;
-  const nameH = CH - stripH;
   g.fillStyle = INK;
   g.textAlign = "center";
   g.textBaseline = "middle";
   const display = (s) => `600 ${s}px ${fonts.display}`;
-  const size = fit(g, sign.name, display, Math.round(nameH * 0.62), CW * 0.84);
-  g.font = display(size);
-  g.fillText(sign.name, CW / 2, 12 + (nameH - 12) * 0.52);
-
-  if (sale) {
-    g.fillStyle = SALE;
-    g.fillRect(12, CH - 12 - stripH, CW - 24, stripH);
-    g.fillStyle = SALE_INK;
-    const sans = (s) => `700 ${s}px ${fonts.sans}`;
-    const label = `Sale −${salePct}%`;
-    g.font = sans(fit(g, label, sans, Math.round(stripH * 0.62), CW * 0.8));
-    g.letterSpacing = "4px";
-    g.fillText(label, CW / 2, CH - 12 - stripH / 2 + 2);
-    g.letterSpacing = "0px";
-  }
+  g.font = display(fit(g, sign.name, display, Math.round(CH * 0.62), CW * 0.84));
+  g.fillText(sign.name, CW / 2, CH * 0.53);
   g.restore();
 }
 
-/** Builds (or redraws) the atlas for `signs` with `sale` (Map handle -> %). */
-export function drawSignAtlas(signs, sale, texture) {
+/** Red sale swing tag: "Sale −X%" + a punched hole on the left. */
+function drawSaleCell(g, i, pct, fonts) {
+  g.save();
+  g.translate(0, i * CH);
+  g.fillStyle = SALE;
+  g.fillRect(0, 0, CW, CH);
+  g.fillStyle = SALE_INK;
+  g.beginPath();
+  g.arc(CH * 0.42, CH / 2, CH * 0.13, 0, Math.PI * 2);
+  g.fill();
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  const sans = (s) => `700 ${s}px ${fonts.sans}`;
+  const label = `Sale −${pct}%`;
+  g.font = sans(fit(g, label, sans, Math.round(CH * 0.56), CW - CH * 1.1));
+  g.fillText(label, CW / 2 + CH * 0.3, CH * 0.53);
+  g.restore();
+}
+
+/** Builds (or redraws) the atlas for `signs` + `saleTags` (layoutSaleTags). */
+export function drawSignAtlas(signs, saleTags, texture) {
   const canvas = texture?.image ?? document.createElement("canvas");
   canvas.width = CW;
   canvas.height = CH * ROWS;
@@ -97,7 +100,8 @@ export function drawSignAtlas(signs, sale, texture) {
     sans: cssFont("--wz-font-sans", "system-ui, sans-serif"),
   };
   g.clearRect(0, 0, canvas.width, canvas.height);
-  signs.forEach((s, i) => drawCell(g, i, s, sale?.get(s.key) ?? 0, fonts));
+  signs.forEach((s, i) => drawCell(g, i, s, fonts));
+  saleTags?.forEach((t, k) => drawSaleCell(g, SALE_CELL0 + k, t.pct, fonts));
   if (texture) {
     texture.needsUpdate = true;
     return texture;

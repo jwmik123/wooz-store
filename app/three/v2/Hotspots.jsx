@@ -1,10 +1,8 @@
 "use client";
 
-import { Vector3 } from "three/webgpu";
 import collectionStore from "../../stores/collectionStore";
-import useCameraStore from "../../stores/cameraStore";
 import { Book } from "./Book";
-import { openCollection, setPointerCursor } from "./interactions";
+import { openCollection, openTablePiece, setPointerCursor } from "./interactions";
 import { TABLE_SPOTS } from "./signs/signLayout";
 import { finePointer, setSpotHover, useRackHover } from "./signs/signState";
 
@@ -42,7 +40,6 @@ function HitBox({ size, position, onClick, hover = true, onOver, onOut }) {
 
 export default function Hotspots({ isMobile }) {
   const bookVisible = collectionStore((s) => s.bookVisible);
-  const setBookVisible = collectionStore((s) => s.setBookVisible);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
   return (
@@ -75,7 +72,7 @@ export default function Hotspots({ isMobile }) {
           e.stopPropagation();
           setPointerCursor(false);
           spotOut();
-          useCameraStore.getState().setCinematic(true);
+          openTablePiece("coffee");
         }}
       />
 
@@ -91,10 +88,7 @@ export default function Hotspots({ isMobile }) {
             onClick={() => {
               if (bookVisible) return;
               spotOut();
-              const camera = useCameraStore.getState();
-              camera.setCameraPosition(new Vector3(0, -0.5, 1.9));
-              camera.setCameraTarget(new Vector3(0, -5, 0));
-              setBookVisible(true);
+              openTablePiece("lookbook");
             }}
           />
           <group

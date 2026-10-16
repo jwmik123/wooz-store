@@ -39,6 +39,9 @@ export const uSpotSweepC = uniform(new Vector3(0, -99, 0));
 export const uSpotSweepH = uniform(new Vector3(0.1, 0.1, 0.1));
 export const uSpotSweepT = uniform(0);
 
+/** Light pool on/off per table piece (coffee, lookbook, totebag). */
+export const uPoolOn = uniform(new Vector3(1, 1, 1));
+
 let visible = false;
 /** Show / hide the signs (fade). Replaces the old DOM hotspot dots toggle. */
 export function setSignsVisible(on) {

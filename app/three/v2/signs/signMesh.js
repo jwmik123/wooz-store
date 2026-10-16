@@ -29,7 +29,7 @@ import { uHoverAmt, uHoverSign, uSignsFade } from "./signState";
  * Signboard + wire geometry / materials. Both are InstancedMeshes in world
  * space sharing the per-instance attributes:
  *   signAnchor vec4 = sway pivot (wire tops' midpoint, world xyz) + yaw
- *   signMeta   vec4 = (index, phase, 0, 0)
+ *   signMeta   vec4 = (hover index, phase, still (1 = no sway), 0)
  *   signCell   vec4 = atlas cell (u0, v0, su, sv)        (board only)
  * The (very slow, tiny) sway rotates the instance-transformed vertex around
  * the pivot, so board and wires move together, shadows included.
@@ -73,7 +73,7 @@ function swayNodes() {
   const phase = meta.y;
   const t = uTime;
   // Barely: a few hundredths of a radian, slow (indoor draught).
-  const amp = uWindStrength.mul(uWindIndoor).mul(0.022).add(0.004);
+  const amp = uWindStrength.mul(uWindIndoor).mul(0.022).add(0.004).mul(float(1).sub(meta.z));
   const swing = sin(t.mul(0.42).add(phase))
     .mul(0.7)
     .add(sin(t.mul(0.27).add(phase.mul(1.7))).mul(0.3))

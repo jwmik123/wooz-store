@@ -10,13 +10,18 @@ import {
   normalWorld,
   normalize,
   positionWorld,
+  length,
   pow,
+  sin,
   smoothstep,
   vec3,
 } from "three/tsl";
-import { uNightFactor } from "../uniforms";
+import { uNightFactor, uTime } from "../uniforms";
 import { SWEEP_AXIS } from "../wind/clothWind";
+import { TABLE_KEYS, TABLE_SPOTS } from "./tableSpots";
 import {
+  uPoolOn,
+  uSignsFade,
   uSpotHoverAmt,
   uSpotHoverC,
   uSpotHoverH,
@@ -57,5 +62,28 @@ export function spotHighlightNode() {
   const band = smoothstep(0.07, 0.0, abs(s.sub(head)));
   const sweep = boxMask(p, uSpotSweepC, uSpotSweepH).mul(band).mul(rim.mul(0.6).add(0.18));
 
-  return glowColor.mul(hover.add(sweep));
+  return glowColor.mul(hover.add(sweep)).add(poolNode());
+}
+
+/**
+ * Display-lighting pools: a soft, slowly breathing warm disc on the table top
+ * under each piece (always on at the overview, stronger at night). Masked to
+ * up-facing surfaces at table height so only the table catches it.
+ */
+function poolNode() {
+  const p = positionWorld;
+  const up = smoothstep(0.75, 0.95, normalWorld.y);
+  const on = [uPoolOn.x, uPoolOn.y, uPoolOn.z];
+  let sum = float(0);
+  TABLE_KEYS.forEach((key, i) => {
+    const s = TABLE_SPOTS[key];
+    const c = vec3(s.table.x, s.table.y, s.table.z);
+    const r = length(p.xz.sub(c.xz));
+    const disc = smoothstep(s.pool, s.pool * 0.15, r);
+    const level = smoothstep(0.05, 0.0, abs(p.y.sub(c.y)));
+    const breathe = sin(uTime.mul(0.9).add(s.phase)).mul(0.3).add(0.7);
+    sum = sum.add(disc.mul(disc).mul(level).mul(breathe).mul(on[i]));
+  });
+  const strength = float(0.1).add(uNightFactor.mul(0.3)).mul(uSignsFade.mul(0.6).add(0.4));
+  return color("#ffd9a0").mul(sum.mul(up).mul(strength));
 }
