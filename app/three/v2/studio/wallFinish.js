@@ -159,13 +159,15 @@ function brickPattern(wuv) {
   const dx = min(cell.x, cell.x.oneMinus()).mul(size.x);
   const dy = min(cell.y, cell.y.oneMinus()).mul(size.y);
   const d = min(dx, dy); // metres to nearest joint centre-line… edge
-  const w = max(fwidth(wuv.x), fwidth(wuv.y)).max(1e-5);
+  // Widened 1.5× so the 12 mm joints don't crawl under the mouse parallax.
+  const w = max(fwidth(wuv.x), fwidth(wuv.y)).max(1e-5).mul(1.5);
   const half = float(0.006);
   const mortar = smoothstep(half.add(w), half.sub(w), d);
   // Rounded arris: the brick face only reaches full height ~6 mm inside.
   const face = smoothstep(half, half.add(0.007), d);
-  // Fade the pattern out where a pixel spans > ~1.5 cm (no moiré at distance).
-  const detail = smoothstep(0.03, 0.012, w);
+  // Fade the pattern out well before a joint is ~1 px wide: at the overview
+  // distance it reads as a calm brick tone instead of shimmering lines.
+  const detail = smoothstep(0.012, 0.005, w);
   const rnd = fract(sin(dot(id, vec2(12.9898, 78.233))).mul(43758.5453));
   return { mortar: mix(float(0.18), mortar, detail), face: face.mul(detail), rnd, detail };
 }
