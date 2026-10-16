@@ -55,3 +55,44 @@ Mounted once in `app/page.js`. Hidden during the intro screen. Launcher sits bot
 ## Cost notes
 
 Haiku-class model, <=400 output tokens, <=4 steps, 20-message window, short system prompt (~450 tokens). Gateway tags `moos` for reporting.
+
+## 3D Moos: rig + animation (app/three/v2/moos/)
+
+**Pipeline** (headless Blender 4.5 + gltf-transform, nothing paid):
+
+```
+Meshy GLB (A-pose) ──scripts/moos/retarget_anims.py──> moos_anims_raw.glb ──scripts/moos/optimize-moos.mjs──> public/models/v2/moos.glb
+                      (imports scripts/moos/rig_moos.py)                       (KTX2 1024, meshopt, resample)   ≈1.3 MB
+```
+
+- **Skeleton** (`rig_moos.py`): same bone names/hierarchy as the Quaternius Universal Animation Library (UAL):
+  `root, pelvis, spine_01..03, neck_01, Head, clavicle/upperarm/lowerarm/hand, thigh/calf/foot/ball _l/_r` (no fingers: Moos' fingers are fused).
+  Joints sit on Moos' measured landmarks; every bone's rest orientation = the UAL rest orientation swung (minimal rotation, no twist) onto Moos' limb.
+  So arm twist/roll follows the source rig exactly; that fixes the old wrong-way wave. Bone-heat weights, nearest-neighbour fill, hair above the jaw → `Head` only.
+- **Retarget** (`retarget_anims.py`): per frame `moosWorld = ualWorld · offset` (constant per bone), pelvis translation scaled by the leg-length ratio (0.77).
+- **Clips** (24 fps, all loop): `idle` (UAL1 Idle_Loop), `talk` (UAL1 Idle_Talking_Loop), `think` (UAL2 Idle_FoldArms_Loop),
+  `happy` (UAL1 Dance_Loop, small groove), `walk` (UAL1 Walk_Loop in place; gaze lifted 13°), `wave` (Idle_Loop body + right arm authored in UAL space:
+  arm out/up, elbow up, palm forward, 5 forearm swings per 2.5 s). The free UAL tiers have no wave.
+- **Walk speed**: measured on the baked walk (planted-foot velocity) → armature extras `moosWalkSpeed` (0.7615 m/s at scale 1). Runtime walk `timeScale = speed / that`, so the feet don't skate (measured in browser: planted foot ≈3 cm/s vs 0.7 m/s walk).
+
+Rebuild:
+```
+B=/Applications/Blender.app/Contents/MacOS/Blender
+$B -b -P scripts/moos/retarget_anims.py -- Meshy_AI_Moos_Character_10k_1016080920_texture.glb UAL1_Standard.glb UAL2_Standard.glb moos_anims_raw.glb [--renders dir]
+node scripts/moos/optimize-moos.mjs moos_anims_raw.glb public/models/v2/moos.glb   # deps in a temp dir, see header
+```
+
+**Runtime** (`Moos.jsx`, `rig.js`, `locomotion.js`, `moosBody.js`): one AnimationMixer, one action per clip, weights damped (~0.4 s crossfades)
+towards `moosStore.currentAnimation` (walk overrides while moving). Additive look-at on `spine_03/neck_01/Head` after the mixer (clamped; restored before each mixer update because the mixer skips unchanged channels).
+Mixer skipped while off-screen. Contact shadow + night dimming unchanged.
+
+**Strolling** (desktop only): every 20–40 s at the overview (chat closed, no rack/lookbook/cinematic, not talking) he walks to another stop
+(`home` (-1.6, 1.15), `left` (-0.6, -0.35), `back` (-0.45, -1.4), `centre` (-0.35, 0.2), via `m1` (-1.05, 0.45)), Catmull-Rom path, pure-pursuit steering, then studies a rack 3–5 s and turns to the camera.
+Stops were chosen from an occupancy map of studio.glb and stay clear of the table lamp and the rack hotspot dots. Chat opens → he brakes, turns to the chat camera and waves; the `moos` camera shot follows his live position (`moosShot()` in cameraStore, clamped inside the walls; CameraRig re-aims if he moves > 5 cm). Phones: he stays at home.
+`#debug`: `__moos.stroll('back')`, `__moos.state.timeScale = 0` (freeze), `__moos.state.lookOff = true`.
+
+### Animation credits / license
+
+Animations: **Quaternius – Universal Animation Library** (Standard) and **Universal Animation Library 2** (Standard),
+https://quaternius.itch.io/universal-animation-library and https://quaternius.itch.io/universal-animation-library-2 —
+**CC0 1.0** (public domain, https://creativecommons.org/publicdomain/zero/1.0/). See also `public/models/v2/CREDITS.md`.

@@ -1,11 +1,14 @@
 /*
- * Turns the Blender-rigged Moos GLB (scripts/moos/rig_moos.py output, 2K PNG
- * basecolor + 4K PNG metallicRoughness, ~12 MB) into public/models/v2/moos.glb.
+ * Turns the Blender-rigged + animated Moos GLB (scripts/moos/retarget_anims.py
+ * output, 2K PNG basecolor + 4K PNG metallicRoughness + baked UAL clips, ~13 MB)
+ * into public/models/v2/moos.glb.
  *
  *  - metallicRoughness: Meshy bakes a noisy 4K map; Moos is matte, so the map is
  *    dropped and replaced by constant factors (metallic 0, roughness 0.8).
  *    Channel stats are printed so the decision can be re-checked.
  *  - basecolor -> SIZE² (default 1024) UASTC KTX2 (zstd) via `basisu`
+ *  - animation: resample() drops redundant (linearly interpolable) keys,
+ *    then meshopt FILTER compresses the remaining keyframe data
  *  - meshopt (FILTER) compression; positions stay float (skinned mesh: no
  *    node-level dequantisation transform), normals/uv/weights quantised.
  *
@@ -15,7 +18,7 @@
  */
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRTextureBasisu, EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
-import { prune, dedup, reorder, quantize, weld } from '@gltf-transform/functions';
+import { prune, dedup, reorder, quantize, weld, resample } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import sharp from 'sharp';
 import { execFileSync } from 'child_process';
@@ -58,7 +61,8 @@ doc.createExtension(KHRTextureBasisu).setRequired(true);
 
 for (const mesh of root.listMeshes()) mesh.setName('moos');
 await doc.transform(
-  prune(),
+  resample({ tolerance: 1e-4 }),
+  prune({ keepAttributes: true }),
   dedup(),
   weld(),
   reorder({ encoder: MeshoptEncoder, target: 'size' }),
@@ -67,6 +71,11 @@ await doc.transform(
 doc.createExtension(KHRMeshQuantization).setRequired(true);
 doc.createExtension(EXTMeshoptCompression).setRequired(true)
   .setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.FILTER });
+for (const anim of root.listAnimations()) {
+  const keys = anim.listSamplers().reduce((n, s) => n + s.getInput().getCount(), 0);
+  const dur = Math.max(...anim.listSamplers().map((s) => s.getInput().getMax([])[0]));
+  console.log(`clip ${anim.getName().padEnd(6)} ${dur.toFixed(2)}s  ${anim.listChannels().length} channels  ${keys} keys`);
+}
 await io.write(output, doc);
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('wrote', output, fs.statSync(output).size);

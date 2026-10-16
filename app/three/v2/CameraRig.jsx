@@ -9,6 +9,7 @@ import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
 import useMoosStore from "../../stores/moosStore";
 import { setOverlayPointsVisible } from "./interactions";
+import { moosBody } from "./moos/moosBody";
 
 // Overlay "pulsing dot" anchors in WORLD coordinates (.point-N elements in Overlay.jsx).
 const POINTS = [
@@ -137,6 +138,7 @@ export default function CameraRig({ debug, isMobile = false }) {
   }, []);
 
   const projected = useRef(new Vector3());
+  const moosAnchor = useRef({ x: null, z: null });
 
   useFrame(({ camera }, delta) => {
     const c = controls.current;
@@ -154,6 +156,21 @@ export default function CameraRig({ debug, isMobile = false }) {
       c.target.copy(target.current).add(parallax.current);
       c.update();
     }
+
+    // Moos shot: keep following him if he is still settling (he stops and
+    // turns when the chat opens; the shot was aimed where he was at the click).
+    const { preset, followMoos } = useCameraStore.getState();
+    const anchor = moosAnchor.current;
+    if (preset === "moos" || preset === "moosMobile") {
+      if (anchor.x === null) {
+        anchor.x = moosBody.x;
+        anchor.z = moosBody.z;
+      } else if (Math.hypot(moosBody.x - anchor.x, moosBody.z - anchor.z) > 0.05) {
+        anchor.x = moosBody.x;
+        anchor.z = moosBody.z;
+        followMoos();
+      }
+    } else anchor.x = null;
 
     const viewport = window.visualViewport;
     const w = viewport?.width || window.innerWidth;
