@@ -244,15 +244,17 @@ export default function MoosChat() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Praat met Moos"
-          className={`fixed z-wz-panel flex items-center gap-2.5 h-12 pl-1.5 pr-4 rounded-full wz-glass-chip text-ink wz-focus
+          className={`fixed z-wz-panel wz-btn-primary wz-moos-launcher !gap-2.5 h-14 pl-1.5 pr-5 shadow-[0_10px_30px_-8px_rgb(var(--wz-ink)/0.55)] wz-focus
             transition-[transform,opacity] duration-wz-base ease-wz-out hover:scale-[1.03] active:scale-[0.97]
             right-[var(--wz-panel-inset)] bottom-[calc(208px+var(--wz-panel-inset))]
             ${sidebarOpen ? "max-md:opacity-0 max-md:pointer-events-none md:right-auto md:left-[var(--wz-panel-inset)] md:bottom-[calc(var(--wz-panel-inset)+56px)]" : ""}`}
         >
-          <MoosAvatar size={36} />
+          <span className="rounded-full ring-2 ring-[rgb(var(--wz-paper)/0.9)]">
+            <MoosAvatar size={42} />
+          </span>
           <span className="text-left leading-tight">
             <span className="block text-wz-sm font-semibold">Vraag Moos</span>
-            <span className="block text-[11px] text-ink-soft">Je gids in de studio</span>
+            <span className="block text-[11px] opacity-75">Je gids in de studio</span>
           </span>
         </button>
       )}
