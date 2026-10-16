@@ -11,6 +11,7 @@ import useLoadingStore from "../../components/loader/loadingStore";
 import useMoosStore from "../../stores/moosStore";
 import { setOverlayPointsVisible } from "./interactions";
 import { moosBody } from "./moos/moosBody";
+import useCinematicReel from "./useCinematicReel";
 
 // Overlay "pulsing dot" anchors in WORLD coordinates (.point-N elements in Overlay.jsx).
 const POINTS = [
@@ -63,6 +64,8 @@ export default function CameraRig({ debug, isMobile = false }) {
   const mouse = useRef({ x: 0, y: 0 });
   const parallax = useRef(new Vector3());
   const points = useRef([]);
+  // Coffee-cup cinematic: loops its shots on the same position/target refs.
+  useCinematicReel(position, target, animating);
 
   const sidebarOpen = collectionStore((s) => s.sidebarOpen);
   const introScreen = collectionStore((s) => s.introScreen);

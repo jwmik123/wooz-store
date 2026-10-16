@@ -43,15 +43,14 @@ export default function Hotspots({ isMobile }) {
         onClick={() => openCollection("totebag")}
       />
 
-      {/* Coffee cup -> cinematic credits shot */}
+      {/* Coffee cup -> looping cinematic reel with credits (until clicked away) */}
       <HitBox
         size={[0.1, 0.1, 0.1]}
         position={[2.9, 0.75, 0.5]}
-        onClick={() => {
-          const camera = useCameraStore.getState();
-          camera.setCameraPosition(new Vector3(-0.5, -1, 2.1));
-          camera.setCameraTarget(new Vector3(0, -1, -3));
-          camera.setCinematic(true);
+        onClick={(e) => {
+          e.stopPropagation();
+          setPointerCursor(false);
+          useCameraStore.getState().setCinematic(true);
         }}
       />
 
