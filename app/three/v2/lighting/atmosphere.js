@@ -132,7 +132,7 @@ export const ATMOSPHERE_SETTINGS = {
   sunIntensity: 1, // multiplier on SUN_KEYS intensity
   moonIntensity: 0.4, // DirectionalLight.intensity of the moon
   ambientIntensity: 1, // multiplier on the hemisphere fill keyframes
-  bounce: 0.5, // floor/ground bounce strength relative to the sky fill
+  bounce: 0.7, // floor/ground bounce strength relative to the sky fill
   exposureDay: 0.9,
   exposureNight: 1.55,
 };
@@ -215,7 +215,7 @@ export function computeAtmosphere(hours, out = atmosphere, s = ATMOSPHERE_SETTIN
   // Hemisphere fill. Colours are luminance-normalised; brightness lives in
   // hemiIntensity. Sky side = dome average, ground side = warm bounce of the
   // sunlit floor (falls back to the haze colour when the sun is down).
-  normalizeLum(out.hemiSky.copy(out.zenith).lerp(out.horizon, 0.45)).lerp(WHITE, 0.3);
+  normalizeLum(out.hemiSky.copy(out.zenith).lerp(out.horizon, 0.45)).lerp(WHITE, 0.5);
   normalizeLum(_c.copy(out.ground)).lerp(WHITE, 0.3);
   const sunBounce = sunUp ? MathUtils.smoothstep(elev, -2, 10) : 0;
   out.hemiGround.copy(_c).lerp(normalizeLum(_c2.copy(out.keyColor)), 0.65 * sunBounce);

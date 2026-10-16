@@ -99,14 +99,14 @@ export function SharedUniforms() {
   useFrame((state, delta) => {
     const env = useEnvironmentStore.getState();
     const elapsed = state.clock.elapsedTime;
-    const dt = Math.min(delta, 0.1);
+    const dt = Number.isFinite(delta) ? Math.min(Math.max(delta, 0), 0.1) : 0;
 
     if (env.mode === "auto" && elapsed - lastSync.current > SYNC_INTERVAL) {
       lastSync.current = elapsed;
       env.syncLocalTime();
     }
 
-    let hours = hoursRef.current;
+    let hours = Number.isFinite(hoursRef.current) ? hoursRef.current : null;
     if (timeSettings.timeLapse) {
       hours = wrapHours((hours ?? env.timeOfDay) + (dt * 24) / timeSettings.timeLapseSeconds);
       if (elapsed - lastSync.current > TIME_LAPSE_STORE_SYNC) {
