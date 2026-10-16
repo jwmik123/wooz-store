@@ -12,6 +12,7 @@ import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
 import Birds from "./Birds";
 import Clouds from "./clouds/Clouds";
+import Garden from "./garden/Garden";
 import PostPipeline from "./post/PostPipeline";
 import WindStrokes from "./wind/WindStrokes";
 import Moos from "./moos/Moos";
@@ -50,6 +51,7 @@ export default function Scene() {
         <CameraRig debug={debug} />
         <Lights />
         <Clouds />
+        <Garden isMobile={isMobile} />
         <Suspense fallback={null}>
           <StudioRoot>
             <Studio />

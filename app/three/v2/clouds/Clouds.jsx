@@ -4,52 +4,40 @@ import { useFrame } from "@react-three/fiber";
 import { useControls } from "leva";
 import { uWindDirection, uWindStrength } from "../uniforms";
 import { uCloudBrightness, uCloudDrift, uCloudFogDensity } from "./cloudCommon";
-import CloudSea, { uSeaCoverage, uVeilCoverage } from "./CloudSea";
 import CloudPuffs from "./CloudPuffs";
 import Steam from "./Steam";
 
-const DRIFT_SPEED = 1.1; // world units / s at windStrength 1
+const DRIFT_SPEED = 2.5; // world units / s at windStrength 1 (clouds are 300-900 m away)
 
 /**
- * Sky-island cloud layer: an endless cloud sea below the studio plus a field of
- * nearby cumulus. Everything reads the shared atmosphere uniforms; mount once
+ * Sky layer for the garden: distant fair-weather cumulus above the horizon
+ * (the studio is grounded now, so the cloud sea below it is gone) plus the
+ * coffee steam. Everything reads the shared atmosphere uniforms; mount once
  * inside <Canvas>.
  */
 export default function Clouds() {
-  const { sea, veil, puffs, steam } = useControls("Clouds", {
-    sea: true,
-    veil: true,
-    puffs: true,
-    steam: true,
-    coverage: {
-      value: uSeaCoverage.value,
-      min: 0.2,
-      max: 0.7,
-      step: 0.01,
-      onChange: (v) => (uSeaCoverage.value = v),
+  const { puffs, steam } = useControls(
+    "Clouds",
+    {
+      puffs: true,
+      steam: true,
+      brightness: {
+        value: uCloudBrightness.value,
+        min: 0.3,
+        max: 2,
+        step: 0.01,
+        onChange: (v) => (uCloudBrightness.value = v),
+      },
+      fog: {
+        value: uCloudFogDensity.value,
+        min: 0,
+        max: 3,
+        step: 0.01,
+        onChange: (v) => (uCloudFogDensity.value = v),
+      },
     },
-    veilCoverage: {
-      value: uVeilCoverage.value,
-      min: 0.3,
-      max: 0.9,
-      step: 0.01,
-      onChange: (v) => (uVeilCoverage.value = v),
-    },
-    brightness: {
-      value: uCloudBrightness.value,
-      min: 0.3,
-      max: 2,
-      step: 0.01,
-      onChange: (v) => (uCloudBrightness.value = v),
-    },
-    fog: {
-      value: uCloudFogDensity.value,
-      min: 0,
-      max: 3,
-      step: 0.01,
-      onChange: (v) => (uCloudFogDensity.value = v),
-    },
-  }, { collapsed: true });
+    { collapsed: true }
+  );
 
   useFrame((_, delta) => {
     const d = uWindDirection.value;
@@ -60,7 +48,6 @@ export default function Clouds() {
 
   return (
     <>
-      <CloudSea deck={sea} veil={veil} />
       {puffs && <CloudPuffs />}
       {steam && <Steam />}
     </>
