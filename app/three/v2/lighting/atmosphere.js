@@ -133,9 +133,18 @@ export const ATMOSPHERE_SETTINGS = {
   moonIntensity: 0.4, // DirectionalLight.intensity of the moon
   ambientIntensity: 1, // multiplier on the hemisphere fill keyframes
   bounce: 0.7, // floor/ground bounce strength relative to the sky fill
-  exposureDay: 0.9,
+  exposureDay: 1.2,
   exposureNight: 1.55,
+  // Baked GI (studio lightmap, see ./lightmap.js)
+  skyFill: 0.55, // multiplier on the sky-dome radiance lighting the sky map
+  skyTint: 0.4, // 0 = neutral white sky light … 1 = full zenith/horizon colour
+  sunBounce: 1.2, // multiplier on the baked sun bounce (1 = physically matched to the key light)
+  lampFill: 2.2, // baked lamp light at full night
 };
+
+const LAMP_COLOR = srgb("#ffc48a");
+/** Lawn bounce tint for the hemisphere ground colour (matches the GI bake's grass). */
+const GRASS_BOUNCE = srgb("#9ab87a");
 
 // --- Computed state -----------------------------------------------------------------
 
@@ -161,6 +170,10 @@ export const atmosphere = {
   night: 0, // 0 day … 1 night
   lamps: 0, // 0 off … 1 interior lamps fully on
   exposure: 1,
+  /** Baked GI fills (linear): sky-dome radiance, sun bounce, interior lamps. */
+  skyFill: new Color(),
+  sunBounce: new Color(),
+  lampFill: new Color(),
 };
 
 const _c = new Color();
@@ -183,7 +196,7 @@ export function computeAtmosphere(hours, out = atmosphere, s = ATMOSPHERE_SETTIN
   // Night factor: 0 above -1°, 1 below -12° (nautical twilight).
   out.night = 1 - MathUtils.smoothstep(elev, -12, -1);
   // Lamps switch on during golden hour and are fully on by dusk.
-  out.lamps = 1 - MathUtils.smoothstep(elev, -3, 7);
+  out.lamps = 1 - MathUtils.smoothstep(elev, -3, 10);
 
   let amb = 0;
   sampleKeys(SKY_KEYS, elev, (a, b, t) => {
@@ -219,10 +232,20 @@ export function computeAtmosphere(hours, out = atmosphere, s = ATMOSPHERE_SETTIN
   normalizeLum(_c.copy(out.ground)).lerp(WHITE, 0.3);
   const sunBounce = sunUp ? MathUtils.smoothstep(elev, -2, 10) : 0;
   out.hemiGround.copy(_c).lerp(normalizeLum(_c2.copy(out.keyColor)), 0.65 * sunBounce);
+  // Garden lawn all around: a touch of green in the up-bounce (props, Moos, garden).
+  out.hemiGround.lerp(normalizeLum(_c2.copy(GRASS_BOUNCE)), 0.3 * sunBounce);
   out.hemiGround.multiplyScalar(s.bounce * (0.55 + 0.45 * sunBounce));
   out.hemiIntensity = amb * s.ambientIntensity;
 
+  // Baked GI fills. The sky map was baked under a uniform white dome of
+  // radiance 1; tint it with the current sky (zenith/horizon average) and the
+  // keyframed ambient level. Sun bounce follows the key light; lamps their switch.
+  normalizeLum(out.skyFill.copy(out.zenith).lerp(out.horizon, 0.5)).lerp(WHITE, 1 - s.skyTint);
+  out.skyFill.multiplyScalar(amb * s.skyFill);
+  out.sunBounce.copy(out.keyColor).multiplyScalar(out.keyIntensity * s.sunBounce);
+  out.lampFill.copy(LAMP_COLOR).multiplyScalar(out.lamps * s.lampFill);
+
   // Exposure follows the light level: brightens through sunset into the night.
-  out.exposure = MathUtils.lerp(s.exposureDay, s.exposureNight, 1 - MathUtils.smoothstep(elev, -10, 12));
+  out.exposure = MathUtils.lerp(s.exposureDay, s.exposureNight, 1 - MathUtils.smoothstep(elev, -10, 20));
   return out;
 }

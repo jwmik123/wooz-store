@@ -16,10 +16,14 @@ export const TABLE_LAMP = {
   color: new Color().setStyle("#ffb46e", "srgb"),
 };
 
-/** Warm practicals over the two shelf racks against the back wall. */
+/**
+ * Warm practicals in front of the two shelf racks against the back wall (low
+ * enough to light the shelves + hanging clothes). Baked into the studio
+ * lightmap too (scripts/lighting/bake_studio_gi.py LAMPS) — keep in sync.
+ */
 export const RACK_LIGHTS = [
-  { position: new Vector3(-1.25, 0.55, -2.55), color: new Color().setStyle("#ffd3a8", "srgb") },
-  { position: new Vector3(1.25, 0.55, -2.55), color: new Color().setStyle("#ffd3a8", "srgb") },
+  { position: new Vector3(-1.25, 0.2, -2.05), color: new Color().setStyle("#ffd3a8", "srgb") },
+  { position: new Vector3(1.25, 0.2, -2.05), color: new Color().setStyle("#ffd3a8", "srgb") },
 ];
 
 /** 0 = lamps off, 1 = fully on (written by <Lights />). */

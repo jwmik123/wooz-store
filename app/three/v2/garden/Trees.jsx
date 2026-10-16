@@ -363,9 +363,13 @@ export default function Trees({ quality = 1 }) {
   );
   return (
     <>
-      <mesh name="gardenTreeWood" geometry={built.wood} material={woodMat} raycast={() => null} />
+      {/* castShadow: the key light's shadow map (lighting/) dapples the studio
+          through the roof. Leaf cards face the shadow camera in the shadow pass
+          and colorNode's Discard() alpha-cuts them there too. */}
+      <mesh name="gardenTreeWood" geometry={built.wood} material={woodMat} raycast={() => null} castShadow />
       <mesh
         name="gardenLeaves"
+        castShadow
         geometry={built.leaves}
         material={leafMat}
         frustumCulled={false}

@@ -1,0 +1,16 @@
+{
+  "resolution": 2048,
+  "samples": 256,
+  "sky": {
+    "scale": 1.0
+  },
+  "lamp": {
+    "scale": 6.3614,
+    "energyW": 40.0
+  },
+  "sunBounce": {
+    "scale": 0.258
+  },
+  "grass": "#86a463",
+  "bakeSeconds": 714.2
+}

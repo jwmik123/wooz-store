@@ -13,6 +13,9 @@ import { ATMOSPHERE_SETTINGS, SUN_MODEL, atmosphere } from "./atmosphere";
 import { timeSettings } from "../uniforms";
 import { skyNode, uMoonDirection, uSkyGround, uSunGlowColor } from "./sky";
 import { RACK_LIGHTS, TABLE_LAMP, uLampGlow } from "./interior";
+import { keyLight } from "./keyLight";
+import { softPCFShadowFilter } from "./softShadow";
+import { uLampFill, uSkyFill, uSunBounce } from "./lightmap";
 import LightingControls from "./LightingControls";
 import useDebug from "../debug/useDebug";
 import useEnvironmentStore from "../../../stores/environmentStore";
@@ -24,9 +27,15 @@ import useEnvironmentStore from "../../../stores/environmentStore";
  *    (direction/colour from ./atmosphere.js via the shared uniforms updater).
  *    Its ortho shadow camera is fitted tightly around the studio in light space
  *    and the 2048² map is only re-rendered when the light moved noticeably.
- *  - HemisphereLight: sky dome above, warm floor bounce below (fake GI).
- *  - 3 PointLights (no shadows) for the interior practicals; always present
- *    (intensity 0 by day) so the light count never changes → no shader recompiles.
+ *  - Studio shell + garments: baked GI lightmap (./lightmap.js, Cycles bake by
+ *    scripts/lighting/bake_studio_gi.py): sky occlusion + bounce, sun bounce and
+ *    the interior lamps, tinted per frame (uSkyFill / uSunBounce / uLampFill).
+ *    Their material only sees the key light in real time (./keyLight.js).
+ *  - HemisphereLight: sky dome above, warm floor + lawn bounce below — fill for
+ *    everything WITHOUT a lightmap (Moos, birds, garden, props).
+ *  - 3 PointLights (no shadows) for the interior practicals, also only for the
+ *    un-lightmapped objects; always present (intensity 0 by day) so the light
+ *    count never changes → no shader recompiles.
  *  - scene.backgroundNode = TSL sky (gradient, sun/moon, stars).
  *  - Tone mapping: Khronos PBR Neutral (keeps the pastel albedo true), exposure
  *    adapts day↔night via renderer.toneMappingExposure ONLY, so a later
@@ -36,13 +45,18 @@ import useEnvironmentStore from "../../../stores/environmentStore";
 /** Studio + clothes bounds in world space (see Studio.jsx), with a little margin. */
 const STUDIO_BOUNDS = new Box3(new Vector3(-2.3, -2.15, -3.6), new Vector3(2.3, 2.3, 3.6));
 const STUDIO_CENTER = STUDIO_BOUNDS.getCenter(new Vector3());
-const LIGHT_DISTANCE = 12;
+/**
+ * Key light distance from the studio centre. Far enough that casters OUTSIDE
+ * the studio between it and the sun (the garden's apple-tree crowns overhang
+ * the roof, ~6.5 m high) sit inside the shadow camera's depth range.
+ */
+const LIGHT_DISTANCE = 22;
 
 export const shadowSettings = {
   mapSize: 2048,
   /** PCF filter radius in shadow-map texels (penumbra softness). */
   radius: 3,
-  bias: -0.0004,
+  bias: -0.00015, // depth range ≈ 26 m (tree casters), ≈ 4 mm
   normalBias: 0.012,
   /** Re-render the shadow map when the key light rotated more than this (degrees). */
   updateThreshold: 0.1,
@@ -90,7 +104,9 @@ function fitShadowCamera(light) {
   cam.right = _max.x;
   cam.bottom = _min.y;
   cam.top = _max.y;
-  cam.near = Math.max(0.1, -_max.z - 0.5);
+  // x/y fit the receivers (studio) tightly; depth starts at the light so
+  // off-studio casters (tree crowns) still shadow it.
+  cam.near = 0.1;
   cam.far = -_min.z + 0.5;
   cam.updateProjectionMatrix();
 }
@@ -149,6 +165,7 @@ export default function Lights() {
     light.target = target;
     const s = light.shadow;
     s.mapSize.set(shadowSettings.mapSize, shadowSettings.mapSize);
+    s.filterNode = softPCFShadowFilter;
     s.autoUpdate = false;
     s.needsUpdate = true;
     // Geometry streams in under Suspense: refresh a few times while it settles.
@@ -197,6 +214,11 @@ export default function Lights() {
     for (const r of racks.current) r.intensity = on * lightSettings.rackLights;
     uLampGlow.value = on;
 
+    // --- baked GI fill (studio + garments lightmap, see ./lightmap.js) ---
+    uSkyFill.value.copy(a.skyFill);
+    uSunBounce.value.copy(a.sunBounce);
+    uLampFill.value.copy(a.lampFill);
+
     // --- sky ---
     uSkyGround.value.copy(a.ground);
     uMoonDirection.value.copy(a.moonDirection);
@@ -208,12 +230,7 @@ export default function Lights() {
 
   return (
     <>
-      <directionalLight
-        ref={key}
-        castShadow
-        intensity={3}
-        shadow-mapSize={[shadowSettings.mapSize, shadowSettings.mapSize]}
-      />
+      <primitive ref={key} object={keyLight} />
       <hemisphereLight ref={hemi} args={["#cfe0f2", "#d8c8b4", 1]} />
       <pointLight
         ref={lamp}
