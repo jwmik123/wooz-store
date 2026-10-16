@@ -13,7 +13,8 @@ import {
   Sphere,
   Vector3,
 } from "three/webgpu";
-import { float, smoothstep, uv, vec3 } from "three/tsl";
+import { float, mix, smoothstep, texture, uv, vec3 } from "three/tsl";
+import { uNightFactor } from "../uniforms";
 import { useGLTFv2 } from "../loaders";
 import { setPointerCursor } from "../interactions";
 import useMoosStore, { MOOS_ANIMATIONS } from "../../../stores/moosStore";
@@ -71,6 +72,11 @@ function prepare(gltf) {
     side: FrontSide,
   });
   material.name = "moos";
+  // Moos has no lightmap: at night the hemisphere fill + rack point lights
+  // (which exist only for un-lightmapped objects) lit him clearly brighter
+  // than the dim baked interior around him. Pull his albedo down at night so
+  // he sits in the same light as the studio; daylight is unchanged.
+  if (src.map) material.colorNode = texture(src.map).mul(mix(float(1), float(0.6), uNightFactor));
   rig.skinned.material = material;
   rig.skinned.castShadow = true;
   rig.skinned.receiveShadow = true;
