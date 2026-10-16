@@ -3,15 +3,14 @@
 import { useMemo } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
 import { DoubleSide, MeshStandardNodeMaterial } from "three/webgpu";
-import { texture } from "three/tsl";
+import { lights, texture } from "three/tsl";
 import { getKTX2Loader, useGLTFv2 } from "./loaders";
 import { studioEmissiveNode } from "./lighting/interior";
-import {
-  LIGHTMAP_AUX_URL,
-  LIGHTMAP_SKY_URL,
-  bakedIrradianceNode,
-} from "./lighting/lightmap";
+import { LIGHTMAP_AUX_URL, LIGHTMAP_SKY_URL, bakedIrradianceNode } from "./lighting/lightmap";
 import { bakedLightsNode } from "./lighting/keyLight";
+import useDebug from "./debug/useDebug";
+import { DEFAULT_PRESET, FINISH_PRESETS, createStudioFinish } from "./studio/wallFinish";
+import StudioMaterialControls from "./studio/StudioMaterialControls";
 
 export const STUDIO_URL = "/models/v2/studio.glb";
 
@@ -62,9 +61,10 @@ export function applyBakedLighting(material, albedoNode, lightmaps) {
 }
 
 /**
- * Shared material for the studio + clothes: the Cycles DIFFUSE (albedo) bake as
- * colorNode, lit by the real-time key light + the baked GI lightmaps.
- * One instance per bake texture.
+ * Plain baked material: the Cycles DIFFUSE (albedo) bake as colorNode, lit by
+ * the real-time key light + the baked GI lightmaps. One instance per bake
+ * texture. The garments derive their material from it (raw atlas albedo); the
+ * studio shell renders with getStudioShellMaterial (same + wall finish).
  */
 export function getBakedMaterial(map, lightmaps) {
   let material = bakedMaterials.get(map);
@@ -81,6 +81,53 @@ export function getBakedMaterial(map, lightmaps) {
     applyBakedLighting(material, material.colorNode, lightmaps);
     material.userData.lightmaps = lightmaps;
     bakedMaterials.set(map, material);
+  }
+  return material;
+}
+
+const shellMaterials = new WeakMap();
+
+/**
+ * (Re)builds the studio shell's surface finish (studio/wallFinish.js) on the
+ * shell material: finished albedo → colour + baked GI, plus bump + roughness.
+ * Called again from the debug panel when the preset / view changes.
+ */
+export function applyStudioFinish(material, { preset = DEFAULT_PRESET, view = 0 } = {}) {
+  const { albedoNode, lightmaps } = material.userData;
+  const kind = FINISH_PRESETS[preset]?.kind ?? 0;
+  const finish = createStudioFinish(albedoNode, { kind, view });
+  material.colorNode = finish.colorNode;
+  material.normalNode = finish.normalNode;
+  material.roughnessNode = finish.roughnessNode;
+  applyBakedLighting(material, finish.colorNode, lightmaps);
+  if (view === 1) {
+    material.lightsNode = lights([]);
+    material.emissiveNode = finish.colorNode;
+    material.colorNode = finish.colorNode.mul(0);
+  }
+  material.userData.finish = { preset, view };
+  material.needsUpdate = true;
+  return material;
+}
+
+/**
+ * The material the studio shell mesh renders with: same atlas + lightmaps as
+ * the baked material (which the garments derive their albedo from), with the
+ * wall / timber / floor finish on top. Still one material for the whole shell.
+ */
+export function getStudioShellMaterial(map, lightmaps) {
+  let material = shellMaterials.get(map);
+  if (!material) {
+    material = new MeshStandardNodeMaterial({
+      side: DoubleSide,
+      roughness: 0.85,
+      metalness: 0,
+    });
+    material.name = "studioShell";
+    material.userData.albedoNode = texture(map);
+    material.userData.lightmaps = lightmaps;
+    applyStudioFinish(material);
+    shellMaterials.set(map, material);
   }
   return material;
 }
@@ -103,24 +150,31 @@ export function useBakedMaterial() {
 }
 
 /** Every mesh in the GLB that is not a clothing item is part of the studio shell. */
-export const isStudioMesh = (node) =>
-  node.isMesh && node.name.toLowerCase().startsWith("studio");
+export const isStudioMesh = (node) => node.isMesh && node.name.toLowerCase().startsWith("studio");
 
 export default function Studio() {
   const { nodes } = useStudioGLTF();
-  const material = useBakedMaterial();
+  const baked = useBakedMaterial();
+  const material = useMemo(
+    () => getStudioShellMaterial(baked.colorNode.value, baked.userData.lightmaps),
+    [baked],
+  );
+  const debug = useDebug();
   const studio = useMemo(() => Object.values(nodes).find(isStudioMesh), [nodes]);
 
   return (
-    <mesh
-      name="studio"
-      geometry={studio.geometry}
-      material={material}
-      position={studio.position}
-      quaternion={studio.quaternion}
-      scale={studio.scale}
-      castShadow
-      receiveShadow
-    />
+    <>
+      {debug && <StudioMaterialControls material={material} baseline={baked} />}
+      <mesh
+        name="studio"
+        geometry={studio.geometry}
+        material={material}
+        position={studio.position}
+        quaternion={studio.quaternion}
+        scale={studio.scale}
+        castShadow
+        receiveShadow
+      />
+    </>
   );
 }
