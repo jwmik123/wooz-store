@@ -67,7 +67,7 @@ import {
  * the fragment shader only outputs the interpolated colour → opaque, early-Z
  * friendly, no discard. Wind = travelling gust waves (noise texture scrolled
  * along uWindDirection) + per-blade flutter, scaled by uWindStrength.
- * 2 draw calls, no per-frame CPU work.
+ * Chunked into ground tiles (frustum-culled draws), no per-frame CPU work.
  */
 
 const NEAR = { blades: 5, segments: 3 };
@@ -321,53 +321,97 @@ export function makeGrassMaterial() {
   return m;
 }
 
-function useGrassMesh(spec, data, material, density) {
-  const geometry = useMemo(() => {
-    const g = buildTuft(spec, spec === NEAR ? 11 : 23);
-    g.setAttribute("iPos", new InstancedBufferAttribute(data.pos, 4));
-    g.setAttribute("iPar", new InstancedBufferAttribute(data.par, 4));
-    g.instanceCount = data.count;
-    g.boundingSphere = new Sphere(new Vector3(0, -2, 2), 60);
-    return g;
-  }, [spec, data]);
+/**
+ * Split the scattered tufts into square ground chunks (each its own instanced
+ * draw with a tight bounding sphere) so the renderer frustum-culls the grass
+ * behind / beside the camera. Inside the studio that skips roughly half of the
+ * ~1M grass vertices; the extra draw calls are cheap.
+ */
+function chunkTufts(data, size) {
+  const cells = new Map();
+  for (let i = 0; i < data.count; i++) {
+    const key = `${Math.floor(data.pos[i * 4] / size)},${Math.floor(data.pos[i * 4 + 2] / size)}`;
+    let c = cells.get(key);
+    if (!c) cells.set(key, (c = []));
+    c.push(i); // keeps the global shuffle order → density = instanceCount prefix
+  }
+  const chunks = [];
+  for (const idx of cells.values()) {
+    const pos = new Float32Array(idx.length * 4);
+    const par = new Float32Array(idx.length * 4);
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    idx.forEach((src, j) => {
+      pos.set(data.pos.subarray(src * 4, src * 4 + 4), j * 4);
+      par.set(data.par.subarray(src * 4, src * 4 + 4), j * 4);
+      const x = data.pos[src * 4], y = data.pos[src * 4 + 1], z = data.pos[src * 4 + 2];
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
+    });
+    // Margin: blade height (≤ ~0.7 m) + wind lean + tuft radius.
+    const center = new Vector3((minX + maxX) / 2, (minY + maxY) / 2 + 0.35, (minZ + maxZ) / 2);
+    const radius = Math.hypot(maxX - minX, maxY - minY + 0.7, maxZ - minZ) / 2 + 0.8;
+    chunks.push({ pos, par, count: idx.length, sphere: new Sphere(center, radius) });
+  }
+  return chunks;
+}
+
+function useGrassChunks(spec, data, density, chunkSize) {
+  const geometries = useMemo(() => {
+    const tuft = buildTuft(spec, spec === NEAR ? 11 : 23);
+    return chunkTufts(data, chunkSize).map((c) => {
+      const g = new InstancedBufferGeometry();
+      g.setIndex(tuft.index);
+      for (const name of ["position", "root", "shape"]) g.setAttribute(name, tuft.attributes[name]);
+      g.setAttribute("iPos", new InstancedBufferAttribute(c.pos, 4));
+      g.setAttribute("iPar", new InstancedBufferAttribute(c.par, 4));
+      g.instanceCount = c.count;
+      g.userData.count = c.count;
+      g.boundingSphere = c.sphere;
+      return g;
+    });
+  }, [spec, data, chunkSize]);
   useEffect(() => {
-    geometry.instanceCount = Math.max(1, Math.floor(data.count * density));
-  }, [geometry, data, density]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return geometry;
+    for (const g of geometries) g.instanceCount = Math.floor(g.userData.count * density);
+  }, [geometries, density]);
+  useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries]);
+  return geometries;
+}
+
+function GrassChunks({ name, geometries, material }) {
+  return (
+    <group name={name}>
+      {geometries.map((g, i) => (
+        <mesh
+          key={i}
+          geometry={g}
+          material={material}
+          renderOrder={-1}
+          raycast={() => null}
+        />
+      ))}
+    </group>
+  );
 }
 
 export default function Grass({ quality = 1, density = 1, far = true }) {
   const data = useMemo(() => scatter(quality), [quality]);
   const material = useMemo(makeGrassMaterial, []);
-  const nearGeo = useGrassMesh(NEAR, data.near, material, density);
-  const farGeo = useGrassMesh(FAR, data.far, material, density);
+  const nearGeos = useGrassChunks(NEAR, data.near, density, 6);
+  const farGeos = useGrassChunks(FAR, data.far, density, 14);
 
   useEffect(() => {
     if (typeof window !== "undefined" && process.env.NODE_ENV === "development")
-      console.info(`[garden] grass tufts near ${data.near.count}, far ${data.far.count}`);
-  }, [data]);
+      console.info(
+        `[garden] grass tufts near ${data.near.count} (${nearGeos.length} chunks), far ${data.far.count} (${farGeos.length} chunks)`
+      );
+  }, [data, nearGeos, farGeos]);
 
   return (
     <>
-      <mesh
-        name="gardenGrassNear"
-        geometry={nearGeo}
-        material={material}
-        frustumCulled={false}
-        renderOrder={-1}
-        raycast={() => null}
-      />
-      {far && (
-        <mesh
-          name="gardenGrassFar"
-          geometry={farGeo}
-          material={material}
-          frustumCulled={false}
-          renderOrder={-1}
-          raycast={() => null}
-        />
-      )}
+      <GrassChunks name="gardenGrassNear" geometries={nearGeos} material={material} />
+      {far && <GrassChunks name="gardenGrassFar" geometries={farGeos} material={material} />}
     </>
   );
 }

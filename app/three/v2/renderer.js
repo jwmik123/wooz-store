@@ -14,20 +14,27 @@ extend(THREE);
  *
  *   <Canvas gl={createRenderer} />
  */
-export async function createRenderer(props) {
+export async function createRenderer(props, { antialias = true } = {}) {
   const forceWebGL =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("webgl");
 
   const renderer = new THREE.WebGPURenderer({
     ...props,
-    antialias: true,
+    antialias,
     alpha: true,
     forceWebGL,
   });
   await renderer.init();
   return renderer;
 }
+
+/**
+ * Main scene renderer: no canvas MSAA. The post pipeline (post/PostPipeline.jsx)
+ * multisamples its scene pass and only draws one full-screen quad to the canvas,
+ * so a multisampled swap chain would be pure bandwidth.
+ */
+export const createSceneRenderer = (props) => createRenderer(props, { antialias: false });
 
 /** "WebGPU" | "WebGL2" for a renderer created by createRenderer. */
 export function getBackendName(renderer) {

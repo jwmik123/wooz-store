@@ -5,6 +5,20 @@ import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
 import { InfoIcon } from "lucide-react";
 import useSoundStore from "../../stores/soundStore";
+import useQualityStore from "../../three/v2/perf/quality";
+
+/** Resolves once the quality tier is calibrated (perf/QualityMonitor), or after `ms`. */
+const whenCalibrated = (ms) =>
+  new Promise((resolve) => {
+    if (useQualityStore.getState().calibrated) return resolve();
+    const t = setTimeout(done, ms);
+    const unsub = useQualityStore.subscribe((s) => s.calibrated && done());
+    function done() {
+      clearTimeout(t);
+      unsub();
+      resolve();
+    }
+  });
 
 const IntroScreen = () => {
   const { progress } = useProgress();
@@ -19,8 +33,15 @@ const IntroScreen = () => {
   }, [initialize]);
 
   useEffect(() => {
-    if (progress === 100) {
-      const timeline = gsap.timeline();
+    if (progress !== 100) return;
+    let cancelled = false;
+    let timeline;
+    // The canvas renders at a tiny DPR while this opaque loader covers it; the
+    // quality tier is measured behind it, then the scene is revealed at full res.
+    whenCalibrated(3000).then(() => {
+      if (cancelled) return;
+      useQualityStore.getState().setVeiled(false);
+      timeline = gsap.timeline();
 
       timeline
         .to(loadingRef.current, {
@@ -39,7 +60,11 @@ const IntroScreen = () => {
           duration: 1,
           delay: 0.1,
         });
-    }
+    });
+    return () => {
+      cancelled = true;
+      timeline?.kill();
+    };
   }, [progress]);
 
   const handleButtonClick = (withSound = true) => {

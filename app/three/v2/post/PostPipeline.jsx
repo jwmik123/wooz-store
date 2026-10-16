@@ -12,6 +12,7 @@ import {
   normalize,
   pass,
   renderOutput,
+  rtt,
   pow,
   smoothstep,
   uniform,
@@ -27,6 +28,7 @@ import { uSkyHorizon, uSkyZenith } from "../uniforms";
 import useAutoFocus from "./useAutoFocus";
 import { lensBlur } from "./lensBlur";
 import useCameraStore from "../../../stores/cameraStore";
+import { useTierSettings } from "../perf/quality";
 
 /*
  * Post pipeline (three RenderPipeline + TSL):
@@ -51,12 +53,18 @@ const uBokehScale = uniform(3);
 const uBlurStrength = uniform(1);
 const uAoIntensity = uniform(1);
 
+/** The live pipeline (null when post is off); read by debug/perfTools.js. */
+export const postState = { pipeline: null };
+
 function buildPipeline(renderer, scene, camera, opts) {
   const pipeline = new RenderPipeline(renderer);
+  // MSAA lives on the scene pass only (the canvas itself is created without
+  // antialias, see renderer.js): resolving a 4× multisampled HDR canvas for a
+  // single full-screen quad was pure bandwidth.
   // GTAO cannot read a multisampled depth buffer, so with AO the scene pass is
   // rendered without MSAA and FXAA runs on the final (tone-mapped) image.
-  const msaa = !opts.ao;
-  const scenePass = msaa ? pass(scene, camera) : pass(scene, camera, { samples: 0 });
+  const msaa = !opts.ao && opts.samples > 0;
+  const scenePass = pass(scene, camera, { samples: msaa ? opts.samples : 0 });
   const color = scenePass.getTextureNode("output");
   const viewZ = scenePass.getViewZNode();
 
@@ -91,18 +99,27 @@ function buildPipeline(renderer, scene, camera, opts) {
   })();
 
   let out = withSky;
+  // Half-resolution copy of the scene colour, shared by DOF and bloom.
+  let half = null;
 
   const focalRange = max(uFocusDistance.mul(uFocusRange), 1.2);
   if (opts.dof === "lens") {
-    out = lensBlur(withSky, viewZ, uFocusDistance, focalRange, uBlurStrength);
+    const lens = lensBlur(withSky, viewZ, uFocusDistance, focalRange, uBlurStrength);
+    out = lens.node;
+    half = lens.half;
   } else if (opts.dof === "bokeh") {
     out = dof(withSky, viewZ, uFocusDistance, focalRange, uBokehScale);
   }
 
   let bloomNode = null;
   if (opts.bloom) {
-    bloomNode = bloom(out, opts.bloomStrength, 0.4, opts.bloomThreshold);
-    out = out.add(bloomNode);
+    // Bloom only picks up HDR highlights (threshold > 1: lamps, sun glints), so
+    // it runs on the half-res scene copy (pre-DOF) and its mip chain starts at
+    // 1/4 res — visually identical, a fraction of the cost.
+    half ??= rtt(withSky, null, null, { resolutionScale: 0.5 });
+    bloomNode = bloom(vec4(half.rgb, 1), opts.bloomStrength, 0.4, opts.bloomThreshold);
+    bloomNode.setResolutionScale(0.25);
+    out = vec4(out.rgb.add(bloomNode.rgb), 1);
   }
 
   if (!msaa) {
@@ -148,23 +165,34 @@ export default function PostPipeline() {
   uAoIntensity.value = c.aoIntensity;
 
   const enabled = c.enabled;
+  // Adaptive quality tier (perf/quality.js) can drop DOF + bloom.
+  const tier = useTierSettings();
+  const dofMode = tier.dof ? c.dof : "off";
+  const bloomOn = tier.bloom && c.bloom;
   const post = useMemo(
     () =>
       enabled
         ? buildPipeline(gl, scene, camera, {
-            dof: c.dof,
+            dof: dofMode,
             ao: c.ao,
-            bloom: c.bloom,
+            bloom: bloomOn,
             bloomStrength: c.bloomStrength,
             bloomThreshold: c.bloomThreshold,
+            samples: 4,
           })
         : null,
     // Bloom strength/threshold are live uniforms below; rebuild only on toggles.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [enabled, gl, scene, camera, c.dof, c.ao, c.bloom]
+    [enabled, gl, scene, camera, dofMode, c.ao, bloomOn]
   );
 
-  useEffect(() => () => post?.pipeline.dispose(), [post]);
+  useEffect(() => {
+    postState.pipeline = post?.pipeline ?? null;
+    return () => {
+      if (postState.pipeline === post?.pipeline) postState.pipeline = null;
+      post?.pipeline.dispose();
+    };
+  }, [post]);
 
   useEffect(() => {
     if (!post?.bloomNode) return;

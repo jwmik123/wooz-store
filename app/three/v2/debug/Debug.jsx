@@ -5,6 +5,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import useEnvironmentStore from "../../../stores/environmentStore";
 import { getBackendName } from "../renderer";
+import { postState } from "../post/PostPipeline";
+import { installPerfTools } from "./perfTools";
+import useQualityStore, { TIER_ORDER } from "../perf/quality";
 
 /** Tiny FPS / draw-call overlay (r3f-perf / stats-gl don't support WebGPURenderer). */
 function Stats() {
@@ -40,7 +43,11 @@ function Stats() {
     el.current.textContent =
       `${getBackendName(gl)}  ${(a.frames / a.time).toFixed(0)} fps  ${((a.time / a.frames) * 1000).toFixed(1)} ms\n` +
       `draws ${drawCalls}  tris ${(triangles / 1000).toFixed(0)}k\n` +
-      `geo ${mem.geometries}  tex ${mem.textures}  dpr ${gl.getPixelRatio().toFixed(2)}`;
+      `geo ${mem.geometries}  tex ${mem.textures}  dpr ${gl.getPixelRatio().toFixed(2)}\n` +
+      `quality ${useQualityStore.getState().tier}` +
+      (useQualityStore.getState().calibration
+        ? `  (cal ${useQualityStore.getState().calibration.ms} ms)`
+        : "");
     a.frames = 0;
     a.time = 0;
   });
@@ -98,11 +105,39 @@ function EnvironmentControls() {
   return null;
 }
 
+/** Leva: pin the adaptive quality tier. */
+function QualityControls() {
+  const [, set] = useControls("Quality", () => ({
+    tier: {
+      value: useQualityStore.getState().tier,
+      options: TIER_ORDER,
+      onChange: (v, _, { initial, fromPanel }) =>
+        !initial && fromPanel && useQualityStore.getState().setTier(v),
+    },
+  }));
+  useEffect(() => useQualityStore.subscribe((s) => set({ tier: s.tier })), [set]);
+  return null;
+}
+
+/** window.__perf profiling helpers (see ./perfTools.js). */
+function PerfTools() {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const get = useThree((s) => s.get);
+  useEffect(
+    () => installPerfTools({ gl, scene, get, getPipeline: () => postState.pipeline }),
+    [gl, scene, get]
+  );
+  return null;
+}
+
 /** Everything that only exists behind #debug. Mount inside <Canvas>. */
 export default function Debug() {
   return (
     <>
       <Stats />
+      <PerfTools />
+      <QualityControls />
       <EnvironmentControls />
     </>
   );

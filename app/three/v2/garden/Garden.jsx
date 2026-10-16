@@ -10,6 +10,7 @@ import Flowers from "./Flowers";
 import Trees from "./Trees";
 import Props from "./Props";
 import Critters from "./Critters";
+import { useTierSettings } from "../perf/quality";
 
 /*
  * The garden around the greenhouse studio (workstream 8). Mount once inside
@@ -50,11 +51,13 @@ export default function Garden({ isMobile = false }) {
   });
 
   const quality = isMobile ? 0.4 : 1;
+  // Adaptive quality tier (perf/quality.js) thins the grass on slower GPUs.
+  const tier = useTierSettings();
 
   return (
     <>
       {c.ground && <Terrain hills={c.hills} />}
-      {c.grass && <Grass quality={quality} density={c.grassDensity} far={c.grassFar} />}
+      {c.grass && <Grass quality={quality} density={c.grassDensity * tier.grass} far={c.grassFar} />}
       {c.flowers && <Flowers quality={isMobile ? 0.5 : 1} />}
       {c.trees && <Trees quality={isMobile ? 0.6 : 1} />}
       {c.props && <Props />}

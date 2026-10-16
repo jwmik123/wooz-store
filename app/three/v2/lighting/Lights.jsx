@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   Box3,
+  Frustum,
+  Matrix4,
   NeutralToneMapping,
   Object3D,
   PCFShadowMap,
@@ -19,6 +21,7 @@ import { uLampFill, uSkyFill, uSunBounce } from "./lightmap";
 import LightingControls from "./LightingControls";
 import useDebug from "../debug/useDebug";
 import useEnvironmentStore from "../../../stores/environmentStore";
+import useQualityStore, { TIERS } from "../perf/quality";
 
 /*
  * Real-time lighting rig for the studio (workstream 1).
@@ -45,6 +48,10 @@ import useEnvironmentStore from "../../../stores/environmentStore";
 /** Studio + clothes bounds in world space (see Studio.jsx), with a little margin. */
 const STUDIO_BOUNDS = new Box3(new Vector3(-2.3, -2.15, -3.6), new Vector3(2.3, 2.3, 3.6));
 const STUDIO_CENTER = STUDIO_BOUNDS.getCenter(new Vector3());
+/** Where the wind-blown garments hang (racks + table), world space. */
+const CLOTHES_BOUNDS = new Box3(new Vector3(-2.2, -2, -3.5), new Vector3(2.2, 0.2, 2.2));
+/** Periodic (animated-caster) shadow refreshes only when the camera is this close. */
+const CLOTHES_VIEW_DISTANCE = 9;
 /**
  * Key light distance from the studio centre. Far enough that casters OUTSIDE
  * the studio between it and the sun (the garden's apple-tree crowns overhang
@@ -61,11 +68,12 @@ export const shadowSettings = {
   /** Re-render the shadow map when the key light rotated more than this (degrees). */
   updateThreshold: 0.1,
   /**
-   * Extra periodic shadow refreshes per second (0 = only when the light moves).
-   * Raise this (e.g. 30) if animated geometry such as wind-blown clothes must
-   * cast moving shadows; or call requestShadowUpdate() yourself.
+   * Extra periodic shadow refreshes per second (0 = only when the light moves),
+   * for animated casters (wind-blown clothes, swaying leaves). The adaptive
+   * quality tier (perf/quality.js) sets it (24 / 15 / 10 Hz), and it only runs
+   * while the garments are on screen and close enough for moving shadows to read.
    */
-  refreshHz: 24, // wind-blown clothes (wind/) need moving shadows
+  refreshHz: 24,
 };
 
 export const lightSettings = {
@@ -109,6 +117,17 @@ function fitShadowCamera(light) {
   cam.near = 0.1;
   cam.far = -_min.z + 0.5;
   cam.updateProjectionMatrix();
+}
+
+const _frustum = new Frustum();
+const _viewProj = new Matrix4();
+
+/** Wind-blown garments on screen and near enough for their moving shadows to matter. */
+function clothesInView(camera) {
+  if (CLOTHES_BOUNDS.distanceToPoint(camera.position) > CLOTHES_VIEW_DISTANCE) return false;
+  _viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  _frustum.setFromProjectionMatrix(_viewProj);
+  return _frustum.intersectsBox(CLOTHES_BOUNDS);
 }
 
 export default function Lights() {
@@ -172,7 +191,23 @@ export default function Lights() {
     settleFrames.current = 240;
   }, [target]);
 
-  useFrame((_, delta) => {
+  // Adaptive quality: shadow-map resolution + refresh rate follow the tier.
+  useEffect(() => {
+    const apply = ({ tier }) => {
+      const t = TIERS[tier];
+      shadowSettings.refreshHz = t.shadowHz;
+      const s = key.current?.shadow;
+      if (s && s.mapSize.x !== t.shadowMapSize) {
+        // ShadowNode resizes its render target from mapSize on the next update.
+        s.mapSize.set(t.shadowMapSize, t.shadowMapSize);
+        shadowDirty = true;
+      }
+    };
+    apply(useQualityStore.getState());
+    return useQualityStore.subscribe(apply);
+  }, []);
+
+  useFrame(({ camera }, delta) => {
     const a = atmosphere; // computed this frame by <SharedUniforms /> (priority -100)
     const light = key.current;
     const s = light.shadow;
@@ -189,7 +224,9 @@ export default function Lights() {
       lastShadowDir.current.angleTo(a.keyDirection) > (shadowSettings.updateThreshold * Math.PI) / 180;
     refreshAcc.current += delta;
     const periodic =
-      shadowSettings.refreshHz > 0 && refreshAcc.current >= 1 / shadowSettings.refreshHz;
+      shadowSettings.refreshHz > 0 &&
+      refreshAcc.current >= 1 / shadowSettings.refreshHz &&
+      clothesInView(camera);
     let settle = false;
     if (settleFrames.current > 0) {
       settleFrames.current--;

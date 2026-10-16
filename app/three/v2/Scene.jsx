@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva } from "leva";
-import { createRenderer, getBackendName } from "./renderer";
+import { createSceneRenderer, getBackendName } from "./renderer";
 import { SharedUniforms } from "./uniforms";
 import CameraRig from "./CameraRig";
 import Lights from "./lighting/Lights";
@@ -18,6 +18,8 @@ import WindStrokes from "./wind/WindStrokes";
 import Moos from "./moos/Moos";
 import Debug from "./debug/Debug";
 import useDebug from "./debug/useDebug";
+import QualityMonitor from "./perf/QualityMonitor";
+import useQualityStore, { VEILED_DPR } from "./perf/quality";
 
 const isMobileUA = () =>
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -32,6 +34,8 @@ const isMobileUA = () =>
 export default function Scene() {
   const debug = useDebug();
   const [isMobile] = useState(isMobileUA);
+  // Adaptive quality (perf/quality.js): DPR is owned by the quality store.
+  const dpr = useQualityStore((s) => (s.veiled ? VEILED_DPR : s.dpr));
 
   return (
     <>
@@ -39,15 +43,16 @@ export default function Scene() {
       <Canvas
         style={{ width: "100%", height: "100%" }}
         camera={{ position: [0, 1, 20], fov: isMobile ? 75 : 55 }}
-        dpr={[1, isMobile ? 1.5 : 2]}
+        dpr={dpr}
         shadows="percentage"
-        gl={createRenderer}
+        gl={createSceneRenderer}
         onCreated={({ gl }) => {
           if (typeof window !== "undefined") window.__renderer = gl;
           console.info(`[wooz] renderer backend: ${getBackendName(gl)}`);
         }}
       >
         <SharedUniforms />
+        <QualityMonitor />
         <CameraRig debug={debug} />
         <Lights />
         <Clouds />
