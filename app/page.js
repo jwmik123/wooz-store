@@ -79,7 +79,7 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen max-h-screen overflow-hidden">
+    <main className="h-[100dvh] max-h-[100dvh] overflow-hidden">
       <div onClick={() => handleClose()} className="pointer-events-auto ">
         <div className="cin-top z-10 fixed top-0 left-0 w-full h-[11%] bg-black translate-y-[-100%]">
           <X className="absolute text-white cursor-pointer right-4 top-4" />

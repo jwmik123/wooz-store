@@ -404,3 +404,24 @@ html[data-wz-chat="open"] #awwwards-embed {
 /* 3D product viewer: it's a grab-and-spin toy. */
 .wz-product-canvas canvas { cursor: grab; }
 .wz-product-canvas canvas[data-dragging] { cursor: grabbing; }
+
+/* The page is a full-screen app: the document itself must never scroll or
+   rubber-band on mobile (only panels like the shop sheet scroll inside). */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  position: fixed;
+  inset: 0;
+}
+
+/* Phones: the shop sheet covers the scene — the clock steps aside. */
+@media (max-width: 767px) {
+  html[data-wz-panel="open"] .wz-clock {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

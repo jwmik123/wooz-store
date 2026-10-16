@@ -171,7 +171,7 @@ export default function TimeClock() {
   const angle = (timeOfDay / 24) * 360;
 
   return (
-    <div ref={rootRef} className="fixed z-wz-chrome top-4 right-4 flex flex-col items-end gap-2">
+    <div ref={rootRef} className="wz-clock fixed z-wz-chrome top-[4.25rem] left-4 items-start md:top-4 md:left-auto md:right-4 md:items-end flex flex-col gap-2">
       <button
         type="button"
         aria-label={`Studio time: ${fmt(timeOfDay)}. Tap to change the time, hold to fast-forward.`}
