@@ -3,7 +3,92 @@
 @tailwind utilities;
 
 :root {
-  --toastify-color-success: #4f7960;
+  /* ─────────────────────────────────────────────────────────────
+     WOOZ DESIGN TOKENS — single source of truth (docs/UI-TOKENS.md)
+     Colours are RGB triplets so Tailwind can add alpha: bg-paper/70
+     ───────────────────────────────────────────────────────────── */
+
+  /* Colour: ink & brand greens */
+  --wz-ink: 27 51 39;        /* #1B3327 primary text */
+  --wz-ink-soft: 88 108 97;  /* #586C61 secondary text */
+  --wz-green: 79 121 96;     /* #4F7960 brand green (buttons, focus) */
+  --wz-leaf: 46 158 82;      /* #2E9E52 smiley-logo green, accents */
+  --wz-danger: 201 92 76;    /* #C95C4C */
+
+  /* Colour: pastel surfaces */
+  --wz-paper: 250 249 246;   /* #FAF9F6 base surface */
+  --wz-cloud: 241 244 247;   /* #F1F4F7 subtle fill */
+  --wz-sky: 207 227 243;     /* #CFE3F3 */
+  --wz-mint: 214 236 221;    /* #D6ECDD */
+  --wz-blush: 248 220 214;   /* #F8DCD6 */
+  --wz-butter: 247 236 196;  /* #F7ECC4 */
+  --wz-lilac: 226 219 245;   /* #E2DBF5 */
+
+  /* Lines */
+  --wz-line: rgb(var(--wz-ink) / 0.09);
+  --wz-line-strong: rgb(var(--wz-ink) / 0.18);
+
+  /* Glass (frosted panels floating over the 3D scene) */
+  --wz-glass-bg: rgb(var(--wz-paper) / 0.74);
+  --wz-glass-bg-strong: rgb(var(--wz-paper) / 0.9);
+  --wz-glass-border: rgb(255 255 255 / 0.72);
+  --wz-blur: 28px;
+  --wz-glass-filter: blur(var(--wz-blur)) saturate(1.6);
+
+  /* Radii */
+  --wz-radius-xs: 8px;
+  --wz-radius-sm: 12px;
+  --wz-radius-md: 18px;
+  --wz-radius-lg: 24px;
+  --wz-radius-xl: 32px;
+
+  /* Elevation */
+  --wz-shadow-sm: 0 1px 2px rgb(var(--wz-ink) / 0.06), 0 2px 8px rgb(var(--wz-ink) / 0.05);
+  --wz-shadow-md: 0 10px 28px -8px rgb(var(--wz-ink) / 0.16), 0 2px 6px rgb(var(--wz-ink) / 0.06);
+  --wz-shadow-lg: 0 40px 90px -24px rgb(var(--wz-ink) / 0.32), 0 12px 32px -12px rgb(var(--wz-ink) / 0.16);
+  --wz-shadow-inner: inset 0 1px 0 rgb(255 255 255 / 0.85);
+  --wz-focus-ring: 0 0 0 2px rgb(var(--wz-paper)), 0 0 0 4px rgb(var(--wz-green));
+
+  /* Typography */
+  --wz-text-eyebrow: 0.6875rem;  /* 11px uppercase labels */
+  --wz-text-sm: 0.8125rem;       /* 13px */
+  --wz-text-base: 0.9375rem;     /* 15px body */
+  --wz-text-lg: 1.125rem;        /* 18px */
+  --wz-text-xl: 1.5rem;          /* 24px */
+  --wz-text-display: clamp(2rem, 1.35rem + 1.7vw, 2.875rem);
+
+  /* Motion */
+  --wz-ease-out: cubic-bezier(0.22, 1, 0.36, 1);       /* gsap "expo.out"-ish */
+  --wz-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);    /* gsap "power3.inOut" */
+  --wz-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* gsap "back.out(1.6)" */
+  --wz-dur-fast: 160ms;
+  --wz-dur-base: 280ms;
+  --wz-dur-slow: 560ms;
+
+  /* Layout & layers */
+  --wz-panel-width: clamp(400px, 34vw, 520px);
+  --wz-panel-inset: 12px;
+  --wz-z-overlay: 10;
+  --wz-z-panel: 40;
+  --wz-z-chrome: 50;
+
+  --toastify-color-success: rgb(var(--wz-green));
+  --toastify-font-family: var(--wz-font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --wz-dur-fast: 1ms;
+    --wz-dur-base: 1ms;
+    --wz-dur-slow: 1ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
@@ -109,4 +194,185 @@ body {
 
 #leva__root {
   display: none !important;
+}
+
+/* ───────────── Wooz UI primitives (reuse these for new panels, e.g. Moos chat) ───────────── */
+@layer components {
+  .wz-glass {
+    background: var(--wz-glass-bg);
+    -webkit-backdrop-filter: var(--wz-glass-filter);
+    backdrop-filter: var(--wz-glass-filter);
+    border: 1px solid var(--wz-glass-border);
+    box-shadow: var(--wz-shadow-lg), var(--wz-shadow-inner);
+  }
+  .wz-glass-chip {
+    background: rgb(var(--wz-paper) / 0.62);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid var(--wz-glass-border);
+    box-shadow: var(--wz-shadow-sm), var(--wz-shadow-inner);
+  }
+  .wz-eyebrow {
+    font-family: var(--wz-font-sans);
+    font-size: var(--wz-text-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--wz-ink-soft));
+  }
+  .wz-display {
+    font-family: var(--wz-font-display);
+    font-variation-settings: "SOFT" 100, "opsz" 72;
+    font-weight: 420;
+    letter-spacing: -0.02em;
+  }
+  .wz-focus {
+    outline: none;
+  }
+  .wz-focus:focus-visible {
+    box-shadow: var(--wz-focus-ring);
+  }
+  .wz-btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    background: rgb(var(--wz-ink));
+    color: rgb(var(--wz-paper));
+    font-weight: 600;
+    transition: transform var(--wz-dur-fast) var(--wz-ease-out),
+      background-color var(--wz-dur-base) var(--wz-ease-out),
+      box-shadow var(--wz-dur-base) var(--wz-ease-out);
+    box-shadow: 0 10px 24px -10px rgb(var(--wz-ink) / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  }
+  .wz-btn-primary:hover:not(:disabled) {
+    background: rgb(var(--wz-green));
+  }
+  .wz-btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .wz-btn-primary:focus-visible {
+    outline: none;
+    box-shadow: var(--wz-focus-ring);
+  }
+  .wz-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    color: rgb(var(--wz-ink));
+    transition: background-color var(--wz-dur-fast) var(--wz-ease-out),
+      transform var(--wz-dur-fast) var(--wz-ease-out);
+  }
+  .wz-icon-btn:hover {
+    background: rgb(var(--wz-ink) / 0.06);
+  }
+  .wz-icon-btn:active {
+    transform: scale(0.94);
+  }
+  .wz-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--wz-focus-ring);
+  }
+}
+
+/* Product description (Shopify HTML) */
+.wz-prose {
+  color: rgb(var(--wz-ink-soft));
+  font-size: var(--wz-text-base);
+  line-height: 1.65;
+}
+.wz-prose p + p,
+.wz-prose ul,
+.wz-prose ol {
+  margin-top: 0.75em;
+}
+.wz-prose ul {
+  list-style: none;
+  padding: 0;
+}
+.wz-prose li {
+  position: relative;
+  padding-left: 1.1em;
+  margin-top: 0.35em;
+}
+.wz-prose li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 999px;
+  background: rgb(var(--wz-leaf));
+}
+.wz-prose strong {
+  color: rgb(var(--wz-ink));
+  font-weight: 600;
+}
+
+/* Accordion: animate grid rows for smooth height */
+.wz-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--wz-dur-slow) var(--wz-ease-out);
+}
+.wz-collapse[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.wz-collapse > div {
+  overflow: hidden;
+}
+
+/* "drag to play" hint */
+@keyframes wz-nudge {
+  0%, 100% { transform: translateX(-6px) rotate(-8deg); }
+  50% { transform: translateX(6px) rotate(8deg); }
+}
+.wz-nudge {
+  animation: wz-nudge 1.8s var(--wz-ease-in-out) infinite;
+}
+
+@keyframes wz-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+.wz-pop {
+  animation: wz-pop 520ms var(--wz-ease-spring);
+}
+
+@keyframes wz-shimmer {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+.wz-skeleton {
+  background: linear-gradient(
+    100deg,
+    rgb(var(--wz-ink) / 0.05) 20%,
+    rgb(var(--wz-ink) / 0.1) 40%,
+    rgb(var(--wz-ink) / 0.05) 60%
+  );
+  background-size: 200% 100%;
+  animation: wz-shimmer 1.4s linear infinite;
+}
+
+.wz-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.wz-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Keep the Awwwards ribbon out of the way while the shop panel is open */
+#awwwards-embed {
+  transition: opacity var(--wz-dur-base) var(--wz-ease-out);
+}
+html[data-wz-panel="open"] #awwwards-embed {
+  opacity: 0;
+  pointer-events: none;
 }

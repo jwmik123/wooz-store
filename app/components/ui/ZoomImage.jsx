@@ -1,95 +1,79 @@
-import React, { useState, useRef } from "react";
+"use client";
+
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { Loader } from "lucide-react";
-// import { useMousePosition } from "@/hooks/useMousePosition";
 
-const useMousePosition = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e) => {
-    setPosition({ x: e.clientX, y: e.clientY });
-  };
-
-  return {
-    position,
-    handleMouseMove,
-  };
-};
-
+/**
+ * A product photo that fills its frame and zooms in place on click (desktop):
+ * the zoom origin follows the pointer, so moving the mouse pans the detail.
+ * Touch devices keep plain swiping (zoom is pointer-fine only).
+ */
 const ZoomImage = ({
   src,
   alt,
-  width,
-  height,
-  quality = 75,
+  sizes = "(max-width: 768px) 100vw, 1040px",
   priority = false,
+  zoom = 2.2,
+  onZoomChange,
+  className = "",
 }) => {
-  const [showZoom, setShowZoom] = useState(false);
-  const imageContainerRef = useRef(null);
-  const { position, handleMouseMove } = useMousePosition();
-  const ZOOM_LEVEL = 2;
+  const ref = useRef(null);
+  const [zoomed, setZoomed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [origin, setOrigin] = useState("50% 50%");
 
-  const getRelativePosition = () => {
-    if (!imageContainerRef.current) return { x: 0, y: 0 };
+  const canZoom = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-    const bounds = imageContainerRef.current.getBoundingClientRect();
-    return {
-      x: (position.x - bounds.left) / bounds.width,
-      y: (position.y - bounds.top) / bounds.height,
-    };
+  const updateOrigin = (e) => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 100;
+    setOrigin(`${x}% ${y}%`);
   };
 
-  const relativePosition = getRelativePosition();
+  const toggle = (e) => {
+    if (!canZoom()) return;
+    updateOrigin(e);
+    const next = !zoomed;
+    setZoomed(next);
+    onZoomChange?.(next);
+  };
 
   return (
     <div
-      ref={imageContainerRef}
-      className="relative w-full overflow-hidden"
-      onMouseEnter={() => setShowZoom(true)}
-      onMouseLeave={() => setShowZoom(false)}
-      onMouseMove={handleMouseMove}
+      ref={ref}
+      className={`relative w-full h-full overflow-hidden ${
+        zoomed ? "cursor-zoom-out" : "md:cursor-zoom-in"
+      } ${className}`}
+      onClick={toggle}
+      onPointerMove={zoomed ? updateOrigin : undefined}
+      onPointerLeave={() => {
+        if (zoomed) {
+          setZoomed(false);
+          onZoomChange?.(false);
+        }
+      }}
     >
-      <div className="relative flex justify-center w-full md:block md:w-auto">
-        <Image
-          src={src}
-          alt={alt}
-          className="object-cover w-[90%] rounded-lg md:w-full"
-          quality={quality}
-          height={height}
-          width={width}
-          placeholder="empty"
-          priority={priority}
-        />
-      </div>
-
-      {showZoom && (
-        <div
-          className="absolute items-center justify-center hidden transition-transform duration-75 ease-out transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-50 border rounded-lg shadow-lg pointer-events-none md:flex"
-          style={{
-            width: "200px",
-            height: "200px",
-            left: `${relativePosition.x * 100}%`,
-            top: `${relativePosition.y * 100}%`,
-            overflow: "hidden",
-          }}
-        >
-          <Loader className="w-5 h-5 animate-spin " />
-          <div
-            className="absolute w-[1000px] h-[1000px]"
-            style={{
-              backgroundImage: `url(${src})`,
-              backgroundPosition: `${relativePosition.x * 100}% ${
-                relativePosition.y * 100
-              }%`,
-              backgroundSize: `${ZOOM_LEVEL * 100}%`,
-              backgroundRepeat: "no-repeat",
-              transform: "translate(-50%, -50%)",
-              left: "50%",
-              top: "50%",
-            }}
-          />
-        </div>
-      )}
+      {!loaded && <div className="absolute inset-0 wz-skeleton" aria-hidden />}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        quality={85}
+        priority={priority}
+        draggable={false}
+        onLoad={() => setLoaded(true)}
+        className="object-cover object-[50%_30%] select-none transition-[transform,opacity] duration-wz-slow ease-wz-out"
+        style={{
+          transform: `scale(${zoomed ? zoom : 1})`,
+          transformOrigin: origin,
+          opacity: loaded ? 1 : 0,
+        }}
+      />
     </div>
   );
 };
