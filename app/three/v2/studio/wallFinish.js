@@ -385,14 +385,22 @@ export function createStudioFinish(albedoNode, { kind = 0, view = 0 } = {}) {
     // Per-class relief (metres ≈ value × 12 mm): plaster / brick, brushed paint
     // on the timber, a faint float-finish undulation on the floor.
     const floorH = mott.mul(0.25).add(stroke.mul(0.1));
+    // Screen-space bump flickers when a pixel covers more than a few mm (the
+    // 2×2-quad derivatives shift with every tiny camera/parallax move), so the
+    // relief only exists where it can be resolved: close-ups, not the overview.
+    const footprint = fwidth(positionWorld).length();
+    const resolve = smoothstep(0.004, 0.0015, footprint);
     const hgt = height
       .mul(plaster)
       .add(timberH.mul(timber))
       .add(floorH.mul(floorM).mul(U.floorAmount))
       .mul(amount)
       .mul(U.bump)
+      .mul(resolve)
       .mul(0.012);
-    return { color, hgt, rough: mix(float(0.85), rough, plaster.add(floorM).clamp(0, 1)) };
+    // Glossy kalei/glaze sparkle at distance too: settle to a matte value there.
+    const roughOut = mix(float(0.85), rough, plaster.add(floorM).clamp(0, 1));
+    return { color, hgt, rough: mix(roughOut.max(0.6), roughOut, resolve) };
   };
 
   const r = build();
