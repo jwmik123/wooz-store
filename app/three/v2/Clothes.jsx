@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import collectionStore from "../../stores/collectionStore";
-import { useBakedMaterial, useStudioGLTF } from "./Studio";
+import { applyBakedLighting, useBakedMaterial, useStudioGLTF } from "./Studio";
 import { openCollection, setPointerCursor } from "./interactions";
 import { bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
 
@@ -45,7 +45,11 @@ export default function Clothes() {
   const groups = useClothingItems();
   const baked = useBakedMaterial();
   // One shared wind material for all garments (per-vertex windData attribute).
-  const material = useMemo(() => createClothMaterial(baked), [baked]);
+  // Garments live in the same bake atlas → same lightmapped lighting (lighting/).
+  const material = useMemo(
+    () => applyBakedLighting(createClothMaterial(baked), baked.colorNode, baked.userData.lightmaps),
+    [baked]
+  );
   useMemo(() => {
     for (const items of Object.values(groups))
       for (const { node } of items) bakeWindAttribute(node.geometry, node.quaternion);

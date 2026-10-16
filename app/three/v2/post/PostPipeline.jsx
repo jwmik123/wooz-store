@@ -131,7 +131,9 @@ export default function PostPipeline() {
       focusRange: { value: 0.8, min: 0.1, max: 3, step: 0.01 },
       blur: { value: 1, min: 0, max: 1.5, step: 0.01, label: "blur (lens)" },
       bokehScale: { value: 2, min: 0, max: 10, step: 0.1, label: "bokeh (bokeh)" },
-      ao: true,
+      // Off by default: the studio's sky occlusion is baked into its lightmap
+      // (lighting/lightmap.js). Turning AO on also disables MSAA (→ FXAA).
+      ao: false,
       aoIntensity: { value: 0.7, min: 0, max: 1, step: 0.01 },
       bloom: true,
       bloomStrength: { value: 0.2, min: 0, max: 1, step: 0.01 },

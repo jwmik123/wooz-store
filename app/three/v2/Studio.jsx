@@ -1,10 +1,17 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLoader, useThree } from "@react-three/fiber";
 import { DoubleSide, MeshStandardNodeMaterial } from "three/webgpu";
 import { texture } from "three/tsl";
-import { useGLTFv2 } from "./loaders";
+import { getKTX2Loader, useGLTFv2 } from "./loaders";
 import { studioEmissiveNode } from "./lighting/interior";
+import {
+  LIGHTMAP_AUX_URL,
+  LIGHTMAP_SKY_URL,
+  bakedIrradianceNode,
+} from "./lighting/lightmap";
+import { bakedLightsNode } from "./lighting/keyLight";
 
 export const STUDIO_URL = "/models/v2/studio.glb";
 
@@ -39,10 +46,27 @@ export function useStudioGLTF() {
 const bakedMaterials = new WeakMap();
 
 /**
- * Shared material for the studio + clothes: the Cycles DIFFUSE (albedo) bake as
- * colorNode, lit by real scene lights. One instance per bake texture.
+ * Lightmapped lighting for a material that uses the studio bake atlas UVs
+ * (studio shell + garments, see lighting/lightmap.js):
+ *   - real-time: only the sun/moon key light (+ its shadow map)
+ *   - baked:     sky fill, sun bounce and interior lamps as emissive
+ *   - the night lamp-shade glow (lighting/interior.js)
+ * Call on derived materials too (e.g. the garments' wind material).
  */
-export function getBakedMaterial(map) {
+export function applyBakedLighting(material, albedoNode, lightmaps) {
+  material.lightsNode = bakedLightsNode;
+  material.emissiveNode = albedoNode
+    .mul(bakedIrradianceNode(lightmaps.sky, lightmaps.aux))
+    .add(studioEmissiveNode(albedoNode));
+  return material;
+}
+
+/**
+ * Shared material for the studio + clothes: the Cycles DIFFUSE (albedo) bake as
+ * colorNode, lit by the real-time key light + the baked GI lightmaps.
+ * One instance per bake texture.
+ */
+export function getBakedMaterial(map, lightmaps) {
   let material = bakedMaterials.get(map);
   if (!material) {
     map.flipY = false; // glTF convention (GLTFLoader already sets this)
@@ -54,16 +78,28 @@ export function getBakedMaterial(map) {
     });
     material.name = "studioBaked";
     material.colorNode = texture(map);
-    material.emissiveNode = studioEmissiveNode(material.colorNode); // night lamp glow (lighting/)
+    applyBakedLighting(material, material.colorNode, lightmaps);
+    material.userData.lightmaps = lightmaps;
     bakedMaterials.set(map, material);
   }
   return material;
 }
 
+/** Baked GI lightmaps (KTX2, sRGB, TEXCOORD_0 atlas). Suspends. */
+export function useLightmaps() {
+  const gl = useThree((s) => s.gl);
+  const [sky, aux] = useLoader(getKTX2Loader(gl), [LIGHTMAP_SKY_URL, LIGHTMAP_AUX_URL]);
+  return useMemo(() => {
+    for (const t of [sky, aux]) t.flipY = false;
+    return { sky, aux };
+  }, [sky, aux]);
+}
+
 export function useBakedMaterial() {
   const { materials } = useStudioGLTF();
+  const lightmaps = useLightmaps();
   const map = Object.values(materials)[0].map;
-  return useMemo(() => getBakedMaterial(map), [map]);
+  return useMemo(() => getBakedMaterial(map, lightmaps), [map, lightmaps]);
 }
 
 /** Every mesh in the GLB that is not a clothing item is part of the studio shell. */
