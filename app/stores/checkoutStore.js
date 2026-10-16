@@ -26,6 +26,10 @@ const CREATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   image {
                     url
                     altText
@@ -64,6 +68,10 @@ const ADD_TO_CART = `
                     value
                   }
                   price {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPrice {
                     amount
                     currencyCode
                   }
@@ -108,6 +116,10 @@ const REMOVE_FROM_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   image {
                     url
                     altText
@@ -149,6 +161,10 @@ const UPDATE_CART = `
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   image {
                     url
                     altText
@@ -186,6 +202,10 @@ const GET_CART = `
                   value
                 }
                 price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
                   amount
                   currencyCode
                 }

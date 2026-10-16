@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { Rotate3d, Images, ChevronLeft, ChevronRight, ChevronDown, Hand } from "lucide-react";
 import client from "@/lib/shopify";
+import { discountPercent } from "@/lib/sale";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
 import ZoomImage from "../components/ui/ZoomImage";
@@ -28,6 +29,9 @@ const PRODUCT_QUERY = `
         minVariantPrice { amount currencyCode }
         maxVariantPrice { amount currencyCode }
       }
+      compareAtPriceRange {
+        minVariantPrice { amount currencyCode }
+      }
       variants(first: 100) {
         edges {
           node {
@@ -35,6 +39,7 @@ const PRODUCT_QUERY = `
             title
             availableForSale
             price { amount currencyCode }
+            compareAtPrice { amount currencyCode }
             selectedOptions { name value }
             image { url altText }
           }
@@ -189,6 +194,10 @@ function ProductView({ product, productHandle, active }) {
       (!sizes.length || opt(v, "Size") === selectedSize)
   );
   const price = selectedVariant?.price || product?.priceRange.minVariantPrice;
+  const compareAt = selectedVariant
+    ? selectedVariant.compareAtPrice
+    : product?.compareAtPriceRange?.minVariantPrice;
+  const discount = discountPercent(price, compareAt);
   const soldOut = selectedColor && sizes.length > 0 && !sizes.some(isSizeAvailable);
 
   // If the chosen size isn't available in the new colour, clear it.
@@ -255,9 +264,19 @@ function ProductView({ product, productHandle, active }) {
             </div>
             <div className="flex items-end justify-between gap-4">
               <h2 className="wz-display text-wz-display text-ink text-balance">{title}</h2>
-              <p className="pb-1 text-xl font-display tabular-nums whitespace-nowrap text-ink">
-                {price && formatPrice(price.amount, price.currencyCode)}
-              </p>
+              <div className="flex flex-col items-end pb-1 whitespace-nowrap">
+                {discount > 0 && (
+                  <span className="flex items-center gap-1.5 text-wz-sm tabular-nums">
+                    <span className="px-1.5 py-0.5 rounded-full bg-[#e4483b] text-white text-[10px] font-bold tracking-wide">
+                      −{discount}%
+                    </span>
+                    <s className="text-ink-soft">{formatPrice(compareAt.amount, compareAt.currencyCode)}</s>
+                  </span>
+                )}
+                <p className={`text-xl font-display tabular-nums ${discount > 0 ? "text-[#c8352a]" : "text-ink"}`}>
+                  {price && formatPrice(price.amount, price.currencyCode)}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -402,6 +421,7 @@ function ProductView({ product, productHandle, active }) {
             soldOut={soldOut}
             needsSize={!selectedSize && sizes.length > 0}
             price={price}
+            compareAt={discount > 0 ? compareAt : null}
             summary={[selectedColor, selectedSize].filter(Boolean).join(" · ")}
             onClick={handleAddToCart}
           />
@@ -761,7 +781,7 @@ function Smiley({ drawn }) {
   );
 }
 
-function AddToBagButton({ status, soldOut, needsSize, price, summary, onClick }) {
+function AddToBagButton({ status, soldOut, needsSize, price, compareAt, summary, onClick }) {
   const added = status === "added";
   const loading = status === "loading";
   return (
@@ -794,7 +814,10 @@ function AddToBagButton({ status, soldOut, needsSize, price, summary, onClick })
               )}
             </span>
             {price && (
-              <span className="font-display text-lg tabular-nums">
+              <span className="flex items-baseline gap-1.5 font-display text-lg tabular-nums">
+                {compareAt && (
+                  <s className="text-xs text-paper/50">{formatPrice(compareAt.amount, compareAt.currencyCode)}</s>
+                )}
                 {formatPrice(price.amount, price.currencyCode)}
               </span>
             )}

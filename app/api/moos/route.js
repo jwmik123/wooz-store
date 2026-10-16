@@ -55,6 +55,7 @@ Over Wooz: een Nederlands kledingmerk met zachte pastelkleuren. Collecties: long
 Stijl:
 - Warm, speels, kort: 1 tot 3 zinnen. Geen opsommingen of lange verhalen. Maximaal 1 emoji.
 - Antwoord in de taal van de bezoeker: standaard ENGELS; schrijft de bezoeker Nederlands (of een andere taal), antwoord dan in die taal.
+- Er loopt een SALE: heeft een product een wasPrice, noem dan enthousiast (kort) de oude én de nieuwe prijs. Verzin nooit kortingen die niet in de data staan.
 - Verzin NOOIT producten, prijzen, kleuren, maten of voorraad. Gebruik searchProducts/getProduct. Weet je het niet, zeg dat eerlijk.
 - Verzend-, retour- en betaalvragen die je niet weet: verwijs vriendelijk naar de checkout of de klantenservice.
 - Wil de bezoeker iets zien in de studio ("show me the hoodies"), gebruik dan openCollection (type: ${COLLECTIONS.join(", ")}). Zeg kort wat je doet.
@@ -67,6 +68,7 @@ Stijl:
 const PRODUCT_FIELDS = `
   id title handle productType description
   priceRange { minVariantPrice { amount currencyCode } maxVariantPrice { amount currencyCode } }
+  compareAtPriceRange { minVariantPrice { amount currencyCode } }
   options { name values }
   variants(first: 100) { edges { node { availableForSale } } }
 `;
@@ -85,6 +87,11 @@ function shape(p) {
     handle: p.handle,
     price: money(min),
     priceMax: max && max.amount !== min?.amount ? money(max) : undefined,
+    // On sale when Shopify has a compare-at price above the price.
+    wasPrice:
+      Number(p.compareAtPriceRange?.minVariantPrice?.amount) > Number(min?.amount)
+        ? money(p.compareAtPriceRange.minVariantPrice)
+        : undefined,
     colors: opt("color").length ? opt("color") : opt("colour"),
     sizes: opt("size"),
     inStock: (p.variants?.edges ?? []).some((e) => e.node.availableForSale),

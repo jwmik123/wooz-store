@@ -117,7 +117,16 @@ const CartList = ({ onClose }) => {
                       <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                     </button>
                   </div>
-                  <span className="font-display tabular-nums text-ink">
+                  <span className="flex flex-col items-end font-display tabular-nums text-ink">
+                    {parseFloat(node.merchandise.compareAtPrice?.amount) >
+                      parseFloat(node.merchandise.price.amount) && (
+                      <s className="text-xs text-ink-soft">
+                        {formatPrice(
+                          parseFloat(node.merchandise.compareAtPrice.amount) * node.quantity,
+                          node.merchandise.price.currencyCode
+                        )}
+                      </s>
+                    )}
                     {formatPrice(
                       parseFloat(node.merchandise.price.amount) * node.quantity,
                       node.merchandise.price.currencyCode

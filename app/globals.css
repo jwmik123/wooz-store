@@ -425,3 +425,33 @@ body {
     pointer-events: none;
   }
 }
+
+/* "Sale" tag above a rack's dot (lib/sale.js: Shopify compare-at price). */
+.wz-sale-tag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  translate: -50% 0;
+  padding: 3px 9px 4px;
+  border-radius: 999px;
+  background: #e4483b;
+  color: #fff8ee;
+  font: 700 11px/1 var(--font-lobster, var(--font-display, serif));
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px #fff8ee, 0 6px 16px -6px rgb(228 72 59 / 0.7);
+  rotate: -6deg;
+  opacity: 0;
+  transition: opacity 0.6s var(--wz-ease-out);
+  animation: wz-sale-bob 2.6s ease-in-out infinite;
+}
+.point.visible .wz-sale-tag {
+  opacity: 1;
+}
+@keyframes wz-sale-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wz-sale-tag { animation: none; }
+}

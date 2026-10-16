@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import gsap from "gsap";
 import collectionStore from "../../stores/collectionStore";
 import { InfoIcon } from "lucide-react";
+import { useSaleHandles } from "@/lib/sale";
 
 const PointsOfInterest = () => {
   const pointRef = useRef([]);
@@ -10,6 +11,7 @@ const PointsOfInterest = () => {
   );
 
   const [showInfo, setShowInfo] = useState(false);
+  const saleHandles = useSaleHandles();
 
   const collections = ["Hoodie", "Splatter", "Polo", "Longsleeve", "Totebag"];
 
@@ -46,6 +48,11 @@ const PointsOfInterest = () => {
         ].map((label, index) => (
           <div key={index} className={`point point-${index}`}>
             <div className="label ripple"></div>
+            {saleHandles.has(label.toLowerCase()) && (
+              <span className="wz-sale-tag" aria-label={`${label} on sale`}>
+                Sale
+              </span>
+            )}
           </div>
         ))}
       </div>
