@@ -23,7 +23,6 @@ import {
   uNightFactor,
   uSkyHorizon,
   uSunColor,
-  uTime,
   uWindDirection,
   uWindStrength,
 } from "../uniforms";
@@ -288,31 +287,94 @@ export const c3 = (hex) => {
   return vec3(c.r, c.g, c.b);
 };
 
-/** World-space travelling gust field in [0, 1] at xz (vertex-stage safe). */
-export const gustField = Fn(([xz]) => {
+// --- Calm breeze -----------------------------------------------------------------
+//
+// The whole garden is driven by a handful of slow, large travelling sine waves
+// (no hashed / per-blade noise, no texture sampling): periods 2.6-13 s,
+// wavelengths 1.7-22 m. Their phases are accumulated on the CPU in double
+// precision and wrapped to one period (see updateWindPhases), so the shader
+// only ever sees small arguments: no precision loss after hours of uptime and
+// no phase jump when the wind strength / direction is changed (nothing in the
+// phase depends on uWindStrength).
+
+/** [period (s), wavelength (m), angle off the wind direction (deg)] */
+const WAVES = {
+  gust1: [11, 17, 0],
+  gust2: [7.7, 11.5, 28],
+  gust3: [13.3, 22, -22],
+  sway: [3.3, 4.3, 40], // low-amplitude secondary sway of grass / flowers
+  shimA: [3.9, 2.4, -35], // soft leaf shimmer
+  shimB: [2.6, 1.7, 60],
+};
+const TAU = Math.PI * 2;
+
+/** Wrapped wave phases (rad): A = gust1, gust2, gust3, sway; B = shimA, shimB. */
+export const uWindPhaseA = uniform(new Vector4());
+export const uWindPhaseB = uniform(new Vector4());
+
+const phaseOf = (t, period) => (((t / period) % 1) + 1) % 1 * TAU;
+
+/** Call once per frame (Garden.jsx) with the clock in seconds. */
+export function updateWindPhases(t) {
+  uWindPhaseA.value.set(
+    phaseOf(t, WAVES.gust1[0]),
+    phaseOf(t, WAVES.gust2[0]),
+    phaseOf(t, WAVES.gust3[0]),
+    phaseOf(t, WAVES.sway[0])
+  );
+  uWindPhaseB.value.set(phaseOf(t, WAVES.shimA[0]), phaseOf(t, WAVES.shimB[0]), 0, 0);
+}
+
+/** sin(k·x − φ) travelling along the wind direction rotated by the wave's angle. */
+const windWave = (xz, [period, lambda, angleDeg], phase, lag = 0) => {
+  const a = (angleDeg * Math.PI) / 180;
   const wd = uWindDirection.xz;
-  const speed = uWindStrength.mul(3.5).add(1.2);
-  const uv = xz.sub(wd.mul(uTime.mul(speed))).mul(1 / 26);
-  const n = noiseTex().sample(uv).level(0);
-  const big = n.r;
-  const small = noiseTex().sample(uv.mul(3.1).add(vec2(0.31, 0.17))).level(0).b;
-  return smoothstep(0.32, 0.78, big.mul(0.75).add(small.mul(0.25)));
-});
+  const dir = wd.mul(Math.cos(a)).add(vec2(wd.y.negate(), wd.x).mul(Math.sin(a)));
+  // `lag` (s) evaluates the wave as it was `lag` seconds ago (inertia).
+  return dot(xz, dir)
+    .mul(TAU / lambda)
+    .sub(phase)
+    .add(float(lag).mul(TAU / period))
+    .sin();
+};
+
+/** Gust field in [0, 1]: three slow, incommensurate travelling waves (lag in s). */
+export const gustFieldLagged = (xz, lag = 0) => {
+  const s = windWave(xz, WAVES.gust1, uWindPhaseA.x, lag)
+    .mul(0.5)
+    .add(windWave(xz, WAVES.gust2, uWindPhaseA.y, lag).mul(0.3))
+    .add(windWave(xz, WAVES.gust3, uWindPhaseA.z, lag).mul(0.2));
+  return smoothstep(0.16, 0.84, s.mul(0.5).add(0.5));
+};
+
+/** World-space travelling gust field in [0, 1] at xz (vertex-stage safe). */
+export const gustField = Fn(([xz]) => gustFieldLagged(xz, 0));
+
+/** Soft leaf shimmer in [-1, 1] at a world position (two slow waves, 1.7-2.4 m long). */
+export const leafShimmer = (xz) =>
+  windWave(xz, WAVES.shimA, uWindPhaseB.x).mul(0.6).add(windWave(xz, WAVES.shimB, uWindPhaseB.y).mul(0.4));
 
 /**
  * Wind displacement direction × amount for a plant at `xz` with per-plant
- * `seed` (0..1) and stiffness. Returns vec3(dx, dz, gust) where dx/dz is the
- * horizontal lean (radians-ish, ~0…1.1) to scale by height².
+ * `seed` (0..1), stiffness and `lag` (seconds of inertia: flowers trail the
+ * grass). Returns vec3(dx, dz, gust) where dx/dz is the horizontal lean
+ * (radians-ish, ~0…0.5) to scale by height².
+ *
+ * Meadow grass (H ≈ 0.5 m, stiffness 1): tip sways ≈ 3-8 cm, gusts to ≈ 12 cm.
  */
-export const windLean = Fn(([xz, seed, stiffness]) => {
+export const windLean = Fn(([xz, seed, stiffness, lag]) => {
   const wd = uWindDirection.xz;
-  const g = gustField(xz);
-  const phase = dot(xz, wd).mul(0.9).sub(uTime.mul(2.1)).add(seed.mul(6.283));
-  const flutter = phase.sin().mul(0.5).add(phase.mul(2.3).add(seed.mul(3)).sin().mul(0.25));
-  const s = uWindStrength;
-  const lean = s.mul(g.mul(0.85).add(0.18)).add(flutter.mul(s.mul(0.22).add(0.05)));
-  const side = vec2(wd.y.negate(), wd.x).mul(flutter.mul(0.12).mul(s.add(0.2)));
-  let d = wd.mul(lean).add(side);
+  const perp = vec2(wd.y.negate(), wd.x);
+  const g = gustFieldLagged(xz, lag);
+  const s = uWindStrength.add(0.06);
+  // Secondary sway: coherent over metres (position based), a small per-plant
+  // phase offset only decorrelates neighbours slightly.
+  const swayPh = dot(xz, wd.mul(Math.cos(0.7)).add(perp.mul(Math.sin(0.7)))).mul(TAU / WAVES.sway[1]);
+  const swayArg = swayPh.sub(uWindPhaseA.w).add(lag.mul(TAU / WAVES.sway[0])).add(seed.mul(0.9));
+  const sway = swayArg.sin();
+  const swayCos = swayArg.cos();
+  const lean = s.mul(g.mul(0.55).add(0.17)).add(s.mul(0.07).mul(sway));
+  let d = wd.mul(lean).add(perp.mul(s.mul(0.05).mul(swayCos)));
   // Local gust pushed by the wind workstream (see uGardenGust).
   const gp = uGardenGust;
   const toP = xz.sub(gp.xy);

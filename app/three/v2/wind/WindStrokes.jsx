@@ -99,11 +99,12 @@ function createMaterial() {
 
   // --- per-instance lifecycle ------------------------------------------------
   const seed = hash(float(instanceIndex).add(1.0));
-  const period = mix(10, 22, hash(seed.mul(7.1))).div(uStrokeFreq.max(0.05));
+  const period = mix(16, 30, hash(seed.mul(7.1))).div(uStrokeFreq.max(0.05));
   const t = uTime.add(seed.mul(100)).div(period);
   const cycle = floor(t);
   const phase = fract(t);
-  const dur = mix(0.14, 0.26, hash(seed.add(3.3)));
+  // Slow draw-on: ~4-9 s from first mark to dissolve.
+  const dur = mix(0.24, 0.34, hash(seed.add(3.3)));
   const u = phase.div(dur); // >= 1 means dormant until the next cycle
 
   const rnd = (i) => hash(seed.mul(17.3).add(cycle.mul(3.7)).add(i * 1.91));
@@ -123,7 +124,7 @@ function createMaterial() {
   const freq = mix(0.5, 1.1, rnd(6));
   const ph = rnd(7).mul(6.283);
   const flourish = mix(0.3, 1.0, rnd(8));
-  const drift = dir.mul(u.mul(0.4));
+  const drift = dir.mul(u.mul(0.3));
 
   // Curve: gentle S-wobble plus a little curl at the leading end.
   const path = (c) => {

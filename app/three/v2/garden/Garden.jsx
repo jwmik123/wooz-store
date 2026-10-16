@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useControls } from "leva";
 import { atmosphere } from "../lighting/atmosphere";
-import { uGardenFog, uHemiGround, uHemiSky } from "./gardenCommon";
+import { uGardenFog, uHemiGround, uHemiSky, updateWindPhases } from "./gardenCommon";
 import Terrain from "./Terrain";
 import Grass from "./Grass";
 import Flowers from "./Flowers";
@@ -44,7 +44,8 @@ export default function Garden({ isMobile = false }) {
   );
 
   // Hemisphere fill from the lighting workstream's atmosphere (read-only).
-  useFrame(() => {
+  useFrame((state) => {
+    updateWindPhases(state.clock.elapsedTime);
     const a = atmosphere;
     uHemiSky.value.copy(a.hemiSky).multiplyScalar(a.hemiIntensity);
     uHemiGround.value.copy(a.hemiGround).multiplyScalar(a.hemiIntensity);

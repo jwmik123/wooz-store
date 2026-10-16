@@ -38,7 +38,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import { uKeyLightDirection, uTime, uWindDirection, uWindStrength } from "../uniforms";
+import { uKeyLightDirection, uWindDirection, uWindStrength } from "../uniforms";
 import {
   GROUND_Y,
   TREES,
@@ -47,6 +47,7 @@ import {
   c3,
   gardenLight,
   gustField,
+  leafShimmer,
   lin,
   mulberry32,
 } from "./gardenCommon";
@@ -253,19 +254,21 @@ function makeLeafMaterial() {
   const seed = iCrown.w;
   const crownC = iCrown.xyz;
 
-  // Whole-crown sway (gusts) + per-card flutter.
+  // Whole-crown sway (slow gusts, a few cm) + soft per-card shimmer: a slow
+  // travelling wave over the cards (periods 2.6-3.9 s), never per-card noise.
   const gust = gustField(crownC.xz);
   const height = iCard.y.sub(GROUND_Y).max(0);
-  const sway = uWindStrength.mul(gust.mul(0.6).add(0.25)).mul(height.mul(0.022));
-  const flutterPh = uTime.mul(5.3).add(seed.mul(40));
-  const flutter = sin(flutterPh).mul(0.03).mul(uWindStrength.add(0.15));
+  const sway = uWindStrength.mul(gust.mul(0.6).add(0.25)).mul(height.mul(0.016));
+  const shim = leafShimmer(iCard.xz);
+  const shimAmp = uWindStrength.add(0.15);
+  const flutter = shim.mul(0.012).mul(shimAmp);
   const wd = vec3(uWindDirection.x, 0, uWindDirection.z);
-  const center = iCard.xyz.add(wd.mul(sway.add(flutter))).add(vec3(0, cos(flutterPh.mul(0.7)).mul(0.015), 0));
+  const center = iCard.xyz.add(wd.mul(sway.add(flutter))).add(vec3(0, shim.mul(0.006).mul(shimAmp), 0));
 
   // Camera-facing card, rotated in screen plane per card.
   const right = cameraWorldMatrix.mul(vec4(1, 0, 0, 0)).xyz;
   const up = cameraWorldMatrix.mul(vec4(0, 1, 0, 0)).xyz;
-  const ang = seed.mul(6.283).add(sin(flutterPh).mul(0.08));
+  const ang = seed.mul(6.283).add(shim.mul(0.05).mul(shimAmp));
   const c = cos(ang);
   const s = sin(ang);
   const rc = vec2(corner.x.mul(c).sub(corner.y.mul(s)), corner.x.mul(s).add(corner.y.mul(c)));

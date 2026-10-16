@@ -123,7 +123,7 @@ export function createClothMaterial(baked) {
     const amp = uWindStrength.mul(uWindIndoor).mul(zone).mul(weight).mul(0.1);
     const main = sin(uTime.mul(0.5).sub(travel))
       .mul(0.5)
-      .add(sin(uTime.mul(0.8).sub(travel.mul(1.3)).add(1.7)).mul(0.25))
+      .add(sin(uTime.mul(0.6).sub(travel.mul(1.3)).add(1.7)).mul(0.25))
       .add(0.65);
     const along = dir.mul(main.mul(gust).mul(amp));
     const lateral = side.mul(
@@ -133,9 +133,9 @@ export function createClothMaterial(baked) {
     );
     // travelling ripples across the cloth, pushing along the surface normal
     const ripple = sin(
-      dot(p, dir).mul(14).sub(uTime.mul(1.8)).add(p.y.mul(6)).add(idPhase)
+      dot(p, dir).mul(10).sub(uTime.mul(0.8)).add(p.y.mul(6)).add(idPhase)
     )
-      .mul(0.5)
+      .mul(0.35)
       .mul(amp)
       .mul(smoothstep(0.45, 1.2, gust));
     const push = nrm.mul(ripple);
