@@ -376,3 +376,9 @@ html[data-wz-panel="open"] #awwwards-embed {
   opacity: 0;
   pointer-events: none;
 }
+
+/* …and while the Moos chat is open (MoosChat.jsx sets data-wz-chat) */
+html[data-wz-chat="open"] #awwwards-embed {
+  opacity: 0;
+  pointer-events: none;
+}
