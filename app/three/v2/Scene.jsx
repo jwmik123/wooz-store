@@ -9,6 +9,7 @@ import CameraRig from "./CameraRig";
 import Lights from "./lighting/Lights";
 import RackSpots from "./lighting/RackSpots";
 import Studio, { StudioRoot } from "./Studio";
+import Glass from "./glass/Glass";
 import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
 import Birds from "./Birds";
@@ -67,6 +68,7 @@ export default function Scene() {
             <Clothes />
             <Hotspots isMobile={isMobile} />
           </StudioRoot>
+          <Glass />
           <Birds />
           <WindStrokes />
           <Moos isMobile={isMobile} />
