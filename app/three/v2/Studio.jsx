@@ -11,6 +11,7 @@ import { bakedLightsNode } from "./lighting/keyLight";
 import useDebug from "./debug/useDebug";
 import { DEFAULT_PRESET, FINISH_PRESETS, createStudioFinish } from "./studio/wallFinish";
 import StudioMaterialControls from "./studio/StudioMaterialControls";
+import { spotHighlightNode } from "./signs/spotGlow";
 
 export const STUDIO_URL = "/models/v2/studio.glb";
 
@@ -100,6 +101,8 @@ export function applyStudioFinish(material, { preset = DEFAULT_PRESET, view = 0 
   material.normalNode = finish.normalNode;
   material.roughnessNode = finish.roughnessNode;
   applyBakedLighting(material, finish.colorNode, lightmaps);
+  // Hover glow / idle light sweep on the table pieces (signs/spotGlow.js).
+  material.emissiveNode = material.emissiveNode.add(spotHighlightNode());
   if (view === 1) {
     material.lightsNode = lights([]);
     material.emissiveNode = finish.colorNode;

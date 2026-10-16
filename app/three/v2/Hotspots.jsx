@@ -1,10 +1,21 @@
 "use client";
 
-import { Vector3 } from "three/webgpu";
 import collectionStore from "../../stores/collectionStore";
-import useCameraStore from "../../stores/cameraStore";
 import { Book } from "./Book";
-import { openCollection, setPointerCursor } from "./interactions";
+import { openCollection, openTablePiece, setPointerCursor } from "./interactions";
+import { TABLE_SPOTS } from "./signs/signLayout";
+import { finePointer, setSpotHover, useRackHover } from "./signs/signState";
+
+/** Hover glow (studio shell material, signs/spotGlow.js) + cursor chip. */
+function spotOver(key) {
+  if (!finePointer()) return;
+  setSpotHover(TABLE_SPOTS[key]);
+  useRackHover.setState({ label: TABLE_SPOTS[key].label });
+}
+function spotOut() {
+  setSpotHover(null);
+  useRackHover.setState({ label: null });
+}
 
 // Invisible click targets in STUDIO-LOCAL coordinates (render inside <StudioRoot>).
 function HitBox({ size, position, onClick, hover = true, onOver, onOut }) {
@@ -29,7 +40,6 @@ function HitBox({ size, position, onClick, hover = true, onOver, onOut }) {
 
 export default function Hotspots({ isMobile }) {
   const bookVisible = collectionStore((s) => s.bookVisible);
-  const setBookVisible = collectionStore((s) => s.setBookVisible);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
   return (
@@ -38,19 +48,31 @@ export default function Hotspots({ isMobile }) {
       <HitBox
         size={[0.3, 0.2, 0.3]}
         position={[3.4, 0.9, -0.55]}
-        onOver={() => setSelectedCollection("totebag")}
-        onOut={() => setSelectedCollection(null)}
-        onClick={() => openCollection("totebag")}
+        onOver={() => {
+          setSelectedCollection("totebag");
+          spotOver("totebag");
+        }}
+        onOut={() => {
+          setSelectedCollection(null);
+          spotOut();
+        }}
+        onClick={() => {
+          spotOut();
+          openCollection("totebag");
+        }}
       />
 
       {/* Coffee cup -> looping cinematic reel with credits (until clicked away) */}
       <HitBox
         size={[0.1, 0.1, 0.1]}
         position={[2.9, 0.75, 0.5]}
+        onOver={() => spotOver("coffee")}
+        onOut={spotOut}
         onClick={(e) => {
           e.stopPropagation();
           setPointerCursor(false);
-          useCameraStore.getState().setCinematic(true);
+          spotOut();
+          openTablePiece("coffee");
         }}
       />
 
@@ -61,12 +83,12 @@ export default function Hotspots({ isMobile }) {
             size={[0.3, 0.3, 0.5]}
             position={[3, 0.75, 0]}
             hover={!bookVisible}
+            onOver={() => !bookVisible && spotOver("lookbook")}
+            onOut={spotOut}
             onClick={() => {
               if (bookVisible) return;
-              const camera = useCameraStore.getState();
-              camera.setCameraPosition(new Vector3(0, -0.5, 1.9));
-              camera.setCameraTarget(new Vector3(0, -5, 0));
-              setBookVisible(true);
+              spotOut();
+              openTablePiece("lookbook");
             }}
           />
           <group

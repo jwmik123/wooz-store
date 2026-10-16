@@ -370,7 +370,7 @@ body {
   }
 }
 
-/* Cursor chip while a rack / garment tag is hovered (three/overlay/Overlay.jsx). */
+/* Cursor chip while a rack / signboard / table piece is hovered (three/overlay/Overlay.jsx). */
 .wz-hover-chip {
   position: fixed;
   top: 0;

@@ -35,7 +35,7 @@ import {
   uSweepMin,
   uSweepRack,
   uSweepT,
-} from "../tags/tagState";
+} from "../signs/signState";
 
 /*
  * Cloth wind

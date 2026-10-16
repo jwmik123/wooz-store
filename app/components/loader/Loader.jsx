@@ -267,7 +267,7 @@ export default function Loader() {
         aria-hidden={!hint}
       >
         <InfoIcon className="w-4 h-4" strokeWidth={1.75} />
-        <span className="whitespace-nowrap">Tap a hanging tag to explore</span>
+        <span className="whitespace-nowrap">Tap anything that glows</span>
       </div>
     </>
   );
