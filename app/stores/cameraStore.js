@@ -28,8 +28,9 @@ const CAMERA_POSITIONS = {
     target: new THREE.Vector3(1, -5, 0),
   },
   intro: {
-    position: new THREE.Vector3(0, 0, 20),
-    target: new THREE.Vector3(0, 0, 0),
+    // Slightly raised (garden ws8) so the studio reads above the front fence.
+    position: new THREE.Vector3(0, 0.7, 20),
+    target: new THREE.Vector3(0, -0.35, 0),
   },
   lookbook: {
     position: new THREE.Vector3(1, 0, 2),

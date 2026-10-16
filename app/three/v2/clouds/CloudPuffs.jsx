@@ -32,7 +32,7 @@ import {
 } from "three/tsl";
 import { uTime } from "../uniforms";
 import { getCloudNoiseTexture } from "./noiseTexture";
-import { SEA_Y } from "./CloudSea";
+import { GROUND_Y } from "../garden/gardenCommon";
 import {
   cloudAmbient,
   cloudDirect,
@@ -44,50 +44,42 @@ import {
 } from "./cloudCommon";
 
 /*
- * Nearby cumulus: clusters of camera-facing sphere impostors in ONE merged
- * geometry (1 draw call). Each puff gets a fake sphere normal + noise-eroded
- * edge, wrap lighting from the sun, darker flat bottoms, a silver lining when
- * backlit and the same horizon fog as the sea. The whole field drifts with the
- * wind and wraps around a square around the studio (faded at the seam).
+ * Distant fair-weather cumulus: clusters of camera-facing sphere impostors in
+ * ONE merged geometry (1 draw call). Each puff gets a fake sphere normal +
+ * noise-eroded edge, wrap lighting from the sun, darker flat bottoms, a silver
+ * lining when backlit and horizon fog. The clouds float 100-230 m up, 250-850 m
+ * away, so they sit just above the garden's horizon (and a few higher ones show
+ * through the roof glass). The field drifts with the wind and wraps around a
+ * square around the studio (faded at the seam and towards the far plane).
  * Quads are re-sorted back-to-front on the CPU only when the camera moves.
  */
 
-const WRAP = 280; // half size of the drift domain (world units)
+const WRAP = 1000; // half size of the drift domain (world units)
+const FAR_FADE = [950, 760]; // fade out before the camera far plane (1000)
 
-// Cumulus towers rising out of the cloud sea: [x, z, radius, height / radius].
-// Kept out of the intro camera corridor (|x| < 7, z > 0).
+// Fair-weather cumulus: [x, z, radius, height / radius, base altitude] (metres).
 const CLUSTERS = [
-  // Hero towers framing the studio (visible from the intro and through the
-  // side windows of the overview).
-  [-17, -9, 5.5, 1.25],
-  [19, -3, 5, 1.15],
-  [-12, 7, 3.4, 1.1],
-  [13, 9, 3.2, 1.0],
-  [3, -26, 5, 1.0],
-  // Mid field.
-  [-26, -32, 7, 0.9],
-  [22, -40, 8.5, 1.1],
-  [-6, -64, 12, 0.8],
-  [42, -14, 7, 0.8],
-  [-44, -6, 8, 1.0],
-  [32, 28, 6.5, 0.9],
-  [-30, 32, 7, 0.8],
-  [62, -55, 13, 0.9],
-  [-62, -48, 13, 1.0],
-  [0, 56, 9, 0.8],
-  [-72, 18, 10, 0.9],
-  [74, 16, 10, 1.0],
-  // Distant banks towards the horizon (mostly haze, they sell the scale).
-  [-120, -150, 22, 0.6],
-  [80, -185, 26, 0.5],
-  [185, -90, 24, 0.6],
-  [-205, -60, 26, 0.5],
-  [-160, 95, 22, 0.6],
-  [150, 125, 24, 0.5],
-  [20, -245, 30, 0.45],
-  [-60, 205, 24, 0.5],
-  [235, 40, 26, 0.5],
-  [-245, -175, 28, 0.5],
+  // Over the hills behind the studio (intro shot + overview through the roof).
+  [-260, -520, 55, 0.9, 110],
+  [180, -600, 65, 0.8, 130],
+  [-40, -760, 70, 0.6, 150],
+  [420, -430, 50, 0.8, 100],
+  [-480, -380, 55, 0.8, 120],
+  // Beyond the glass side walls (east / west).
+  [600, -60, 60, 0.8, 120],
+  [-620, 80, 60, 0.7, 130],
+  [520, 260, 50, 0.8, 110],
+  [-500, -160, 45, 0.9, 100],
+  // Behind the intro camera (south).
+  [100, 650, 60, 0.7, 130],
+  [-350, 520, 55, 0.8, 120],
+  [380, 500, 50, 0.8, 110],
+  // Higher and closer: visible through the gable roof from inside.
+  [-120, -260, 35, 0.7, 190],
+  [140, -180, 30, 0.6, 210],
+  [60, 220, 35, 0.7, 200],
+  [-210, 60, 40, 0.6, 230],
+  [230, -20, 32, 0.6, 215],
 ];
 
 function mulberry32(a) {
@@ -100,13 +92,13 @@ function mulberry32(a) {
   };
 }
 
-/** Puffs per cluster: a tapering tower whose base is buried in the sea. */
+/** Puffs per cluster: a broad, flat-bottomed heap tapering to a crown. */
 function buildPuffs() {
   const rand = mulberry32(42);
   const puffs = [];
-  const base = SEA_Y - 0.4;
-  for (const [cx, cz, r, h] of CLUSTERS) {
-    const count = Math.round(6 + r * 1.1);
+  for (const [cx, cz, r, h, baseY] of CLUSTERS) {
+    const base = GROUND_Y + baseY;
+    const count = Math.round(8 + r * 0.55);
     for (let i = 0; i < count; i++) {
       const t = Math.pow(i / count, 1.15); // 0 = bottom ring, 1 = crown
       const ring = r * (1 - 0.65 * t) * Math.sqrt(0.35 + 0.65 * rand());
@@ -216,14 +208,12 @@ function makeMaterial({ depthOnly = false } = {}) {
     // Fluffy, eroded silhouette.
     const edge = r.add(n.sub(0.5).mul(0.38));
     const shapeAlpha = smoothstep(0.97, 0.55, edge);
-    // Fade near the camera / studio, at the wrap seam and where the puff dips
-    // into the cloud sea (no hard intersection line).
+    // Fade at the wrap seam, towards the far plane and at the flat base.
     const c = vCenter;
-    const seam = smoothstep(float(WRAP), float(WRAP - 40), max(c.x.abs(), c.z.abs()));
-    const nearCam = smoothstep(4.0, 10.0, length(c.sub(cameraPosition)));
-    const nearStudio = smoothstep(5.0, 8.0, length(c.xz));
-    const intoSea = smoothstep(float(SEA_Y - 0.1), vParams.x.mul(0.5).add(SEA_Y + 0.6), positionWorld.y);
-    return shapeAlpha.mul(seam).mul(nearCam).mul(nearStudio).mul(intoSea).mul(0.97);
+    const seam = smoothstep(float(WRAP), float(WRAP - 150), max(c.x.abs(), c.z.abs()));
+    const far = smoothstep(FAR_FADE[0], FAR_FADE[1], length(c.sub(cameraPosition)));
+    const base = smoothstep(vParams.z.sub(vParams.x.mul(0.05)), vParams.z.add(vParams.x.mul(0.45)), positionWorld.y);
+    return shapeAlpha.mul(seam).mul(far).mul(base).mul(0.97);
   })();
 
   if (depthOnly) {
@@ -262,7 +252,7 @@ function makeMaterial({ depthOnly = false } = {}) {
     const lining = cloudDirect.mul(silverLining(viewDir)).mul(rim).mul(2.6);
 
     const color = ambient.add(direct).add(lining).mul(nightTint);
-    const fogged = horizonFog(color, dist, float(15), float(0.005));
+    const fogged = horizonFog(color, dist, float(250), float(0.0011));
     return vec4(fogged, alphaNode);
   })();
 
