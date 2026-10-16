@@ -54,8 +54,8 @@ import {
 /*
  * Meadow grass: instanced TUFTS (a few curved blades each), two LODs.
  *
- *   near  5 blades × 3 segments (35 verts) — within ~10 m of the studio and
- *         along the path towards the intro camera, ~45-70 tufts/m².
+ *   near  5 blades × 3 segments (35 verts) — within ~9 m of the studio and
+ *         along the path towards the intro camera, ~36-62 tufts/m².
  *   far   4 blades × 1 segment (12 verts), wider blades, out to ~42 m.
  *
  * Real scale: wild meadow 15-45 cm (patches to ~55 cm), mown strips along the
@@ -145,11 +145,11 @@ function scatter(scale) {
       if (r > R) continue;
       const ds = studioDistance(mx, mz);
       const dc = corridorDistance(mx, mz);
-      const isNear = ds < 9.5 || dc < 6.5;
+      const isNear = ds < 9 || dc < 5.5;
       // tufts per m²
       const rho = isNear
-        ? 45 + 25 * (1 - smooth(2, 9, Math.min(ds, dc)))
-        : 16 * (1 - smooth(14, R, r)) + 3;
+        ? 36 + 26 * (1 - smooth(2, 8, Math.min(ds, dc)))
+        : 14 * (1 - smooth(14, R, r)) + 2.5;
       const count = Math.floor(rho * scale + rand());
       for (let i = 0; i < count; i++) {
         const x = cx + rand();
@@ -250,7 +250,12 @@ export function makeGrassMaterial() {
   const distCam = length(vec3(rootXZ.x, iPos.y, rootXZ.y).sub(cameraPosition));
 
   // Width: tapered towards the tip, guarded against sub-pixel blades.
-  const W = iPar.y.mul(minWidthScale(iPar.y, distCam));
+  // Distance LOD: beyond ~9 m up to 45 % of the blades collapse to zero area
+  // (culled before raster: thin far triangles are the expensive part) and the
+  // remaining ones widen to keep the coverage.
+  const lod = smoothstep(9, 15, distCam);
+  const keep = select(aRoot.w.greaterThan(lod.mul(0.45)), float(1), float(0));
+  const W = iPar.y.mul(minWidthScale(iPar.y, distCam)).mul(lod.mul(0.45).add(1)).mul(keep);
   const taper = float(1).sub(pow(t, 1.6));
   const halfW = W.mul(taper).mul(0.5);
 

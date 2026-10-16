@@ -97,8 +97,8 @@ function buildGround() {
 
 // [radius, height, roughness, colour, bottom fog weight]
 const LAYERS = [
-  { r: 88, h: 13, bump: 1, color: "#4c6a46", fog: 1.0, wobble: 22, seed: 3 }, // hedgerow / tree line
-  { r: 140, h: 17, bump: 1, color: "#577558", fog: 1.0, wobble: 35, seed: 8 }, // second tree line
+  { r: 88, h: 13, bump: 1, color: "#5b7a52", fog: 1.0, wobble: 22, seed: 3 }, // hedgerow / tree line
+  { r: 140, h: 17, bump: 1, color: "#66845f", fog: 1.0, wobble: 35, seed: 8 }, // second tree line
   { r: 290, h: 34, bump: 0.25, color: "#6f8a6c", fog: 1.05, wobble: 60, seed: 13 },
   { r: 470, h: 58, bump: 0.15, color: "#7f9580", fog: 1.1, wobble: 90, seed: 17 },
   { r: 690, h: 82, bump: 0.1, color: "#8fa293", fog: 1.15, wobble: 120, seed: 29 },
@@ -233,7 +233,7 @@ function makeHillsMaterial() {
     const albedo = vColor.mul(mix(float(0.75), float(1.05), hgt));
     const lit = gardenLight(albedo, N, p, viewDir, float(1), float(1), float(0.2));
     // Strong aerial perspective; the far ridges almost melt into the sky.
-    const haze = aerial(lit, dist, float(1.25));
+    const haze = aerial(lit, dist, float(2.4));
     // Below the visible top the ring continues down: blend low parts into the horizon haze.
     const low = smoothstep(GROUND_Y + 1, GROUND_Y - 6, p.y);
     return vec4(mix(haze, uSkyHorizon.mul(mix(float(0.9), float(0.7), uNightFactor)), low.mul(0.6)), 1);
@@ -260,6 +260,7 @@ export default function Terrain({ hills = true }) {
           name="gardenHills"
           geometry={hillGeo}
           material={hillMat}
+          renderOrder={1}
           frustumCulled={false}
           raycast={() => null}
         />

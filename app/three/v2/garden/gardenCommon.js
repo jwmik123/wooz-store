@@ -381,9 +381,11 @@ export const analyticShadow = Fn(([p]) => {
 export const lampSpill = Fn(([p]) => {
   const dx = max(p.x.abs().sub(STUDIO.x), 0);
   const dz = max(max(p.z.sub(STUDIO.zMax), float(STUDIO.zMin).sub(p.z)), 0);
-  const d2 = dx.mul(dx).add(dz.mul(dz));
-  const fall = float(1).div(d2.mul(1.4).add(1)).mul(smoothstep(4.5, 0.5, dx.add(dz)));
-  return uLampColor.mul(uLampGlow.mul(fall).mul(0.35));
+  // The open front (+Z) spills more light than the glass sides.
+  const front = smoothstep(STUDIO.zMax - 0.5, STUDIO.zMax + 0.5, p.z).mul(smoothstep(STUDIO.x + 0.5, STUDIO.x - 1.2, p.x.abs()));
+  const d2 = dx.mul(dx).add(dz.mul(dz).mul(mix(float(1), float(0.35), front)));
+  const fall = float(1).div(d2.mul(1.4).add(1)).mul(smoothstep(5.5, 0.5, dx.add(dz.mul(mix(float(1), float(0.6), front)))));
+  return uLampColor.mul(uLampGlow.mul(fall).mul(mix(float(0.4), float(0.9), front)));
 });
 
 /**

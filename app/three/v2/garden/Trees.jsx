@@ -22,7 +22,9 @@ import {
   cos,
   dot,
   float,
+  floor,
   fract,
+  fwidth,
   length,
   max,
   mix,
@@ -194,7 +196,7 @@ function buildTrees(quality) {
         const off = p.clone().sub(crownC);
         const k = off.length() / (crown * 1.05);
         if (k > 1) p.copy(crownC).addScaledVector(off, 1 / k);
-        cards.push(p.x, p.y, p.z, 0.55 + rand() * 0.3, crownC.x, crownC.y, crownC.z, rand());
+        cards.push(p.x, p.y, p.z, 0.6 + rand() * 0.3, crownC.x, crownC.y, crownC.z, rand());
       }
     }
   }
@@ -294,33 +296,54 @@ function makeLeafMaterial() {
 
   m.colorNode = Fn(() => {
     const uv = vUv;
-    // Six pointed leaves radiating from the card centre.
+    // Real-scale apple leaves (7-10 cm): the card is split into ~11 cm cells,
+    // each holding two pointed leaves with hashed angle/offset; the card
+    // outline is ragged so clusters don't read as discs.
+    const g = uv.mul(3.5);
+    const cell = floor(g);
+    const f = fract(g).sub(0.5);
+    const hsh = (k) => fract(sin(dot(cell.add(vSeed.mul(17.3)).add(k), vec2(12.9898, 78.233))).mul(43758.5453));
+    const h1 = hsh(0.0);
+    const h2 = hsh(3.1);
+    const h3 = hsh(7.7);
     let mask = float(0);
     let vein = float(0);
-    for (let k = 0; k < 6; k++) {
-      const a = vSeed.mul(17.0).add(k * 1.047).add(fract(vSeed.mul(31 + k * 7)).mul(0.6));
+    for (let j = 0; j < 2; j++) {
+      const a = h1.add(j * 0.37).mul(6.283);
       const d = vec2(cos(a), sin(a));
-      const lc = d.mul(0.42 + (k % 2) * 0.12);
-      const q = uv.sub(lc);
+      const o = vec2(h2.sub(0.5), h3.sub(0.5)).mul(j === 0 ? 0.25 : -0.25);
+      const q = f.sub(o);
       const x = dot(q, d);
       const y = dot(q, vec2(d.y.negate(), d.x));
-      const len = 0.46 + (k % 3) * 0.05;
-      const w = float(1).sub(x.div(len).mul(x.div(len))).max(0).mul(0.22);
-      const inside = smoothstep(0.02, 0.0, abs(y).sub(w));
+      const len = float(0.42);
+      const w = float(1).sub(x.div(len).mul(x.div(len))).max(0).mul(0.16);
+      const inside = smoothstep(0.015, 0.0, abs(y).sub(w));
       mask = max(mask, inside);
-      vein = max(vein, inside.mul(smoothstep(0.02, 0.0, abs(y))));
+      vein = max(vein, inside.mul(smoothstep(0.015, 0.0, abs(y))));
     }
-    If(mask.lessThan(0.5), () => {
+    // Distance LOD: once a leaf cell drops below ~4 px, fill the gaps between
+    // leaves so far crowns read as soft masses instead of sparkling noise.
+    const cellsPerPx = max(fwidth(g).x, fwidth(g).y);
+    const fill = smoothstep(0.12, 0.3, cellsPerPx);
+    mask = max(mask, fill);
+    const ragged = length(uv).add(h1.sub(0.5).mul(mix(float(0.35), float(0.2), fill)));
+    If(mask.lessThan(0.5).or(ragged.greaterThan(0.95)), () => {
       Discard();
     });
     const leafA = c3("#5f8f4c");
     const leafB = c3("#86ad5f");
     const leafC = c3("#a3bf72");
-    const h = fract(vSeed.mul(9.7));
-    const leaf = mix(mix(leafA, leafB, smoothstep(0.2, 0.6, h)), leafC, smoothstep(0.75, 1, h)).mul(float(1).sub(vein.mul(0.12)));
-    // The odd apple at the cluster centre (~7 cm).
-    const appleMask = select(fract(vSeed.mul(53.1)).greaterThan(0.9), smoothstep(0.2, 0.17, length(uv)), float(0));
-    const apple = mix(c3("#d9604f"), c3("#e6c45c"), fract(vSeed.mul(13.3)).mul(0.6));
+    const h = fract(vSeed.mul(9.7).add(h2.mul(0.35)));
+    const leaf = mix(mix(leafA, leafB, smoothstep(0.2, 0.6, h)), leafC, smoothstep(0.75, 1, h))
+      .mul(float(1).sub(vein.mul(0.12)))
+      .mul(h3.mul(0.18).add(0.88));
+    // The odd apple (~7 cm) hanging in a cell.
+    const appleMask = select(
+      h3.greaterThan(0.965).and(fract(vSeed.mul(53.1)).greaterThan(0.55)),
+      smoothstep(0.34, 0.3, length(f)),
+      float(0)
+    );
+    const apple = mix(c3("#d9604f"), c3("#e6c45c"), h2.mul(0.6));
     const col = mix(leaf, apple, appleMask);
     return vec4(aerial(col.mul(vLight), vDist, float(1)), 1);
   })();
