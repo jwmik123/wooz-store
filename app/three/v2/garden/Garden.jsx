@@ -10,6 +10,7 @@ import Flowers from "./Flowers";
 import Trees from "./Trees";
 import Props from "./Props";
 import Critters from "./Critters";
+import SaleSign from "./SaleSign";
 import { useTierSettings } from "../perf/quality";
 
 /*
@@ -32,6 +33,7 @@ export default function Garden({ isMobile = false }) {
       trees: true,
       props: true,
       critters: true,
+      saleSign: true,
       fog: {
         value: uGardenFog.value,
         min: 0,
@@ -62,6 +64,7 @@ export default function Garden({ isMobile = false }) {
       {c.flowers && <Flowers quality={isMobile ? 0.5 : 1} />}
       {c.trees && <Trees quality={isMobile ? 0.6 : 1} />}
       {c.props && <Props />}
+      {c.saleSign && <SaleSign />}
       {c.critters && <Critters quality={isMobile ? 0.5 : 1} />}
     </>
   );
