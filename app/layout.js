@@ -1,4 +1,4 @@
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import { Fraunces, Instrument_Sans, Lobster } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -20,6 +20,15 @@ const sans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--wz-font-sans",
   display: "swap",
+});
+// Lobster: fat retro script for the 3D "Sale" marquee sign (drawn to a canvas
+// texture by app/three/v2/garden/SaleSign.jsx, which reads --wz-font-sign).
+const signScript = Lobster({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--wz-font-sign",
+  display: "swap",
+  preload: false,
 });
 const libre = localFont({
   src: [
@@ -66,7 +75,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${libre.variable}`}
+      className={`${display.variable} ${sans.variable} ${libre.variable} ${signScript.variable}`}
     >
       <head>
         <meta
