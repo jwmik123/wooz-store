@@ -1,4 +1,4 @@
-import { Vector3 } from "three/webgpu";
+import { Color, Vector3 } from "three/webgpu";
 import { uniform } from "three/tsl";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
@@ -35,7 +35,20 @@ export const uWindDirection = uniform(new Vector3(1, 0, 0));
 /** Wind strength, 0 = calm, ~1 = strong (float). */
 export const uWindStrength = uniform(0.4);
 
-// --- Sun model (placeholder) -------------------------------------------------
+// --- Atmosphere colours ------------------------------------------------------
+// Driven by the lighting workstream (lighting/), read by clouds, wind strokes,
+// post etc. so everything shares one sky. Linear-sRGB colours.
+
+/** Direct sun (or moon) light colour × intensity hint (vec3). */
+export const uSunColor = uniform(new Color(1, 0.96, 0.9));
+/** Sky colour straight up (vec3). */
+export const uSkyZenith = uniform(new Color(0.35, 0.55, 0.9));
+/** Sky colour at the horizon / fog colour for distant clouds (vec3). */
+export const uSkyHorizon = uniform(new Color(0.8, 0.87, 0.95));
+/** 0 = full day, 1 = full night (float). */
+export const uNightFactor = uniform(0);
+
+// --- Sun model (placeholder)-------------------------------------------------
 // World frame: +Y up, the default camera looks down -Z into the open side of the
 // studio. The studio's windows face -X... see report / Studio.jsx for details.
 // Sun rises at SUNRISE in the east (+X), peaks at noon in the south (+Z, behind
