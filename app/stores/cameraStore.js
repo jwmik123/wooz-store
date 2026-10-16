@@ -55,9 +55,10 @@ const CAMERA_POSITIONS = {
   // panel on the right. `focus` = where the depth of field focuses (his chest).
   // Authored with Moos at his home spot; moosShot() moves the shot with him
   // (he strolls around the studio, see app/three/v2/moos/locomotion.js).
+  // Chat panel opens on the LEFT (next to Moos), so he sits right of centre.
   moos: {
     position: new THREE.Vector3(-0.12, -0.66, 3.55),
-    target: new THREE.Vector3(-1.17, -1.05, 0.89),
+    target: new THREE.Vector3(-2.03, -1.05, 1.42),
     focus: new THREE.Vector3(-1.6, -0.75, 1.15),
   },
   // Phones: the chat is a bottom sheet, so Moos sits in the top third.

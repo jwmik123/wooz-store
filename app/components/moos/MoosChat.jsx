@@ -246,8 +246,8 @@ export default function MoosChat() {
           aria-label="Praat met Moos"
           className={`fixed z-wz-panel wz-btn-primary wz-moos-launcher !gap-2.5 h-14 pl-1.5 pr-5 shadow-[0_10px_30px_-8px_rgb(var(--wz-ink)/0.55)] wz-focus
             transition-[transform,opacity] duration-wz-base ease-wz-out hover:scale-[1.03] active:scale-[0.97]
-            right-[var(--wz-panel-inset)] bottom-[calc(208px+var(--wz-panel-inset))]
-            ${sidebarOpen ? "max-md:opacity-0 max-md:pointer-events-none md:right-auto md:left-[var(--wz-panel-inset)] md:bottom-[calc(var(--wz-panel-inset)+56px)]" : ""}`}
+            left-[var(--wz-panel-inset)] bottom-[calc(var(--wz-panel-inset)+56px)]
+            ${sidebarOpen ? "max-md:opacity-0 max-md:pointer-events-none" : ""}`}
         >
           <span className="rounded-full ring-2 ring-[rgb(var(--wz-paper)/0.9)]">
             <MoosAvatar size={42} />
@@ -267,7 +267,7 @@ export default function MoosChat() {
           className={`fixed z-wz-panel flex flex-col overflow-hidden wz-glass text-ink
             inset-x-0 bottom-0 h-[64dvh] rounded-t-wz-xl
             md:inset-x-auto md:h-[min(560px,calc(100dvh-6rem))] md:w-[380px] md:rounded-wz-xl md:bottom-[var(--wz-panel-inset)]
-            ${sidebarOpen ? "md:left-[var(--wz-panel-inset)]" : "md:right-[var(--wz-panel-inset)]"}`}
+            md:left-[var(--wz-panel-inset)]`}
         >
           {/* Header (drag zone on mobile) */}
           <div
