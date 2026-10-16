@@ -48,8 +48,8 @@ const CAMERA_POSITIONS = {
   },
   // Phones: the chat is a bottom sheet, so Moos sits in the top third.
   moosMobile: {
-    position: new THREE.Vector3(0.4, -0.4, 5.2),
-    target: new THREE.Vector3(-0.82, -2.65, 1.85),
+    position: new THREE.Vector3(0.9, 0.1, 6.5),
+    target: new THREE.Vector3(-0.82, -3.4, 1.85),
     focus: new THREE.Vector3(-0.82, -0.75, 1.85),
   },
   lookbook: {
