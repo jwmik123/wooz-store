@@ -12,6 +12,7 @@ import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
 import Birds from "./Birds";
 import WindStrokes from "./wind/WindStrokes";
+import Moos from "./moos/Moos";
 import Debug from "./debug/Debug";
 import useDebug from "./debug/useDebug";
 
@@ -54,6 +55,7 @@ export default function Scene() {
           </StudioRoot>
           <Birds />
           <WindStrokes />
+          <Moos isMobile={isMobile} />
         </Suspense>
         {debug && <Debug />}
       </Canvas>
