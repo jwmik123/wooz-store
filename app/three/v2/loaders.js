@@ -3,17 +3,18 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
-// One KTX2Loader per renderer (it owns a transcoder worker pool).
-const ktx2Loaders = new WeakMap();
+// ONE KTX2Loader for the page (it owns a transcoder worker pool; three warns
+// about several active ones). The scene and the sidebar product viewer use the
+// same backend type (both WebGPU, or both WebGL2 with ?webgl), so the transcode
+// target detected on the first renderer is valid for both.
+let ktx2Loader = null;
 
 export function getKTX2Loader(renderer) {
-  let loader = ktx2Loaders.get(renderer);
-  if (!loader) {
-    loader = new KTX2Loader().setTranscoderPath("/basis/");
-    loader.detectSupport(renderer);
-    ktx2Loaders.set(renderer, loader);
+  if (!ktx2Loader) {
+    ktx2Loader = new KTX2Loader().setTranscoderPath("/basis/");
+    ktx2Loader.detectSupport(renderer);
   }
-  return loader;
+  return ktx2Loader;
 }
 
 /**
