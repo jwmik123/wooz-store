@@ -12,8 +12,8 @@ import Menu from "./components/Menu";
 import MoosChat from "./components/moos/MoosChat";
 import TimeClock from "./components/ui/TimeClock";
 import useSoundStore from "./stores/soundStore";
-import gsap from "gsap";
-import { X, AlignLeft } from "lucide-react";
+import { AlignLeft } from "lucide-react";
+import CinematicOverlay from "./components/cinematic/CinematicOverlay";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
@@ -27,8 +27,6 @@ export default function Home() {
   const soundOn = useSoundStore((s) => s.isSoundEnabled);
   const setSoundOn = (on) => useSoundStore.getState().setSoundEnabled(on);
 
-  const cinematic = cameraStore((state) => state.cinematic);
-  const setCinematic = cameraStore((state) => state.setCinematic);
   const resetCamera = cameraStore((state) => state.resetCamera);
   const bookVisible = collectionStore((state) => state.bookVisible);
   const setBookVisible = collectionStore((state) => state.setBookVisible);
@@ -42,37 +40,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    if (cinematic) {
-      gsap.to(".cin-top", {
-        duration: 1,
-        ease: "power1.inOut",
-        y: "0%",
-      });
-      gsap.to(".cin-bottom", {
-        duration: 1,
-        ease: "power1.inOut",
-        y: "0%",
-      });
-    } else {
-      gsap.to(".cin-top", {
-        duration: 1,
-        ease: "power1.inOut",
-        y: "-100%",
-      });
-      gsap.to(".cin-bottom", {
-        duration: 1,
-        ease: "power1.inOut",
-        y: "100%",
-      });
-    }
-  }, [cinematic]);
-
-  const handleClose = () => {
-    setCinematic(false);
-    resetCamera(introScreen);
-  };
-
   const handleCloseBook = () => {
     setBookVisible(false);
     resetCamera(introScreen);
@@ -80,33 +47,6 @@ export default function Home() {
 
   return (
     <main className="h-[100dvh] max-h-[100dvh] overflow-hidden">
-      <div onClick={() => handleClose()} className="pointer-events-auto ">
-        <div className="cin-top z-10 fixed top-0 left-0 w-full h-[11%] bg-black translate-y-[-100%]">
-          <X className="absolute text-white cursor-pointer right-4 top-4" />
-        </div>
-        <div className="cin-bottom z-10 fixed bottom-0 left-0 w-full h-[11%] text-sm bg-black translate-y-[100%]">
-          <div className="flex flex-col justify-center h-full ml-4 text-left text-white/80">
-            <div className="">
-              <span>Code by: Joël Mik </span>(
-              <a href="https://joelmik.nl" className="font-bold underline">
-                https://joelmik.nl
-              </a>
-              )
-            </div>
-            <div className="">
-              <span>3D Design by: Kevin Schipper </span>(
-              <a
-                href="https://kevinschipper.com"
-                className="font-bold underline"
-              >
-                https://kevinschipper.com
-              </a>
-              )
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="fixed z-wz-chrome flex items-center gap-1 p-1 rounded-full top-4 left-4 wz-glass-chip text-ink">
         <button
           type="button"
@@ -182,6 +122,7 @@ export default function Home() {
       <Navigation />
       <MoosChat />
       <TimeClock />
+      <CinematicOverlay />
     </main>
   );
 }

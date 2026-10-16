@@ -1,0 +1,107 @@
+/* Coffee-cup cinematic (CinematicOverlay.jsx). Tokens: docs/UI-TOKENS.md */
+
+.wz-cin {
+  position: fixed;
+  inset: 0;
+  z-index: 60; /* above the chrome (50) */
+  pointer-events: none;
+}
+
+/* Dissolve tint the reel cuts under (opacity driven by useCinematicReel). */
+.wz-cin-fade {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--wz-ink));
+  opacity: 0;
+}
+
+/* Thin letterbox bars, scaled in from the frame edges. */
+.wz-cin-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: clamp(36px, 7.5vh, 76px);
+  background: rgb(var(--wz-ink));
+  transform: scaleY(0);
+  display: flex;
+  align-items: center;
+  padding: 0 max(1.25rem, env(safe-area-inset-left));
+}
+.wz-cin-bar--top {
+  top: 0;
+  transform-origin: top;
+  justify-content: flex-end;
+  padding-top: env(safe-area-inset-top);
+}
+.wz-cin-bar--bottom {
+  bottom: 0;
+  transform-origin: bottom;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.wz-cin-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(var(--wz-paper) / 0.6);
+  opacity: 0;
+}
+.wz-cin-hint-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--wz-danger));
+  animation: wz-cin-rec 1.6s ease-in-out infinite;
+}
+@keyframes wz-cin-rec {
+  50% { opacity: 0.25; }
+}
+
+.wz-cin-credit {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 0.75rem;
+  row-gap: 0.1rem;
+  color: rgb(var(--wz-paper));
+  opacity: 0;
+}
+.wz-cin-credit-label {
+  color: rgb(var(--wz-paper) / 0.55);
+}
+.wz-cin-credit-name {
+  font-family: var(--wz-font-display);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  font-size: 17px;
+}
+.wz-cin-credit-link {
+  pointer-events: auto;
+  font-size: 13px;
+  color: rgb(var(--wz-paper) / 0.6);
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--wz-paper) / 0.25);
+  text-underline-offset: 3px;
+  transition: color var(--wz-dur-fast) var(--wz-ease-out);
+}
+.wz-cin-credit-link:hover {
+  color: rgb(var(--wz-paper));
+}
+
+/* Everything else steps aside while the reel runs. */
+html.wz-cinematic .z-wz-chrome,
+html.wz-cinematic .wz-clock,
+html.wz-cinematic .wz-moos-launcher,
+html.wz-cinematic .point,
+html.wz-cinematic #awwwards-embed,
+html.wz-cinematic #awwwards {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity var(--wz-dur-slow) var(--wz-ease-out), visibility 0s linear var(--wz-dur-slow) !important;
+}
+
+@media (max-width: 640px) {
+  .wz-cin-credit-name { font-size: 15px; }
+  .wz-cin-credit-link { font-size: 12px; }
+}

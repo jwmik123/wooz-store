@@ -92,6 +92,76 @@ const ENTER_VIA = {
   portrait: [new THREE.Vector3(0.55, -0.2, 10.2)],
 };
 
+/*
+ * Coffee-cup cinematic: a looping reel of slow shots (CameraRig plays them,
+ * app/components/cinematic/CinematicOverlay.jsx draws the letterbox, the
+ * dissolves and the credits). World coordinates; studio footprint
+ * x ±2.16, floor y -1.87, open front at z +3.48, coffee cup ≈ (-0.5, -1.13, 1.5).
+ *   from/to   { position, target } at the start / end of the shot
+ *   via       optional Catmull-Rom waypoints for the camera
+ *   focus     DOF subject [start, end] (a rack focus when they differ)
+ *   fov       vertical fov [start, end] (landscape; portrait widens it)
+ *   orbit     shot built around Moos' live position at the cut
+ */
+const v = (x, y, z) => new THREE.Vector3(x, y, z);
+const shot = (from, fromT, to, toT, rest) => ({
+  from: { position: v(...from), target: v(...fromT) },
+  to: { position: v(...to), target: v(...toT) },
+  ...rest,
+});
+export const CINEMATIC_SHOTS = [
+  // Slow dolly along the racks, the clothes swaying in the draught.
+  shot([1.35, -0.72, 0.9], [-0.7, -1.0, -2.6], [0.25, -0.82, -0.2], [-1.5, -1.05, -2.3], {
+    focus: [v(-1.2, -0.95, -1.8), v(-1.2, -0.95, -1.8)],
+    fov: [40, 36],
+    duration: 8,
+  }),
+  // Low macro push past the coffee cup, focus racks from the cup to the room.
+  shot([0.05, -1.02, 2.45], [-0.55, -1.12, 1.45], [-0.22, -1.06, 2.02], [-0.8, -1.05, 1.0], {
+    focus: [v(-0.5, -1.1, 1.5), v(-0.9, -0.85, -0.6)],
+    fov: [30, 27],
+    duration: 7.5,
+  }),
+  // Crane / orbit around Moos.
+  {
+    orbit: { radius: 2.0, height: [-1.0, -0.35], angle: [0.35, 1.25], look: -0.7 },
+    focus: "moos",
+    fov: [36, 34],
+    duration: 8.5,
+  },
+  // High above, down through the opened roof sash.
+  shot([1.1, 3.9, 2.2], [0.1, -1.6, -0.2], [0.35, 3.25, 0.4], [-0.35, -1.7, -1.0], {
+    focus: [v(0, -1.5, -0.5), v(-0.2, -1.6, -0.9)],
+    fov: [46, 42],
+    duration: 8,
+  }),
+  // Exterior: low through the grass and flowers towards the greenhouse.
+  shot([-3.4, -1.78, 9.2], [0.1, -0.7, 0.4], [-2.3, -1.72, 7.3], [-0.3, -0.6, 0.6], {
+    focus: [v(-2.9, -1.8, 8.2), v(-0.2, -0.6, 2.8)],
+    fov: [36, 33],
+    duration: 9,
+  }),
+  // Tracking shot down the garden path.
+  shot([1.9, -1.3, 16], [0.2, -0.85, 0], [0.95, -1.38, 9.2], [0, -0.8, 0], {
+    via: [v(1.45, -1.32, 12.6)],
+    focus: [v(0.2, -0.7, 3.4), v(0.1, -0.7, 3.4)],
+    fov: [44, 40],
+    duration: 8,
+  }),
+  // Close on the glass, the sky sliding across the side wall.
+  shot([3.6, 0.5, 2.4], [1.9, 1.35, -1.0], [3.1, 0.85, 0.3], [1.7, 1.6, -2.1], {
+    focus: [v(2.16, 1.1, 0.6), v(2.16, 1.3, -0.6)],
+    fov: [36, 32],
+    duration: 7,
+  }),
+  // Wide crane past the apple tree, the greenhouse in its garden.
+  shot([8.2, -0.9, 6.6], [-0.8, 0.2, -1.5], [7.0, 1.4, 8.6], [-0.6, 0.6, -1.8], {
+    focus: [v(0, -0.5, 0.5), v(0, -0.4, 0.5)],
+    fov: [48, 44],
+    duration: 8.5,
+  }),
+];
+
 /** Starting pose of the intro reveal (CameraRig holds it while the loader is up). */
 export const getIntroStart = () =>
   CAMERA_POSITIONS[isPortrait() ? "introPortraitStart" : "introStart"];
@@ -184,8 +254,14 @@ const useCameraStore = create((set, get) => ({
     set({ targetCameraTarget: new THREE.Vector3().copy(target) });
   },
 
+  /** Coffee-cup cinematic reel (CameraRig loops CINEMATIC_SHOTS while true). */
+  cinematic: false,
+  /** Index of the shot on screen (-1 between runs); drives the credits overlay. */
+  cinematicShot: -1,
   setCinematic: (cinematic) => {
-    set({ cinematic: cinematic });
+    if (cinematic === get().cinematic) return;
+    if (cinematic) set({ cinematic: true, cinematicShot: -1, preset: "cinematic", targetFocus: null });
+    else set({ cinematic: false, cinematicShot: -1 });
   },
 
   // Combined method to set both position and target
