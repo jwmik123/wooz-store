@@ -114,8 +114,23 @@ export const FINISH_PRESETS = {
     texture: 1,
     bump: 1,
   },
+  // Kalei plaster walls, glazed zellige wainscot (behind the racks), limed
+  // oak on the timber frame. `lower` = tile glaze, `brick` = bare oak tone.
+  "Atelier mix": {
+    kind: 3,
+    wallA: "#f4ece1",
+    wallB: "#e5d8c6",
+    lower: "#dde7da",
+    accent: "#f4ece1",
+    trim: "#b99b77",
+    timber: "#f0e7da",
+    brick: "#b48a63",
+    texture: 1,
+    bump: 1,
+    bandHeight: 1.15,
+  },
 };
-export const DEFAULT_PRESET = "Whitewashed brick";
+export const DEFAULT_PRESET = "Atelier mix";
 
 /** Live tunables (leva "Studio materials"). */
 export const finishUniforms = {
@@ -141,6 +156,7 @@ export function applyPresetColours(name) {
     finishUniforms[k].value.copy(lin(p[k]));
   finishUniforms.texture.value = p.texture;
   finishUniforms.bump.value = p.bump;
+  finishUniforms.bandHeight.value = p.bandHeight ?? 0.92;
   return p;
 }
 applyPresetColours(DEFAULT_PRESET);
@@ -172,9 +188,27 @@ function brickPattern(wuv) {
   return { mortar: mix(float(0.18), mortar, detail), face: face.mul(detail), rnd, detail };
 }
 
+/** Zellige: handmade 10×10 cm glazed tiles, 3 mm grout, pillowed edges. */
+function tilePattern(wuv) {
+  const size = float(0.103);
+  const q = wuv.div(size);
+  const cell = fract(q);
+  const id = floor(q);
+  const d = min(min(cell.x, cell.x.oneMinus()), min(cell.y, cell.y.oneMinus())).mul(size);
+  const w = max(fwidth(wuv.x), fwidth(wuv.y)).max(1e-5).mul(1.5);
+  const half = float(0.0015);
+  const detail = smoothstep(0.008, 0.003, w);
+  const grout = smoothstep(half.add(w), half.sub(w), d).mul(detail);
+  // Pillow: glaze rounds over the last ~8 mm of each tile.
+  const pillow = smoothstep(half, half.add(0.008), d).mul(detail);
+  const rnd = fract(sin(dot(id, vec2(12.9898, 78.233))).mul(43758.5453));
+  const rnd2 = fract(sin(dot(id, vec2(39.3468, 11.135))).mul(24634.6345));
+  return { grout, pillow, rnd, rnd2, detail };
+}
+
 /**
  * Builds the finish graph for the studio albedo node (linear vec3).
- * `kind`: 0 limewash, 1 two-tone, 2 brick. `view`: 0 final, 1 mask debug.
+ * `kind`: 0 limewash, 1 two-tone, 2 brick, 3 atelier mix. `view`: 0 final, 1 mask debug.
  * Returns { colorNode, normalNode, roughnessNode }.
  */
 export function createStudioFinish(albedoNode, { kind = 0, view = 0 } = {}) {
@@ -273,23 +307,62 @@ export function createStudioFinish(albedoNode, { kind = 0, view = 0 } = {}) {
       rough = float(0.88).add(b.mortar.mul(0.08));
     }
 
+    let wainscot = float(0);
+    if (kind === 3) {
+      // Kalei / tadelakt: burnished lime, soft clouds, glossier where the
+      // trowel polished it (stroke highs) — the sun shows the burnish.
+      const burnish = smoothstep(-0.1, 0.3, stroke);
+      wall = mix(U.wallA, U.wallB, cloudy.mul(0.85).mul(T)).mul(
+        float(1).add(mott.mul(0.18).mul(T)).add(grain.mul(0.01).mul(T)),
+      );
+      height = mott.mul(0.35).add(stroke.mul(0.45));
+      rough = mix(float(0.78), float(0.42), burnish.mul(T));
+
+      // Glazed tile wainscot up to bandHeight, with an oak cap rail.
+      wainscot = smoothstep(U.bandHeight.add(0.002), U.bandHeight.sub(0.002), h);
+      const t = tilePattern(wuv);
+      const glaze = U.lower
+        .mul(float(0.9).add(t.rnd.mul(0.16)))
+        .mul(float(1).add(t.rnd2.sub(0.5).mul(0.06)))
+        // glaze pools darker towards the tile edge
+        .mul(mix(float(0.9), float(1), t.pillow));
+      const groutCol = U.wallB.mul(0.92);
+      const tileCol = mix(glaze, groutCol, t.grout);
+      wall = mix(wall, tileCol, wainscot);
+      height = mix(height, t.pillow.mul(1.2).add(t.rnd2.mul(0.25)), wainscot);
+      rough = mix(rough, mix(float(0.18), float(0.8), t.grout), wainscot);
+    }
+
     // Grime + skirting near the floor (masonry only).
     const grime = smoothstep(0.32, 0.0, h).mul(float(0.55).add(mott)).clamp(0, 1);
-    wall = wall.mul(float(1).sub(grime.mul(0.07)));
+    wall = wall.mul(float(1).sub(grime.mul(0.07).mul(wainscot.oneMinus())));
     const skirting = smoothstep(0.092, 0.088, h);
     const dado =
       kind === 1
         ? smoothstep(0.012, 0.009, abs(h.sub(U.bandHeight))).mul(accentM.oneMinus())
-        : float(0);
+        : kind === 3
+          ? smoothstep(0.022, 0.018, abs(h.sub(U.bandHeight.add(0.015))))
+          : float(0);
     const trimM = max(skirting, dado);
     wall = mix(wall, U.trim.mul(float(1).add(grain.mul(0.03))), trimM);
     height = mix(height, float(1.4), trimM);
     rough = mix(rough, float(0.55), trimM);
 
     // ---- painted timber: same family, only a faint brushed grain.
-    const timberCol = U.timber.mul(
+    let timberCol = U.timber.mul(
       float(1).add(streak.mul(0.05).mul(T)).add(grain.mul(0.025).mul(T)),
     );
+    let timberH = streak.mul(0.08).add(grain.mul(0.01));
+    if (kind === 3) {
+      // Limed oak: long grain streaks (noise stretched ×25 along the member);
+      // the lime sits in the open grain, bare oak shows on the ridges.
+      const along = select(an.y.greaterThan(0.5), wuv, vec2(wuv.y, wuv.x));
+      const g = texture(noise, along.mul(vec2(1 / 0.03, 1 / 0.75)));
+      const fibre = smoothstep(0.35, 0.75, g.r.add(g.b.sub(0.5).mul(0.4)));
+      const lime = float(0.62).add(fibre.mul(0.33)).add(grain.mul(0.1)).clamp(0, 1);
+      timberCol = mix(U.brick, U.timber, mix(float(0.85), lime, T));
+      timberH = fibre.mul(0.35).add(grain.mul(0.02));
+    }
 
     // ---- floor: warm micro-cement, keeps the atlas' own value (+ rugs).
     const a = albedoNode.rgb;
@@ -311,7 +384,6 @@ export function createStudioFinish(albedoNode, { kind = 0, view = 0 } = {}) {
 
     // Per-class relief (metres ≈ value × 12 mm): plaster / brick, brushed paint
     // on the timber, a faint float-finish undulation on the floor.
-    const timberH = streak.mul(0.08).add(grain.mul(0.01));
     const floorH = mott.mul(0.25).add(stroke.mul(0.1));
     const hgt = height
       .mul(plaster)
