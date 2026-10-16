@@ -1,10 +1,35 @@
-import { Inter } from "next/font/google";
+import { Fraunces, Instrument_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "react-toastify";
 import Sound from "./components/Sound";
 import AwwwardsRibbon from "./components/AwwwardsRibbon";
-const inter = Inter({ subsets: ["latin"] });
+// Type system (see docs/UI-TOKENS.md):
+// - Fraunces: soft, slightly wonky display serif for titles & numbers.
+// - Instrument Sans: crisp grotesk for UI, labels and body copy.
+// - Libre Baskerville (local): legacy serif used by intro + menu modal.
+const display = Fraunces({
+  subsets: ["latin"],
+  axes: ["SOFT", "opsz"],
+  style: ["normal", "italic"],
+  variable: "--wz-font-display",
+  display: "swap",
+});
+const sans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--wz-font-sans",
+  display: "swap",
+});
+const libre = localFont({
+  src: [
+    { path: "../public/assets/fonts/libre-reg.ttf", weight: "400", style: "normal" },
+    { path: "../public/assets/fonts/libre-italic.ttf", weight: "400", style: "italic" },
+    { path: "../public/assets/fonts/libre-bold.ttf", weight: "700", style: "normal" },
+  ],
+  variable: "--wz-font-libre",
+  display: "swap",
+});
 
 export const metadata = {
   title: "WOOZ Experience",
@@ -37,14 +62,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${libre.variable}`}
+    >
       <head>
         <meta
           name="viewport"
           content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, width=device-width, user-scalable=no"
         />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <Sound />
         <GoogleAnalytics gaId="G-TDKEGF7JZ2" />
         {children}
