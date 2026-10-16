@@ -1,26 +1,241 @@
 "use client";
 
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { uSunDirection } from "../uniforms";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import {
+  Box3,
+  NeutralToneMapping,
+  Object3D,
+  PCFShadowMap,
+  Vector3,
+} from "three/webgpu";
+import { ATMOSPHERE_SETTINGS, SUN_MODEL, atmosphere } from "./atmosphere";
+import { timeSettings } from "../uniforms";
+import { skyNode, uMoonDirection, uSkyGround, uSunGlowColor } from "./sky";
+import { RACK_LIGHTS, TABLE_LAMP, uLampGlow } from "./interior";
+import LightingControls from "./LightingControls";
+import useDebug from "../debug/useDebug";
+import useEnvironmentStore from "../../../stores/environmentStore";
 
-// PLACEHOLDER light rig (workstream 0). The lighting workstream replaces this
-// file: sun through the windows, shadows, sky, night/interior lights.
-const SUN_DISTANCE = 15;
+/*
+ * Real-time lighting rig for the studio (workstream 1).
+ *
+ *  - ONE shadow-casting DirectionalLight = sun by day, moon by night
+ *    (direction/colour from ./atmosphere.js via the shared uniforms updater).
+ *    Its ortho shadow camera is fitted tightly around the studio in light space
+ *    and the 2048² map is only re-rendered when the light moved noticeably.
+ *  - HemisphereLight: sky dome above, warm floor bounce below (fake GI).
+ *  - 3 PointLights (no shadows) for the interior practicals; always present
+ *    (intensity 0 by day) so the light count never changes → no shader recompiles.
+ *  - scene.backgroundNode = TSL sky (gradient, sun/moon, stars).
+ *  - Tone mapping: Khronos PBR Neutral (keeps the pastel albedo true), exposure
+ *    adapts day↔night via renderer.toneMappingExposure ONLY, so a later
+ *    PostProcessing/renderOutput() pass picks it up unchanged.
+ */
+
+/** Studio + clothes bounds in world space (see Studio.jsx), with a little margin. */
+const STUDIO_BOUNDS = new Box3(new Vector3(-2.3, -2.15, -3.6), new Vector3(2.3, 2.3, 3.6));
+const STUDIO_CENTER = STUDIO_BOUNDS.getCenter(new Vector3());
+const LIGHT_DISTANCE = 12;
+
+export const shadowSettings = {
+  mapSize: 2048,
+  /** PCF filter radius in shadow-map texels (penumbra softness). */
+  radius: 3,
+  bias: -0.0004,
+  normalBias: 0.012,
+  /** Re-render the shadow map when the key light rotated more than this (degrees). */
+  updateThreshold: 0.1,
+  /**
+   * Extra periodic shadow refreshes per second (0 = only when the light moves).
+   * Raise this (e.g. 30) if animated geometry such as wind-blown clothes must
+   * cast moving shadows; or call requestShadowUpdate() yourself.
+   */
+  refreshHz: 24, // wind-blown clothes (wind/) need moving shadows
+};
+
+export const lightSettings = {
+  /** Interior practical lights strength at night (PointLight intensity, candela). */
+  tableLamp: 2.2,
+  rackLights: 1.6,
+};
+
+let shadowDirty = true;
+/** Ask for one shadow-map re-render on the next frame (e.g. after geometry changed). */
+export function requestShadowUpdate() {
+  shadowDirty = true;
+}
+
+const _corner = new Vector3();
+const _min = new Vector3();
+const _max = new Vector3();
+
+/** Fit the ortho shadow camera around STUDIO_BOUNDS as seen from the light. */
+function fitShadowCamera(light) {
+  const cam = light.shadow.camera;
+  light.updateMatrixWorld();
+  light.target.updateMatrixWorld();
+  light.shadow.updateMatrices(light);
+  _min.set(Infinity, Infinity, Infinity);
+  _max.set(-Infinity, -Infinity, -Infinity);
+  const { min, max } = STUDIO_BOUNDS;
+  for (let i = 0; i < 8; i++) {
+    _corner
+      .set(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z)
+      .applyMatrix4(cam.matrixWorldInverse);
+    _min.min(_corner);
+    _max.max(_corner);
+  }
+  cam.left = _min.x;
+  cam.right = _max.x;
+  cam.bottom = _min.y;
+  cam.top = _max.y;
+  cam.near = Math.max(0.1, -_max.z - 0.5);
+  cam.far = -_min.z + 0.5;
+  cam.updateProjectionMatrix();
+}
 
 export default function Lights() {
-  const sun = useRef();
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const getThree = useThree((s) => s.get);
+  const debug = useDebug();
 
-  useFrame(() => {
-    const d = uSunDirection.value;
-    // Keep a little light at night so the store stays readable until real night lighting exists.
-    sun.current.position.set(d.x, Math.max(d.y, 0.25), d.z).multiplyScalar(SUN_DISTANCE);
+  const key = useRef();
+  const hemi = useRef();
+  const lamp = useRef();
+  const racks = useRef([]);
+  const lastShadowDir = useRef(new Vector3(0, -1, 0));
+  const refreshAcc = useRef(0);
+  const settleFrames = useRef(0);
+
+  const target = useMemo(() => {
+    const o = new Object3D();
+    o.position.copy(STUDIO_CENTER);
+    return o;
+  }, []);
+
+  // Renderer + scene level setup.
+  useEffect(() => {
+    const prev = {
+      toneMapping: gl.toneMapping,
+      exposure: gl.toneMappingExposure,
+      shadowType: gl.shadowMap.type,
+      backgroundNode: scene.backgroundNode,
+    };
+    gl.toneMapping = NeutralToneMapping;
+    gl.shadowMap.enabled = true;
+    gl.shadowMap.type = PCFShadowMap;
+    scene.backgroundNode = skyNode;
+    scene.add(target);
+    if (debug) {
+      // debug: inspect scene/camera and drive the clock from devtools
+      window.__three = getThree;
+      window.__env = useEnvironmentStore;
+      window.__lighting = { atmosphere, timeSettings, shadowSettings, lightSettings, ATMOSPHERE_SETTINGS, SUN_MODEL };
+    }
+    return () => {
+      gl.toneMapping = prev.toneMapping;
+      gl.toneMappingExposure = prev.exposure;
+      gl.shadowMap.type = prev.shadowType;
+      scene.backgroundNode = prev.backgroundNode;
+      scene.remove(target);
+    };
+  }, [gl, scene, target, debug, getThree]);
+
+  // Shadow config (mapSize is read when the shadow map is created).
+  useEffect(() => {
+    const light = key.current;
+    light.target = target;
+    const s = light.shadow;
+    s.mapSize.set(shadowSettings.mapSize, shadowSettings.mapSize);
+    s.autoUpdate = false;
+    s.needsUpdate = true;
+    // Geometry streams in under Suspense: refresh a few times while it settles.
+    settleFrames.current = 240;
+  }, [target]);
+
+  useFrame((_, delta) => {
+    const a = atmosphere; // computed this frame by <SharedUniforms /> (priority -100)
+    const light = key.current;
+    const s = light.shadow;
+
+    // --- key light (sun / moon) ---
+    light.color.copy(a.keyColor);
+    light.intensity = a.keyIntensity;
+    light.position.copy(STUDIO_CENTER).addScaledVector(a.keyDirection, LIGHT_DISTANCE);
+    s.radius = shadowSettings.radius;
+    s.bias = shadowSettings.bias;
+    s.normalBias = shadowSettings.normalBias;
+
+    const moved =
+      lastShadowDir.current.angleTo(a.keyDirection) > (shadowSettings.updateThreshold * Math.PI) / 180;
+    refreshAcc.current += delta;
+    const periodic =
+      shadowSettings.refreshHz > 0 && refreshAcc.current >= 1 / shadowSettings.refreshHz;
+    let settle = false;
+    if (settleFrames.current > 0) {
+      settleFrames.current--;
+      settle = settleFrames.current % 30 === 0;
+    }
+    if (moved || periodic || settle || shadowDirty) {
+      fitShadowCamera(light);
+      s.needsUpdate = true;
+      lastShadowDir.current.copy(a.keyDirection);
+      refreshAcc.current = 0;
+      shadowDirty = false;
+    }
+
+    // --- fill ---
+    hemi.current.color.copy(a.hemiSky);
+    hemi.current.groundColor.copy(a.hemiGround);
+    hemi.current.intensity = a.hemiIntensity;
+
+    // --- practicals ---
+    const on = a.lamps;
+    lamp.current.intensity = on * lightSettings.tableLamp * 1;
+    for (const r of racks.current) r.intensity = on * lightSettings.rackLights;
+    uLampGlow.value = on;
+
+    // --- sky ---
+    uSkyGround.value.copy(a.ground);
+    uMoonDirection.value.copy(a.moonDirection);
+    uSunGlowColor.value.copy(a.keyColor).multiplyScalar(a.sunElevation > -3 ? 1 : 0);
+
+    // --- exposure (the only exposure knob; post's renderOutput reads it) ---
+    gl.toneMappingExposure = a.exposure;
   });
 
   return (
     <>
-      <hemisphereLight args={["#e8f2ff", "#c9b9a6", 1.6]} />
-      <directionalLight ref={sun} color="#fff4e2" intensity={2.2} />
+      <directionalLight
+        ref={key}
+        castShadow
+        intensity={3}
+        shadow-mapSize={[shadowSettings.mapSize, shadowSettings.mapSize]}
+      />
+      <hemisphereLight ref={hemi} args={["#cfe0f2", "#d8c8b4", 1]} />
+      <pointLight
+        ref={lamp}
+        position={TABLE_LAMP.position}
+        color={TABLE_LAMP.color}
+        intensity={0}
+        distance={6}
+        decay={2}
+      />
+      {RACK_LIGHTS.map((r, i) => (
+        <pointLight
+          key={i}
+          ref={(el) => (racks.current[i] = el)}
+          position={r.position}
+          color={r.color}
+          intensity={0}
+          distance={5}
+          decay={2}
+        />
+      ))}
+      {debug && <LightingControls />}
     </>
   );
 }
+

@@ -13,6 +13,7 @@ import Hotspots from "./Hotspots";
 import Birds from "./Birds";
 import Clouds from "./clouds/Clouds";
 import PostPipeline from "./post/PostPipeline";
+import WindStrokes from "./wind/WindStrokes";
 import Debug from "./debug/Debug";
 import useDebug from "./debug/useDebug";
 
@@ -55,6 +56,7 @@ export default function Scene() {
             <Hotspots isMobile={isMobile} />
           </StudioRoot>
           <Birds />
+          <WindStrokes />
         </Suspense>
         <PostPipeline />
         {debug && <Debug />}

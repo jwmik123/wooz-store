@@ -3,7 +3,7 @@ import { useProgress } from "@react-three/drei";
 import { gsap } from "gsap";
 import collectionStore from "../../stores/collectionStore";
 import SmoothProgress from "./SmoothProgress";
-import { InfoIcon, LoaderIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import useSoundStore from "../../stores/soundStore";
 
 const IntroScreen = () => {
@@ -57,50 +57,57 @@ const IntroScreen = () => {
     <>
       <div
         ref={welcomeRef}
-        className="fixed inset-0 z-50 items-center justify-center hidden opacity-0 font-libre"
+        className="fixed inset-0 z-50 flex-col items-center justify-between hidden px-6 opacity-0 pt-[14vh] pb-[7vh] text-ink"
       >
-        <div className="flex flex-col items-center gap-4 text-center text-primary">
-          <h2 className="text-3xl italic font-light">Welcome to</h2>
-          <h1 className="text-5xl font-base md:text-7xl">Wooz Studio</h1>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="wz-eyebrow !text-ink/70">Welcome to</span>
+          <h1 className="wz-display text-[clamp(3rem,2rem+5vw,6.5rem)] leading-[0.95] text-ink">
+            Wooz <em className="italic font-[350] text-primary">Studio</em>
+          </h1>
+          <p className="max-w-xs mt-2 text-wz-sm text-ink/75">
+            A tiny studio in the clouds. Tap a rack, play with the clothes, take something happy home.
+          </p>
+        </div>
 
+        <div className="flex flex-col items-center gap-3">
           <button
             onClick={() => handleButtonClick(true)}
-            className="px-6 py-3 mt-12 text-white uppercase duration-300 border-2 border-white rounded-lg transition-color hover:bg-transparent hover:text-primary bg-primary hover:border-primary"
+            className="h-14 px-8 wz-btn-primary text-wz-base"
           >
-            Start Experience
+            Start the experience
+          </button>
+          <button
+            onClick={() => handleButtonClick(false)}
+            className="px-3 py-2 text-sm underline rounded-full underline-offset-4 decoration-ink/30 hover:decoration-ink font-medium text-ink wz-focus"
+          >
+            Start without sound
           </button>
         </div>
-        <button
-          onClick={() => handleButtonClick(false)}
-          className="absolute w-full py-3 underline -translate-x-1/2 bottom-2 left-1/2 underline-offset-2 text-primary"
-        >
-          Start Experience without sound
-        </button>
       </div>
 
       <div
         ref={loadingRef}
-        className="fixed inset-0 z-50 flex items-center justify-center text-white bg-primary font-libre"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-primary text-paper"
         style={{
           clipPath: "circle(150% at 50% 50%)", // Initial state: full screen
         }}
       >
-        <div className="absolute flex flex-col items-center justify-center w-full h-full gap-2">
-          <SmoothProgress actualProgress={progress} />
-          <div className="mt-10 text-4xl font-light">
-            <LoaderIcon className="animate-spin" />
+        <div className="absolute flex flex-col items-center justify-center w-full h-full gap-6">
+          <span className="wz-eyebrow !text-paper/70">Opening the studio</span>
+          <div className="wz-display tabular-nums">
+            <SmoothProgress actualProgress={progress} />
           </div>
-          <div
-            className="fixed bottom-0 left-0 h-4 bg-white transition-[width] duration-300 will-change-transform"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="w-40 h-[3px] overflow-hidden rounded-full bg-paper/20" aria-hidden>
+            <div
+              className="h-full rounded-full bg-paper transition-[width] duration-300 ease-wz-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        <div className="absolute flex items-center gap-2 p-2 rounded-md bottom-2 left-2 bg-white/20 backdrop-blur-sm">
-          <InfoIcon className="w-6 h-6 cursor-pointer" />
-          <div className="text-center text-black">
-            click on the pulsing dots to interact.
-          </div>
+        <div className="absolute flex items-center gap-2 px-3 py-2 text-xs rounded-full bottom-4 left-4 bg-paper/15 backdrop-blur-sm text-paper">
+          <InfoIcon className="w-4 h-4" strokeWidth={1.75} />
+          <span>Tap the pulsing dots to explore.</span>
         </div>
       </div>
     </>

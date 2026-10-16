@@ -23,7 +23,7 @@ const SmoothProgress = ({ actualProgress }) => {
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
-      <div ref={progressRef} className="font-light text-7xl">
+      <div ref={progressRef} className="text-7xl md:text-8xl">
         0%
       </div>
     </div>

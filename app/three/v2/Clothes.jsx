@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import collectionStore from "../../stores/collectionStore";
 import { useBakedMaterial, useStudioGLTF } from "./Studio";
 import { openCollection, setPointerCursor } from "./interactions";
+import { bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
 
 // GLB node name prefix -> Shopify collection handle.
 // Node names look like `Polo2_Black_High.001` (sanitized to `Polo2_Black_High001`).
@@ -42,7 +43,13 @@ export function useClothingItems() {
  */
 export default function Clothes() {
   const groups = useClothingItems();
-  const material = useBakedMaterial();
+  const baked = useBakedMaterial();
+  // One shared wind material for all garments (per-vertex windData attribute).
+  const material = useMemo(() => createClothMaterial(baked), [baked]);
+  useMemo(() => {
+    for (const items of Object.values(groups))
+      for (const { node } of items) bakeWindAttribute(node.geometry, node.quaternion);
+  }, [groups]);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
   return Object.entries(groups).map(([type, items]) => (
