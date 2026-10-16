@@ -39,16 +39,16 @@ const IntroScreen = forwardRef(function IntroScreen(
             </em>
           </span>
         </h1>
-      </div>
-
-      <div className="flex flex-col items-center gap-5">
         <p
-          className="wz-intro-copy max-w-[21rem] md:max-w-[44rem] text-center text-wz-sm font-medium text-ink"
+          className="wz-intro-copy max-w-[21rem] md:max-w-[30rem] mt-2 text-center text-wz-sm font-medium text-ink"
           data-intro="copy"
         >
           A little glasshouse at the end of a wild garden. Wander in, try things
           on, take something happy home.
         </p>
+      </div>
+
+      <div className="flex flex-col items-center gap-5">
         <div
           className={`flex flex-col items-center gap-2 ${interactive ? "pointer-events-auto" : ""}`}
           data-intro="actions"
