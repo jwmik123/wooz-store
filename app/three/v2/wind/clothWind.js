@@ -120,11 +120,11 @@ export function createClothMaterial(baked) {
 
   // Displacement (metres, world space) of a world-space point `p`.
   const displace = (p, nrm) => {
-    const amp = uWindStrength.mul(uWindIndoor).mul(zone).mul(weight).mul(0.1);
+    const amp = uWindStrength.mul(uWindIndoor).mul(zone).mul(weight).mul(0.14);
     const main = sin(uTime.mul(0.5).sub(travel))
       .mul(0.5)
       .add(sin(uTime.mul(0.6).sub(travel.mul(1.3)).add(1.7)).mul(0.25))
-      .add(0.65);
+      .add(0.2); // mostly swing, little static lean — reads as movement
     const along = dir.mul(main.mul(gust).mul(amp));
     const lateral = side.mul(
       sin(uTime.mul(0.6).sub(travel.mul(0.8)).add(p.y.mul(3)).add(idPhase))

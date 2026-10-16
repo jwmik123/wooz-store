@@ -216,7 +216,8 @@ export default function Lights() {
     light.color.copy(a.keyColor);
     light.intensity = a.keyIntensity;
     light.position.copy(STUDIO_CENTER).addScaledVector(a.keyDirection, LIGHT_DISTANCE);
-    s.radius = shadowSettings.radius;
+    // Moonlight is soft: widen the penumbra at night so the pane pattern stays gentle.
+    s.radius = shadowSettings.radius * (1 + 2 * (a.night ?? 0));
     s.bias = shadowSettings.bias;
     s.normalBias = shadowSettings.normalBias;
 

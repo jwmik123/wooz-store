@@ -110,7 +110,7 @@ const SUN_KEYS = [
   [90, "#fff6ec", 4.4],
 ].map(([e, c, i]) => ({ e, color: srgb(c), intensity: i }));
 
-const MOON_COLOR = srgb("#9db4ea");
+const MOON_COLOR = srgb("#b9c5df"); // soft silver, not saturated blue (sits better with the warm lamps)
 
 function sampleKeys(keys, e, fn) {
   if (e <= keys[0].e) return fn(keys[0], keys[0], 0);
@@ -130,7 +130,7 @@ function sampleKeys(keys, e, fn) {
 
 export const ATMOSPHERE_SETTINGS = {
   sunIntensity: 1, // multiplier on SUN_KEYS intensity
-  moonIntensity: 0.4, // DirectionalLight.intensity of the moon
+  moonIntensity: 0.22, // DirectionalLight.intensity of the moon (subtle: the lamps carry the night)
   ambientIntensity: 1, // multiplier on the hemisphere fill keyframes
   bounce: 0.7, // floor/ground bounce strength relative to the sky fill
   exposureDay: 1.2,

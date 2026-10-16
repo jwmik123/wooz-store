@@ -7,6 +7,7 @@ import { createSceneRenderer, getBackendName } from "./renderer";
 import { SharedUniforms } from "./uniforms";
 import CameraRig from "./CameraRig";
 import Lights from "./lighting/Lights";
+import RackSpots from "./lighting/RackSpots";
 import Studio, { StudioRoot } from "./Studio";
 import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
@@ -57,6 +58,7 @@ export default function Scene() {
         <WarmUp />
         <CameraRig debug={debug} isMobile={isMobile} />
         <Lights />
+        <RackSpots />
         <Clouds />
         <Garden isMobile={isMobile} />
         <Suspense fallback={null}>

@@ -1,5 +1,6 @@
 import { DirectionalLight } from "three/webgpu";
 import { lights } from "three/tsl";
+import { rackSpots } from "./RackSpots";
 
 /**
  * The single shadow-casting key light (sun by day, moon by night). Created at
@@ -11,8 +12,8 @@ keyLight.name = "keyLight";
 keyLight.castShadow = true;
 
 /**
- * Real-time lights for lightmapped materials (studio shell + garments): only the
- * key light. Sky fill, bounce and the interior lamps come from the lightmap, so
+ * Real-time lights for lightmapped materials (studio shell + garments): the
+ * key light + the rack track spots (night only). Sky fill, bounce and the interior lamps come from the lightmap, so
  * the hemisphere + point lights in the scene don't touch these pixels.
  */
-export const bakedLightsNode = lights([keyLight]);
+export const bakedLightsNode = lights([keyLight, ...rackSpots]);
