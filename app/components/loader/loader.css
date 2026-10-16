@@ -1,0 +1,254 @@
+/*
+ * Loader + intro (components/loader). Tokens from app/globals.css.
+ * Everything that moves during loading animates transform/opacity only, so it
+ * keeps running on the compositor while the main thread parses GLBs.
+ */
+
+.wz-loader {
+  --sky-top: rgb(108 155 214);
+  --sky-bottom: rgb(214 229 242);
+  --wz-loader-ink: rgb(var(--wz-ink));
+  --wz-loader-soft: rgb(var(--wz-ink) / 0.62);
+  --wz-loader-leaf: rgb(var(--wz-leaf));
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: auto;
+  color: var(--wz-loader-ink);
+}
+.wz-loader[data-mood="night"] {
+  --wz-loader-ink: rgb(var(--wz-paper) / 0.92);
+  --wz-loader-soft: rgb(var(--wz-paper) / 0.6);
+  --wz-loader-leaf: rgb(126 205 150);
+}
+.wz-loader[data-done] {
+  pointer-events: none;
+}
+
+/* ── Sky curtain: the visitor's current sky, lifts off like morning mist ── */
+.wz-loader-sky {
+  position: absolute;
+  inset: 0 0 -40vh 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--sky-top) 62%, var(--sky-bottom)) 0%,
+    var(--sky-bottom) 58%,
+    var(--sky-bottom) 100%
+  );
+  /* Feathered lower edge (only visible once the curtain lifts). */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 40vh), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 40vh), transparent 100%);
+  will-change: transform, opacity;
+}
+
+.wz-loader-cloud {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0) 100%);
+  animation: wz-drift 38s linear infinite;
+  will-change: transform;
+}
+.wz-loader[data-mood="night"] .wz-loader-cloud {
+  opacity: 0.12;
+}
+.wz-loader[data-mood="golden"] .wz-loader-cloud {
+  background: radial-gradient(closest-side, rgb(255 236 214 / 0.8), rgb(255 236 214 / 0) 100%);
+}
+@keyframes wz-drift {
+  from { transform: translateX(-12vw); }
+  to { transform: translateX(12vw); }
+}
+
+.wz-loader-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  animation: wz-twinkle 3.6s ease-in-out infinite;
+}
+.wz-loader:not([data-mood="night"]) .wz-loader-star {
+  display: none;
+}
+@keyframes wz-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.9; }
+}
+
+/* ── Stage: sprout + caption ── */
+.wz-loader-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 0 16px;
+  will-change: transform, opacity;
+}
+.wz-loader-brand {
+  position: absolute;
+  top: max(1.5rem, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--wz-loader-soft);
+}
+.wz-loader-foot {
+  position: absolute;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--wz-loader-soft);
+}
+
+.wz-sprout {
+  width: min(78vw, 400px);
+  height: auto;
+  overflow: visible;
+}
+.wz-sprout-line {
+  stroke: var(--wz-loader-ink);
+  stroke-width: 1.6;
+}
+.wz-sprout-stem {
+  stroke: var(--wz-loader-leaf);
+  stroke-width: 2.4;
+}
+.wz-sprout-seed {
+  fill: var(--wz-loader-ink);
+}
+.wz-sprout-leaf {
+  fill: var(--wz-loader-leaf);
+}
+.wz-sprout-vein {
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 1;
+}
+.wz-sprout-petal {
+  stroke: var(--wz-loader-ink);
+  stroke-width: 1.3;
+}
+.wz-sprout-face {
+  fill: rgb(var(--wz-leaf));
+  stroke: var(--wz-loader-ink);
+  stroke-width: 1.3;
+}
+.wz-sprout-eye {
+  fill: rgb(var(--wz-paper));
+}
+.wz-sprout-wink {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.wz-sprout-smile {
+  stroke: rgb(var(--wz-paper));
+  stroke-width: 2.2;
+}
+.wz-sprout-blade {
+  stroke-width: 1.6;
+  stroke: var(--wz-loader-leaf);
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: wz-blade 3.2s ease-in-out infinite alternate;
+}
+.wz-sprout-blade[data-tone="1"] {
+  stroke: var(--wz-loader-ink);
+  opacity: 0.55;
+}
+.wz-sprout-blade[data-tone="2"] {
+  opacity: 0.8;
+}
+@keyframes wz-blade {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+.wz-sprout-sway {
+  transform-origin: 120px 250px;
+  animation: wz-sway 4.8s ease-in-out infinite alternate;
+}
+@keyframes wz-sway {
+  from { transform: rotate(-2.2deg); }
+  to { transform: rotate(2.2deg); }
+}
+
+.wz-loader-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 1.5rem;
+  color: var(--wz-loader-soft);
+}
+.wz-loader-label {
+  display: inline-block;
+  min-width: 11.5em;
+  text-align: right;
+  transition: opacity var(--wz-dur-base) var(--wz-ease-out);
+}
+.wz-loader-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  align-self: center;
+}
+.wz-loader-num {
+  font-family: var(--wz-font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 24;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2em;
+  text-align: left;
+  color: var(--wz-loader-ink);
+}
+
+/* ── Intro chrome: floating UI waits until the visitor steps inside ── */
+html[data-wz-stage]:not([data-wz-stage="inside"]) .z-wz-chrome {
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -12px;
+}
+/* `translate` composes with the chips' own transforms (centring, hover scale). */
+html[data-wz-stage="inside"] .z-wz-chrome {
+  transition:
+    opacity 0.8s var(--wz-ease-out) 0.1s,
+    translate 1s var(--wz-ease-out) 0.1s,
+    transform var(--wz-dur-fast) var(--wz-ease-out),
+    visibility 0s;
+}
+
+/* ── Welcome (title + buttons over the intro shot) ── */
+.wz-welcome-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+.wz-welcome-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-loader-cloud,
+  .wz-loader-star,
+  .wz-sprout-blade,
+  .wz-sprout-sway {
+    animation: none;
+  }
+}
+
+.wz-loader .wz-eyebrow {
+  color: var(--wz-loader-soft);
+}
+
+/* Copy over the garden: a soft paper halo keeps it legible on grass and path. */
+.wz-intro-copy {
+  text-shadow:
+    0 0 1px rgb(var(--wz-paper) / 0.9),
+    0 0 10px rgb(var(--wz-paper) / 0.85),
+    0 0 22px rgb(var(--wz-paper) / 0.6);
+}

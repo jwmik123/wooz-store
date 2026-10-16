@@ -3,10 +3,11 @@
 import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { Vector3 } from "three/webgpu";
+import { CatmullRomCurve3, Vector3 } from "three/webgpu";
 import gsap from "gsap";
 import collectionStore from "../../stores/collectionStore";
-import useCameraStore from "../../stores/cameraStore";
+import useCameraStore, { getIntroStart } from "../../stores/cameraStore";
+import useLoadingStore from "../../components/loader/loadingStore";
 import useMoosStore from "../../stores/moosStore";
 import { setOverlayPointsVisible } from "./interactions";
 
@@ -47,18 +48,30 @@ function getDeviceOffset() {
  * (framed with room for the panel), otherwise the overview / intro shot.
  */
 function restCamera(isMobile) {
+  // The loader holds the reveal's start pose; the intro choreography moves on from there.
+  if (!useLoadingStore.getState().revealed) return;
   const camera = useCameraStore.getState();
   const { introScreen } = collectionStore.getState();
-  if (!introScreen && useMoosStore.getState().open)
-    camera.updateCameraConfig(isMobile ? "moosMobile" : "moos");
+  const moos = !introScreen && useMoosStore.getState().open;
+  const preset = moos ? (isMobile ? "moosMobile" : "moos") : introScreen ? "intro" : "default";
+  // Already there (e.g. the enter move just landed on the overview): no re-tween.
+  if (camera.preset === preset) return;
+  if (moos) camera.updateCameraConfig(preset);
   else camera.resetCamera(introScreen);
 }
 
 export default function CameraRig({ debug, isMobile = false }) {
   const controls = useRef();
-  const position = useRef(new Vector3(0, 1, 20));
-  const target = useRef(new Vector3());
+  // Start at the intro reveal's first frame (held while the loader is up).
+  const position = useRef(null);
+  const target = useRef(null);
+  if (!position.current) {
+    const start = getIntroStart();
+    position.current = new Vector3().copy(start.position);
+    target.current = new Vector3().copy(start.target);
+  }
   const animating = useRef(true);
+  const move = useRef(null);
   const mouse = useRef({ x: 0, y: 0 });
   const parallax = useRef(new Vector3());
   const points = useRef([]);
@@ -78,7 +91,58 @@ export default function CameraRig({ debug, isMobile = false }) {
         onComplete: () => (animating.current = false),
       });
     };
+    // Choreographed intro moves (cameraStore INTRO_MOVES): one tween drives the
+    // position along a path and the look target with its own ease.
+    const playMove = (m, toPosition, toTarget) => {
+      gsap.killTweensOf(position.current);
+      gsap.killTweensOf(target.current);
+      move.current?.kill();
+      move.current = null;
+      if (!m.duration) {
+        position.current.copy(toPosition);
+        target.current.copy(toTarget);
+        animating.current = false;
+        return;
+      }
+      const path = new CatmullRomCurve3(
+        [position.current.clone(), ...(m.via ?? []).map((v) => v.clone()), toPosition.clone()],
+        false,
+        "centripetal"
+      );
+      const fromTarget = target.current.clone();
+      const lookEase = gsap.parseEase(m.lookEase ?? m.ease);
+      const lead = 1 + (m.lookLead ?? 0);
+      const s = { t: 0 };
+      animating.current = true;
+      const tween = gsap.to(s, {
+        t: 1,
+        duration: m.duration,
+        ease: m.ease,
+        onUpdate: () => {
+          path.getPointAt(Math.min(1, s.t), position.current);
+          // Look target: own ease on linear time, slightly ahead (the head turns first).
+          const lt = lookEase(Math.min(1, tween.progress() * lead));
+          target.current.lerpVectors(fromTarget, toTarget, lt);
+        },
+        onComplete: () => {
+          position.current.copy(toPosition);
+          target.current.copy(toTarget);
+          animating.current = false;
+          move.current = null;
+        },
+      });
+      move.current = tween;
+    };
     return useCameraStore.subscribe((state, prev) => {
+      if (state.move !== prev.move && state.move) {
+        playMove(state.move, state.targetCameraPosition, state.targetCameraTarget);
+        return;
+      }
+      if (state.targetCameraPosition !== prev.targetCameraPosition || state.targetCameraTarget !== prev.targetCameraTarget) {
+        // Any other camera request interrupts a running intro move.
+        move.current?.kill();
+        move.current = null;
+      }
       if (state.targetCameraPosition !== prev.targetCameraPosition)
         tweenTo(position.current, state.targetCameraPosition);
       if (state.targetCameraTarget !== prev.targetCameraTarget)

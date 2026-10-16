@@ -29,6 +29,7 @@ import useAutoFocus from "./useAutoFocus";
 import { lensBlur } from "./lensBlur";
 import useCameraStore from "../../../stores/cameraStore";
 import { useTierSettings } from "../perf/quality";
+import { focusPull } from "./focusOverride";
 
 /*
  * Post pipeline (three RenderPipeline + TSL):
@@ -53,8 +54,12 @@ const uBokehScale = uniform(3);
 const uBlurStrength = uniform(1);
 const uAoIntensity = uniform(1);
 
-/** The live pipeline (null when post is off); read by debug/perfTools.js. */
-export const postState = { pipeline: null };
+/**
+ * The live pipeline (null when post is off); read by debug/perfTools.js.
+ * `scenePass` + `samples`: the scene pass the loader's shader warm-up
+ * (loading/WarmUp.jsx) compiles against, so its pipelines match the pass target.
+ */
+export const postState = { pipeline: null, scenePass: null, samples: 0 };
 
 function buildPipeline(renderer, scene, camera, opts) {
   const pipeline = new RenderPipeline(renderer);
@@ -128,7 +133,7 @@ function buildPipeline(renderer, scene, camera, opts) {
   }
 
   pipeline.outputNode = out;
-  return { pipeline, scenePass, aoNode, bloomNode };
+  return { pipeline, scenePass, samples: msaa ? opts.samples : 0, aoNode, bloomNode };
 }
 
 /**
@@ -188,8 +193,13 @@ export default function PostPipeline() {
 
   useEffect(() => {
     postState.pipeline = post?.pipeline ?? null;
+    postState.scenePass = post?.scenePass ?? null;
+    postState.samples = post?.samples ?? 0;
     return () => {
-      if (postState.pipeline === post?.pipeline) postState.pipeline = null;
+      if (postState.pipeline === post?.pipeline) {
+        postState.pipeline = null;
+        postState.scenePass = null;
+      }
       post?.pipeline.dispose();
     };
   }, [post]);
@@ -201,6 +211,13 @@ export default function PostPipeline() {
   }, [post, c.bloomStrength, c.bloomThreshold]);
 
   const focus = useAutoFocus(uFocusDistance);
+
+  // Focus override (./focusOverride.js), applied after the autofocus wrote this frame's value.
+  useFrame(() => {
+    const a = focusPull.amount;
+    uBlurStrength.value = c.blur * (1 + a * focusPull.blur);
+    if (a > 0) uFocusDistance.value += (focusPull.distance - uFocusDistance.value) * a;
+  });
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
