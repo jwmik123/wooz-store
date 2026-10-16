@@ -13,24 +13,13 @@ import { setOverlayPointsVisible } from "./interactions";
 import { moosBody } from "./moos/moosBody";
 import useCinematicReel from "./useCinematicReel";
 
-// Overlay "pulsing dot" anchors in WORLD coordinates (.point-N elements in Overlay.jsx).
-const POINTS = [
-  [0, -1, -3],
-  [-1.2, -1, -1.8],
-  [1.1, -1, -1.8],
-  [1.55, -1, -0.4],
-  [0.6, -1.1, 1.7],
-  [0, -1.1, 1.7],
-  [-0.5, -1.18, 1.5],
-].map((p) => new Vector3(...p));
-
 const DEFAULT_POSITION = new Vector3(0, 0, 5);
 const TWEEN = { duration: 1.5, ease: "power2.out", overwrite: true };
 
 /**
  * Drives the camera from cameraStore (gsap tween per change, not per frame),
- * adds a subtle mouse parallax at the default view, and projects the HTML
- * overlay points. OrbitControls are interactive only in #debug.
+ * and adds a subtle mouse parallax at the default view. OrbitControls are
+ * interactive only in #debug.
  */
 /**
  * Where the camera rests when no rack is open: Moos while his chat is open
@@ -63,7 +52,6 @@ export default function CameraRig({ debug, isMobile = false }) {
   const move = useRef(null);
   const mouse = useRef({ x: 0, y: 0 });
   const parallax = useRef(new Vector3());
-  const points = useRef([]);
   // Coffee-cup cinematic: loops its shots on the same position/target refs.
   useCinematicReel(position, target, animating);
 
@@ -145,7 +133,7 @@ export default function CameraRig({ debug, isMobile = false }) {
   useEffect(() => {
     if (!sidebarOpen) {
       restCamera(isMobile);
-      // Hotspot dots only once inside (they clutter the intro shot).
+      // Garment tags only once inside (they clutter the intro shot).
       setOverlayPointsVisible(!introScreen);
     }
   }, [sidebarOpen, introScreen, isMobile]);
@@ -176,10 +164,6 @@ export default function CameraRig({ debug, isMobile = false }) {
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("keydown", onKey);
-    points.current = POINTS.map((p, i) => ({
-      position: p,
-      element: document.querySelector(`.point-${i}`),
-    }));
     const t = setTimeout(
       () => setOverlayPointsVisible(!collectionStore.getState().introScreen),
       1000
@@ -194,7 +178,7 @@ export default function CameraRig({ debug, isMobile = false }) {
   const projected = useRef(new Vector3());
   const moosAnchor = useRef({ x: null, z: null });
 
-  useFrame(({ camera, size }, delta) => {
+  useFrame(({ camera }, delta) => {
     const c = controls.current;
     if (c && (!debug || animating.current)) {
       // Subtle parallax only at the overview position.
@@ -225,17 +209,6 @@ export default function CameraRig({ debug, isMobile = false }) {
         followMoos();
       }
     } else anchor.x = null;
-
-    // Project in canvas CSS pixels: the dots' overlay covers the canvas exactly,
-    // so no viewport/address-bar guesswork (real phones differ from emulation).
-    const { width: w, height: h } = size;
-    for (const point of points.current) {
-      if (!point.element) continue;
-      projected.current.copy(point.position).project(camera);
-      const x = (projected.current.x * w) / 2;
-      const y = -(projected.current.y * h) / 2;
-      point.element.style.transform = `translateX(${x}px) translateY(${y}px)`;
-    }
   });
 
   return (

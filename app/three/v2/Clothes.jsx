@@ -8,7 +8,9 @@ import { applyBakedLighting, useBakedMaterial, useStudioGLTF } from "./Studio";
 import { openCollection, setPointerCursor } from "./interactions";
 import useDebug from "./debug/useDebug";
 import { uWindIndoor } from "./uniforms";
-import { bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
+import { bakeRackId, bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
+import { RACK_IDS, finePointer, setGlowRack, useRackHover } from "./tags/tagState";
+import { rackLabel } from "./tags/tagLayout";
 
 // GLB node name prefix -> Shopify collection handle.
 // Node names look like `Polo2_Black_High.001` (sanitized to `Polo2_Black_High001`).
@@ -101,14 +103,18 @@ export default function Clothes() {
   const baked = useBakedMaterial();
   // One shared wind material for all garments (per-vertex windData attribute).
   // Garments live in the same bake atlas → same lightmapped lighting (lighting/).
-  const material = useMemo(
-    () => applyBakedLighting(createClothMaterial(baked), baked.colorNode, baked.userData.lightmaps),
-    [baked]
-  );
+  const material = useMemo(() => {
+    const m = applyBakedLighting(createClothMaterial(baked), baked.colorNode, baked.userData.lightmaps);
+    // Hover rim glow + idle light sweep (tags/tagState.js uniforms).
+    m.emissiveNode = m.emissiveNode.add(m.userData.highlightNode);
+    return m;
+  }, [baked]);
   useMemo(() => {
-    for (const items of Object.values(groups))
-      for (const { node } of items)
+    for (const [type, items] of Object.entries(groups))
+      for (const { node } of items) {
         bakeWindAttribute(node.geometry, node.quaternion);
+        bakeRackId(node.geometry, RACK_IDS[type] ?? -2);
+      }
   }, [groups]);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
@@ -123,13 +129,21 @@ export default function Clothes() {
             e.stopPropagation();
             setPointerCursor(true);
             setSelectedCollection(type);
+            if (finePointer()) {
+              setGlowRack(type);
+              useRackHover.setState({ label: rackLabel(type, items) });
+            }
           }}
           onPointerOut={() => {
             setPointerCursor(false);
             setSelectedCollection(null);
+            setGlowRack(null);
+            useRackHover.setState({ label: null });
           }}
           onClick={(e) => {
             e.stopPropagation();
+            setGlowRack(null);
+            useRackHover.setState({ label: null });
             openCollection(type);
           }}
         >
