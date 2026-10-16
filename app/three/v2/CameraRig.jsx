@@ -7,6 +7,7 @@ import { Vector3 } from "three/webgpu";
 import gsap from "gsap";
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
+import useMoosStore from "../../stores/moosStore";
 import { setOverlayPointsVisible } from "./interactions";
 
 // Overlay "pulsing dot" anchors in WORLD coordinates (.point-N elements in Overlay.jsx).
@@ -41,7 +42,19 @@ function getDeviceOffset() {
  * adds a subtle mouse parallax at the default view, and projects the HTML
  * overlay points. OrbitControls are interactive only in #debug.
  */
-export default function CameraRig({ debug }) {
+/**
+ * Where the camera rests when no rack is open: Moos while his chat is open
+ * (framed with room for the panel), otherwise the overview / intro shot.
+ */
+function restCamera(isMobile) {
+  const camera = useCameraStore.getState();
+  const { introScreen } = collectionStore.getState();
+  if (!introScreen && useMoosStore.getState().open)
+    camera.updateCameraConfig(isMobile ? "moosMobile" : "moos");
+  else camera.resetCamera(introScreen);
+}
+
+export default function CameraRig({ debug, isMobile = false }) {
   const controls = useRef();
   const position = useRef(new Vector3(0, 1, 20));
   const target = useRef(new Vector3());
@@ -73,13 +86,29 @@ export default function CameraRig({ debug }) {
     });
   }, []);
 
-  // Back to the overview whenever the sidebar closes or the intro is dismissed.
+  // Back to the rest shot whenever the sidebar closes or the intro is dismissed.
   useEffect(() => {
     if (!sidebarOpen) {
-      useCameraStore.getState().resetCamera(introScreen);
+      restCamera(isMobile);
       setOverlayPointsVisible(true);
     }
-  }, [sidebarOpen, introScreen]);
+  }, [sidebarOpen, introScreen, isMobile]);
+
+  // Moos chat: dolly to him when it opens, back to the overview when it closes.
+  // A rack (sidebar), the cinematic shot or the lookbook keep the camera.
+  useEffect(
+    () =>
+      useMoosStore.subscribe((s, prev) => {
+        if (s.open === prev.open) return;
+        const { sidebarOpen: shop, introScreen: intro, bookVisible } =
+          collectionStore.getState();
+        const { preset, cinematic } = useCameraStore.getState();
+        if (shop || intro || bookVisible || cinematic) return;
+        if (s.open) restCamera(isMobile);
+        else if (preset === "moos" || preset === "moosMobile") restCamera(isMobile);
+      }),
+    [isMobile]
+  );
 
   useEffect(() => {
     const onMove = (e) => {

@@ -53,7 +53,7 @@ export default function Scene() {
       >
         <SharedUniforms />
         <QualityMonitor />
-        <CameraRig debug={debug} />
+        <CameraRig debug={debug} isMobile={isMobile} />
         <Lights />
         <Clouds />
         <Garden isMobile={isMobile} />

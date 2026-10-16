@@ -10,7 +10,9 @@ import useCameraStore from "../../../stores/cameraStore";
  * the shot is about and keep that world point as the focus point:
  *  - destination outside the studio (intro, overview): the studio's centre;
  *  - inside (rack close-ups, cinematic): ONE ray from the destination along
- *    its look direction against the studio + clothes.
+ *    its look direction against the studio + clothes;
+ *  - a preset with an explicit `focus` (cameraStore, e.g. the Moos chat shot)
+ *    uses that point.
  * Each frame the focus distance is the focus point's depth along the *current*
  * view direction, eased, so focus pulls smoothly during the camera tween and
  * the mouse parallax never refocuses.
@@ -78,11 +80,15 @@ export default function useAutoFocus(focusUniform, { smoothing = 3.5 } = {}) {
   useFrame(({ camera }, delta) => {
     const s = state.current;
     if (s.pending) {
-      const { targetCameraPosition: from, targetCameraTarget: to } =
+      const { targetCameraPosition: from, targetCameraTarget: to, targetFocus } =
         useCameraStore.getState();
       // Wait until the studio is loaded (otherwise the ray only finds the sky).
       const studio = scene.getObjectByName("studio");
-      if (studio && findFocusPoint(scene, studio, from, to, s.point)) s.pending = false;
+      if (targetFocus) {
+        // The shot names its subject (e.g. Moos: his skinned mesh is not raycastable).
+        s.point.copy(targetFocus);
+        s.pending = false;
+      } else if (studio && findFocusPoint(scene, studio, from, to, s.point)) s.pending = false;
     }
     camera.getWorldDirection(_fwd);
     const target = Math.min(

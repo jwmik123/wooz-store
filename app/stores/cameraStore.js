@@ -32,6 +32,19 @@ const CAMERA_POSITIONS = {
     position: new THREE.Vector3(0, 0.7, 20),
     target: new THREE.Vector3(0, -0.35, 0),
   },
+  // Chat with Moos (CameraRig): frame him left of centre, room for the chat
+  // panel on the right. `focus` = where the depth of field focuses (his chest).
+  moos: {
+    position: new THREE.Vector3(-0.12, -0.66, 3.55),
+    target: new THREE.Vector3(-1.17, -1.05, 0.89),
+    focus: new THREE.Vector3(-1.6, -0.75, 1.15),
+  },
+  // Phones: the chat is a bottom sheet, so Moos sits in the top third.
+  moosMobile: {
+    position: new THREE.Vector3(0.4, -0.4, 5.2),
+    target: new THREE.Vector3(-0.82, -2.65, 1.85),
+    focus: new THREE.Vector3(-0.82, -0.75, 1.85),
+  },
   lookbook: {
     position: new THREE.Vector3(1, 0, 2),
     target: new THREE.Vector3(1, -5, 0),
@@ -42,11 +55,19 @@ const useCameraStore = create((set) => ({
   // Camera positions
   targetCameraPosition: new THREE.Vector3(),
   targetCameraTarget: new THREE.Vector3(),
+  /** Explicit DOF focus point for the current shot (null = autofocus raycast). */
+  targetFocus: null,
+  /** Name of the last preset (updateCameraConfig / resetCamera), null after manual moves. */
+  preset: null,
 
   // Methods
   setCameraPosition: (position) => {
     useSoundStore.getState().playSound("swoosh");
-    set({ targetCameraPosition: new THREE.Vector3().copy(position) });
+    set({
+      targetCameraPosition: new THREE.Vector3().copy(position),
+      targetFocus: null,
+      preset: null,
+    });
   },
 
   setCameraTarget: (target) => {
@@ -65,6 +86,8 @@ const useCameraStore = create((set) => ({
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
+      targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
+      preset: CAMERA_POSITIONS[type] ? type : "default",
     });
   },
 
@@ -77,6 +100,8 @@ const useCameraStore = create((set) => ({
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
+      targetFocus: null,
+      preset: isIntroScreen ? "intro" : "default",
     });
   },
 }));
