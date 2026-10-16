@@ -7,11 +7,13 @@ import {
   Frustum,
   MathUtils,
   Matrix4,
+  MeshBasicNodeMaterial,
   MeshStandardNodeMaterial,
   Quaternion,
   Sphere,
   Vector3,
 } from "three/webgpu";
+import { float, smoothstep, uv, vec3 } from "three/tsl";
 import { useGLTFv2 } from "../loaders";
 import { setPointerCursor } from "../interactions";
 import useMoosStore, { MOOS_ANIMATIONS } from "../../../stores/moosStore";
@@ -80,6 +82,24 @@ function prepare(gltf) {
   return rig;
 }
 
+/**
+ * Soft contact shadow / ambient-occlusion blob under his feet. Moos has no
+ * lightmap, and the sun's shadow map alone leaves his shoes looking like they
+ * float when the sun is high or behind him. Multiplies the floor towards a
+ * soft dark ellipse (stronger right under the shoes), no lighting cost.
+ */
+function makeContactShadowMaterial() {
+  const m = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
+  m.name = "moosContactShadow";
+  const p = uv().sub(0.5).mul(2);
+  const r = p.length();
+  const soft = smoothstep(1, 0.15, r).mul(0.32);
+  const core = smoothstep(0.55, 0.1, r).mul(0.22);
+  m.colorNode = vec3(0.09, 0.11, 0.1);
+  m.opacityNode = soft.add(core).min(float(0.5));
+  return m;
+}
+
 function useMoosModel() {
   const gltf = useGLTFv2(MOOS_URL);
   return useMemo(() => {
@@ -95,8 +115,10 @@ export default function Moos({ isMobile = false }) {
   const position = isMobile ? MOOS_POSITION_MOBILE : MOOS_POSITION;
   const { scene, rig, poses, relaxed } = useMoosModel();
   const group = useRef();
+  const blob = useRef();
   const camera = useThree((s) => s.camera);
   const pointer = useThree((s) => s.pointer);
+  const contactShadowMaterial = useMemo(makeContactShadowMaterial, []);
 
   // Animation state lives in refs: the store is read imperatively each frame.
   const state = useRef({
@@ -249,6 +271,12 @@ export default function Moos({ isMobile = false }) {
     // ---- write bones ------------------------------------------------------
     for (const name of rig.order) applyOffset(rig.info[name], targets[name]);
     g.position.y = position[1] + state.hop;
+    // Contact shadow stays on the floor while he hops (and fades a little).
+    if (blob.current) {
+      blob.current.position.y = 0.004 - state.hop / MOOS_SCALE;
+      const k = 1 - state.hop * 6;
+      blob.current.scale.set(0.78 * k, 0.5 * k, 1);
+    }
   });
 
   return (
@@ -260,6 +288,18 @@ export default function Moos({ isMobile = false }) {
       scale={MOOS_SCALE}
     >
       <primitive object={scene} />
+      <mesh
+        ref={blob}
+        name="moosContactShadow"
+        rotation-x={-Math.PI / 2}
+        position={[0, 0.004, 0.02]}
+        scale={[0.78, 0.5, 1]}
+        renderOrder={1}
+        material={contactShadowMaterial}
+        raycast={() => null}
+      >
+        <planeGeometry args={[1, 1]} />
+      </mesh>
       {/* cheap click/hover target instead of raycasting the skinned mesh */}
       <mesh
         position={[0, 0.9, 0]}
