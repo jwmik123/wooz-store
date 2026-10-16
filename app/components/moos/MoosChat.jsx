@@ -313,7 +313,7 @@ export default function MoosChat() {
                   data-reveal
                   className="px-4 py-2.5 text-wz-base rounded-wz-md rounded-tl-wz-xs w-fit max-w-[88%] bg-mint text-ink"
                 >
-                  Hoi! Ik ben Moos. Zin om samen door de studio te struinen?
+                  Hi! I’m Moos. Fancy a wander through the studio together?
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1" data-reveal>
                   {STARTERS.map((s) => (
