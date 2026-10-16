@@ -33,7 +33,6 @@ import {
   sin,
   smoothstep,
   varying,
-  vec2,
   vec3,
   vec4,
 } from "three/tsl";
@@ -48,7 +47,6 @@ import {
   minWidthScale,
   mownAmount,
   mulberry32,
-  pathX,
   terrainHeight,
   wildness,
   windLean,
