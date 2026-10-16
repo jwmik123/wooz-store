@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { InfoIcon } from "lucide-react";
-import { useRackHover } from "../v2/tags/tagState";
+import { useRackHover } from "../v2/signs/signState";
 
 /**
- * Small chip next to the cursor while a rack / garment tag is hovered
+ * Small chip next to the cursor while a rack / signboard / table piece is hovered
  * ("Hoodies · 4 colours"). Positioned from pointermove events only.
  */
 function HoverChip() {
@@ -48,7 +48,7 @@ const PointsOfInterest = () => {
         />
         {showInfo && (
           <div className="text-center text-black">
-            tap a hanging tag (or a rack) to shop it.
+            tap a rack (or its sign) to shop it.
           </div>
         )}
       </div>

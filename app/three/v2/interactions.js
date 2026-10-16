@@ -1,16 +1,16 @@
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore from "../../stores/cameraStore";
-import { setTagsVisible } from "./tags/tagState";
+import { setSignsVisible } from "./signs/signState";
 
 export const setPointerCursor = (on) => {
   document.body.style.cursor = on ? "pointer" : "auto";
 };
 
 /**
- * Show / hide the in-world garment tags (tags/Tags.jsx, fade). Kept under its
- * old name: the call sites (intro, cinematic, sidebar...) predate the tags.
+ * Show / hide the rack signboards (signs/Signs.jsx, fade). Kept under its
+ * old name: the call sites (intro, cinematic, sidebar...) predate the signs.
  */
-export const setOverlayPointsVisible = (visible) => setTagsVisible(visible);
+export const setOverlayPointsVisible = (visible) => setSignsVisible(visible);
 
 /** Open the sidebar for a collection and fly the camera to its preset. */
 export function openCollection(type) {

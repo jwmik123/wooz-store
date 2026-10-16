@@ -133,7 +133,7 @@ export default function CameraRig({ debug, isMobile = false }) {
   useEffect(() => {
     if (!sidebarOpen) {
       restCamera(isMobile);
-      // Garment tags only once inside (they clutter the intro shot).
+      // Rack signs only once inside (they clutter the intro shot).
       setOverlayPointsVisible(!introScreen);
     }
   }, [sidebarOpen, introScreen, isMobile]);

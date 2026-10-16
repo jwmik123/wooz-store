@@ -12,7 +12,7 @@ import Studio, { StudioRoot } from "./Studio";
 import Glass from "./glass/Glass";
 import Clothes from "./Clothes";
 import Hotspots from "./Hotspots";
-import Tags from "./tags/Tags";
+import Signs from "./signs/Signs";
 import Birds from "./Birds";
 import Clouds from "./clouds/Clouds";
 import Garden from "./garden/Garden";
@@ -69,7 +69,7 @@ export default function Scene() {
             <Clothes />
             <Hotspots isMobile={isMobile} />
           </StudioRoot>
-          <Tags isMobile={isMobile} />
+          <Signs />
           <Glass />
           <Birds />
           <WindStrokes />

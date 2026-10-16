@@ -9,8 +9,8 @@ import { openCollection, setPointerCursor } from "./interactions";
 import useDebug from "./debug/useDebug";
 import { uWindIndoor } from "./uniforms";
 import { bakeRackId, bakeWindAttribute, createClothMaterial } from "./wind/clothWind";
-import { RACK_IDS, finePointer, setGlowRack, useRackHover } from "./tags/tagState";
-import { rackLabel } from "./tags/tagLayout";
+import { RACK_IDS, finePointer, setGlowRack, useRackHover } from "./signs/signState";
+import { rackLabel } from "./signs/signLayout";
 
 // GLB node name prefix -> Shopify collection handle.
 // Node names look like `Polo2_Black_High.001` (sanitized to `Polo2_Black_High001`).
@@ -105,7 +105,7 @@ export default function Clothes() {
   // Garments live in the same bake atlas → same lightmapped lighting (lighting/).
   const material = useMemo(() => {
     const m = applyBakedLighting(createClothMaterial(baked), baked.colorNode, baked.userData.lightmaps);
-    // Hover rim glow + idle light sweep (tags/tagState.js uniforms).
+    // Hover rim glow + idle light sweep (signs/signState.js uniforms).
     m.emissiveNode = m.emissiveNode.add(m.userData.highlightNode);
     return m;
   }, [baked]);
