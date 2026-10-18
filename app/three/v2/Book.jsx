@@ -131,11 +131,12 @@ const pageMaterials = [
 // first opens (Hotspots.jsx mounts <Book /> lazily).
 
 const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
+  // 2048-px JPGs (the 6000-px originals cost ~90 MB of GPU memory per page).
   const [picture, picture2, pictureRoughness] = useTexture([
-    `/assets/lookbook/${front}.webp`,
-    `/assets/lookbook/${back}.webp`,
+    `/assets/lookbook/${front}.2k.jpg`,
+    `/assets/lookbook/${back}.2k.jpg`,
     ...(number === 0 || number === pages.length - 1
-      ? [`/assets/lookbook/book-cover-roughness.jpg`]
+      ? [`/assets/lookbook/book-cover-roughness.2k.jpg`]
       : []),
   ]);
 

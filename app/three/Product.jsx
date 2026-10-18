@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
+import { getKTX2Loader } from "./v2/loaders";
 import { useGLTF } from "@react-three/drei";
 import { WiggleBone } from "wiggle/spring";
 import * as THREE from "three";
@@ -8,40 +9,40 @@ import * as THREE from "three";
 // Colourway -> baked texture per garment.
 const TEXTURES = {
   hoodie: {
-    "Dark grey/Taupe": "/assets/hoodie/hoodie_darkgrey.jpg",
-    "Sage Green": "/assets/hoodie/hoodie_green.jpg",
-    "Light Grey": "/assets/hoodie/hoodie_grey.jpg",
-    Black: "/assets/hoodie/hoodie_black.jpg",
+    "Dark grey/Taupe": "/assets/hoodie/hoodie_darkgrey.ktx2",
+    "Sage Green": "/assets/hoodie/hoodie_green.ktx2",
+    "Light Grey": "/assets/hoodie/hoodie_grey.ktx2",
+    Black: "/assets/hoodie/hoodie_black.ktx2",
   },
   splatter: {
-    "Sky Blue": "/assets/splatter/splatter_blue.jpg",
-    White: "/assets/splatter/splatter_white.jpg",
-    "Foam Green": "/assets/splatter/splatter_green.jpg",
+    "Sky Blue": "/assets/splatter/splatter_blue.ktx2",
+    White: "/assets/splatter/splatter_white.ktx2",
+    "Foam Green": "/assets/splatter/splatter_green.ktx2",
   },
   polo: {
-    White: "/assets/polo/polo_white.jpg",
-    Black: "/assets/polo/polo_black.jpg",
-    "Ice Blue": "/assets/polo/polo_lightblue.jpg",
-    Navy: "/assets/polo/polo_darkblue.jpg",
-    Green: "/assets/polo/polo_green.jpg",
-    "Light Grey Melange": "/assets/polo/polo_grey.jpg",
+    White: "/assets/polo/polo_white.ktx2",
+    Black: "/assets/polo/polo_black.ktx2",
+    "Ice Blue": "/assets/polo/polo_lightblue.ktx2",
+    Navy: "/assets/polo/polo_darkblue.ktx2",
+    Green: "/assets/polo/polo_green.ktx2",
+    "Light Grey Melange": "/assets/polo/polo_grey.ktx2",
   },
   longsleeve: {
-    White: "/assets/longsleeve/longsleeve_white.jpg",
-    Black: "/assets/longsleeve/longsleeve_black.jpg",
-    Brown: "/assets/longsleeve/longsleeve_brown.jpg",
-    Green: "/assets/longsleeve/longsleeve_green.jpg",
-    Blue: "/assets/longsleeve/longsleeve_blue.jpg",
+    White: "/assets/longsleeve/longsleeve_white.ktx2",
+    Black: "/assets/longsleeve/longsleeve_black.ktx2",
+    Brown: "/assets/longsleeve/longsleeve_brown.ktx2",
+    Green: "/assets/longsleeve/longsleeve_green.ktx2",
+    Blue: "/assets/longsleeve/longsleeve_blue.ktx2",
   },
-  totebag: { Beige: "/assets/totebag/totebag.jpg" },
+  totebag: { Beige: "/assets/totebag/totebag.ktx2" },
 };
 
 const DEFAULT_TEXTURE = {
-  hoodie: "/assets/hoodie/hoodie_black.jpg",
-  splatter: "/assets/splatter/splatter_blue.jpg",
-  polo: "/assets/polo/polo_black.jpg",
-  longsleeve: "/assets/longsleeve/longsleeve_black.jpg",
-  totebag: "/assets/totebag/totebag.jpg",
+  hoodie: "/assets/hoodie/hoodie_black.ktx2",
+  splatter: "/assets/splatter/splatter_blue.ktx2",
+  polo: "/assets/polo/polo_black.ktx2",
+  longsleeve: "/assets/longsleeve/longsleeve_black.ktx2",
+  totebag: "/assets/totebag/totebag.ktx2",
 };
 
 const WIGGLE_BONES = {
@@ -85,12 +86,13 @@ export default function Product({
 }) {
   const handle = productHandle || "hoodie";
   const { scene: gltfScene, nodes } = useGLTF(`/models/${handle}.glb`);
-  const texture = useLoader(THREE.TextureLoader, textureFor(handle, selectedColor));
+  const gl = useThree((s) => s.gl);
+  // Colourways are KTX2 (ETC1S): ~4× less GPU memory, no main-thread decode on swatch clicks.
+  const ktx2 = getKTX2Loader(gl);
+  const texture = useLoader(ktx2, textureFor(handle, selectedColor));
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.flipY = false;
   texture.anisotropy = 4;
 
-  const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
 
   const fitRef = useRef();
@@ -112,10 +114,8 @@ export default function Product({
 
   // Preload the other colourways of this garment so swatch clicks never suspend.
   useEffect(() => {
-    Object.values(TEXTURES[handle] || {}).forEach((url) =>
-      useLoader.preload(THREE.TextureLoader, url)
-    );
-  }, [handle]);
+    Object.values(TEXTURES[handle] || {}).forEach((url) => useLoader.preload(ktx2, url));
+  }, [handle, ktx2]);
 
   // Fit any garment into the same frame regardless of its authored scale.
   const fit = useMemo(() => {
@@ -330,9 +330,6 @@ export default function Product({
   );
 }
 
-Object.values(DEFAULT_TEXTURE).forEach((url) =>
-  useLoader.preload(THREE.TextureLoader, url)
-);
 useGLTF.preload("/models/hoodie.glb");
 useGLTF.preload("/models/splatter.glb");
 useGLTF.preload("/models/polo.glb");
