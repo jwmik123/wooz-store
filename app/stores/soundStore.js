@@ -3,7 +3,9 @@ import { create } from "zustand";
 class Sound {
   constructor(url, options = {}) {
     if (typeof window !== "undefined") {
-      this.audio = new Audio(url);
+      this.audio = new Audio();
+      this.audio.preload = "none"; // nothing downloads until sound is actually played
+      this.audio.src = url;
       this.audio.volume = 0;
       this.audio.loop = options.loop ?? false;
       this.targetVolume = options.volume ?? 1;

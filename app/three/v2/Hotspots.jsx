@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import collectionStore from "../../stores/collectionStore";
 import { Book } from "./Book";
 import { openCollection, openTablePiece, setPointerCursor } from "./interactions";
@@ -40,6 +41,11 @@ function HitBox({ size, position, onClick, hover = true, onOver, onOut }) {
 
 export default function Hotspots({ isMobile }) {
   const bookVisible = collectionStore((s) => s.bookVisible);
+  // Mount the book (and fetch its pages) the first time it opens, then keep it.
+  const [bookOpened, setBookOpened] = useState(false);
+  useEffect(() => {
+    if (bookVisible) setBookOpened(true);
+  }, [bookVisible]);
   const setSelectedCollection = collectionStore((s) => s.setSelectedCollection);
 
   return (
@@ -99,7 +105,11 @@ export default function Hotspots({ isMobile }) {
             rotation-y={Math.PI * 0.2}
             rotation-z={Math.PI / 2}
           >
-            <Book />
+            {bookOpened && (
+              <Suspense fallback={null}>
+                <Book />
+              </Suspense>
+            )}
           </group>
         </>
       )}

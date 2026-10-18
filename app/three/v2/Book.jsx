@@ -127,15 +127,8 @@ const pageMaterials = [
   }),
 ];
 
-pages.forEach((page) => {
-  try {
-    useTexture.preload(`/assets/lookbook/${page.front}.webp`);
-    useTexture.preload(`/assets/lookbook/${page.back}.webp`);
-    useTexture.preload(`/assets/lookbook/book-cover-roughness.jpg`);
-  } catch (error) {
-    console.error("Failed to preload texture:", error);
-  }
-});
+// No module-level preload: the ~7 MB of lookbook pages load when the book
+// first opens (Hotspots.jsx mounts <Book /> lazily).
 
 const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
   const [picture, picture2, pictureRoughness] = useTexture([
