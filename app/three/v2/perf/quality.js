@@ -48,6 +48,16 @@ export function tierDpr(tier, mobile = isMobileDevice()) {
 }
 
 const forced = urlTier();
+
+// Phones: no depth of field and a thinner meadow on every tier — they load and
+// compile faster, and on a small screen the DOF is barely visible anyway.
+const PHONE_GRASS = 0.55;
+if (!forced && isMobileDevice()) {
+  for (const t of Object.values(TIERS)) {
+    t.dof = false;
+    t.grass *= PHONE_GRASS;
+  }
+}
 const startTier = forced ?? (isMobileDevice() ? "medium" : "high");
 
 const useQualityStore = create((set, get) => ({
