@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { postState } from "../post/PostPipeline";
 import useQualityStore, { isMobileDevice } from "../perf/quality";
 import useLoadingStore from "../../../components/loader/loadingStore";
+import { debugCompile, startCompileStats } from "./compileStats";
 
 /*
  * Loader ↔ renderer hand-shake: keeps every shader compile and resize hitch
@@ -36,7 +37,8 @@ const REVEAL_SAMPLE_MS = 6000;
 
 const dev = process.env.NODE_ENV === "development";
 
-async function compileScene(gl, scene, camera) {
+async function compileScene(gl, scene, camera, label = "compile") {
+  const diag = debugCompile() ? startCompileStats(gl, scene) : null;
   const pass = postState.scenePass;
   const prevTarget = gl.getRenderTarget();
   const prevMRT = gl.getMRT();
@@ -58,15 +60,23 @@ async function compileScene(gl, scene, camera) {
   let promise;
   try {
     // The synchronous part of compileAsync collects the render list; restore right after.
-    promise = gl.compileAsync(scene, camera, null, (e) =>
-      useLoadingStore.getState().setCompile(e.total ? e.loaded / e.total : 1)
-    );
+    promise = gl.compileAsync(scene, camera, null, (e) => {
+      diag?.onProgress(e);
+      useLoadingStore.getState().setCompile(e.total ? e.loaded / e.total : 1);
+    });
   } finally {
     for (const o of culled) o.frustumCulled = true;
     gl.setRenderTarget(prevTarget);
     gl.setMRT(prevMRT);
   }
-  await promise;
+  try {
+    await promise;
+  } finally {
+    if (diag) {
+      const loading = useLoadingStore.getState();
+      loading.setCompileStats([...(loading.compileStats ?? []), diag.finish(label)]);
+    }
+  }
 }
 
 export default function WarmUp() {
@@ -143,7 +153,7 @@ export default function WarmUp() {
         get().setFrameloop("never");
         useLoadingStore.getState().mark("recompile");
         try {
-          await compileScene(gl, scene, camera);
+          await compileScene(gl, scene, camera, "recompile");
         } catch {
           /* best effort */
         }

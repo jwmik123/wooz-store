@@ -15,12 +15,14 @@ import { create } from "zustand";
  * `rawProgress(now)` maps that to 0..1; the loader smooths it (monotonic).
  */
 
+// Shares follow measured phone timings (iPhone 17 Pro Max, Safari, 5G / wifi):
+// boot ~1.5–2.7 s, assets ~1–1.3 s, compile ~7 s, calibrate + settle ~0.7 s.
 export const PHASES = [
-  { id: "boot", to: 0.08, creep: 1.6 },
-  { id: "assets", to: 0.7, creep: 6 },
-  { id: "compile", to: 0.88, creep: 2 },
-  { id: "calibrate", to: 0.96, creep: 1.2 },
-  { id: "settle", to: 1, creep: 0.8 },
+  { id: "boot", to: 0.15, creep: 1.5 },
+  { id: "assets", to: 0.28, creep: 1.2 },
+  { id: "compile", to: 0.92, creep: 4 },
+  { id: "calibrate", to: 0.97, creep: 0.5 },
+  { id: "settle", to: 1, creep: 0.3 },
 ];
 
 /** Lower bound for the byte total, so early requests don't read as "done". */
@@ -46,6 +48,8 @@ const useLoadingStore = create((set, get) => ({
   stage: "loading",
   /** Diagnostics (dev overlay / report). */
   timings: {},
+  /** ?debug: shader warm-up breakdown (loading/compileStats.js). */
+  compileStats: null,
 
   setPhase: (phase) => {
     const s = get();
@@ -65,6 +69,7 @@ const useLoadingStore = create((set, get) => ({
     })),
   /** Diagnostic timestamp without a phase change (?debug timings overlay). */
   mark: (name) => set((s) => ({ timings: { ...s.timings, [name]: Math.round(now()) } })),
+  setCompileStats: (compileStats) => set({ compileStats }),
   setCompile: (compile) => set({ compile }),
   setSettle: (settle) => set({ settle }),
   setCompiled: () => set({ compiled: true }),

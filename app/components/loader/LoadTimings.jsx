@@ -92,6 +92,20 @@ function report(s, q) {
   lines.push("");
   lines.push("— marks (ms since nav) —");
   for (const [k, label] of MARKS) if (t[k] != null) lines.push(`${String(t[k]).padStart(6)}  ${label}`);
+  for (const c of s.compileStats ?? []) {
+    lines.push("");
+    lines.push(`— ${c.label}: ${c.wallMs} ms wall (scheduler.yield ${c.native ? "native" : "missing → rAF"}) —`);
+    lines.push(`objects ${c.objects} · meshes ${c.meshes} · materials ${c.materials} · geometries ${c.geometries}`);
+    lines.push(`new pipelines ${c.newPipelines} (created ${c.pipelines}) · programs ${c.programs}`);
+    lines.push(`node build  ${String(c.nodeMs).padStart(6)} ms  ×${c.nodeBuilds} (incl. its yields)`);
+    lines.push(`pipeline    ${String(c.pipelineMs).padStart(6)} ms  ×${c.pipelines}`);
+    lines.push(`shader mod  ${String(c.shaderModuleMs).padStart(6)} ms  ×${c.shaderModules}`);
+    lines.push(`yields      ${String(c.yieldMs).padStart(6)} ms  ×${c.yields} (waiting, not working)`);
+    lines.push(`→ work ≈ ${c.wallMs - c.yieldMs} ms`);
+    lines.push(`types ${Object.entries(c.types).map(([k, v]) => `${k.replace("NodeMaterial", "")}:${v}`).join(" ")}`);
+  }
+  const pipes = window.__renderer?._pipelines?.caches?.size;
+  if (pipes != null) lines.push(`pipelines in cache now ${pipes}`);
   lines.push("");
   lines.push("— downloads > 100 KB (start → end, KB) —");
   for (const r of resourceRows())
