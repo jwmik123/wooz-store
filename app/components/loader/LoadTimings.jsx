@@ -94,7 +94,7 @@ function report(s, q) {
   for (const [k, label] of MARKS) if (t[k] != null) lines.push(`${String(t[k]).padStart(6)}  ${label}`);
   for (const c of s.compileStats ?? []) {
     lines.push("");
-    lines.push(`— ${c.label}: ${c.wallMs} ms wall (scheduler.yield ${c.native ? "native" : "missing → rAF"}) —`);
+    lines.push(`— ${c.label}: ${c.wallMs} ms wall (scheduler.yield ${c.native ? "native" : c.fastYield ? "fastYield shim" : "missing → rAF"}) —`);
     lines.push(`objects ${c.objects} · meshes ${c.meshes} · materials ${c.materials} · geometries ${c.geometries}`);
     lines.push(`new pipelines ${c.newPipelines} (created ${c.pipelines}) · programs ${c.programs}`);
     lines.push(`node build  ${String(c.nodeMs).padStart(6)} ms  ×${c.nodeBuilds} (incl. its yields)`);

@@ -6,6 +6,7 @@ import { postState } from "../post/PostPipeline";
 import useQualityStore, { isMobileDevice } from "../perf/quality";
 import useLoadingStore from "../../../components/loader/loadingStore";
 import { debugCompile, startCompileStats } from "./compileStats";
+import { installFastYield } from "./fastYield";
 
 /*
  * Loader ↔ renderer hand-shake: keeps every shader compile and resize hitch
@@ -38,6 +39,8 @@ const REVEAL_SAMPLE_MS = 6000;
 const dev = process.env.NODE_ENV === "development";
 
 async function compileScene(gl, scene, camera, label = "compile") {
+  // Safari: no frame wait per yield (fastYield.js). Installed before the stats wrap it.
+  const restoreYield = installFastYield();
   const diag = debugCompile() ? startCompileStats(gl, scene) : null;
   const pass = postState.scenePass;
   const prevTarget = gl.getRenderTarget();
@@ -76,6 +79,7 @@ async function compileScene(gl, scene, camera, label = "compile") {
       const loading = useLoadingStore.getState();
       loading.setCompileStats([...(loading.compileStats ?? []), diag.finish(label)]);
     }
+    restoreYield();
   }
 }
 

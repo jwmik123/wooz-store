@@ -21,7 +21,8 @@ const ms = (n) => Math.round(n);
 export function startCompileStats(gl, scene) {
   const t0 = performance.now();
   const stats = {
-    native: Boolean(self.scheduler?.yield),
+    native: Boolean(self.scheduler?.yield) && !self.scheduler.__wzFastYield,
+    fastYield: Boolean(self.scheduler?.__wzFastYield),
     objects: 0,
     nodeBuilds: 0,
     nodeMs: 0,
