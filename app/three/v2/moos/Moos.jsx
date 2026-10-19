@@ -24,7 +24,8 @@ import { CLIPS, LOOK_BONES, buildRig, rotateBoneWorld } from "./rig";
 import { MOOS_FLOOR_Y, MOOS_HOME, MOOS_HOME_MOBILE, moosBody } from "./moosBody";
 import { STOPS, Walker, buildPath, nearestStop, pickStop, turnTowards } from "./locomotion";
 
-export const MOOS_URL = "/models/v2/moos.glb";
+import { MOOS_URL } from "../../../components/loader/criticalAssets";
+export { MOOS_URL };
 
 /*
  * Moos: Meshy mesh + UAL-compatible skeleton + baked Quaternius UAL clips

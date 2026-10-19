@@ -25,8 +25,8 @@ import META from "./lightmap.json";
  * written per frame by <Lights /> from lighting/atmosphere.js.
  */
 
-export const LIGHTMAP_SKY_URL = "/models/v2/studio-lm-sky.ktx2";
-export const LIGHTMAP_AUX_URL = "/models/v2/studio-lm-aux.ktx2";
+// Prefetched by the loader (components/loader/criticalAssets.js).
+export { LIGHTMAP_SKY_URL, LIGHTMAP_AUX_URL } from "../../../components/loader/criticalAssets";
 export const LIGHTMAP_META = META;
 
 /** Linear sky-dome radiance the sky map is multiplied with (vec3). */

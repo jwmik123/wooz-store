@@ -2,10 +2,11 @@ import { useRef, useMemo } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { BIRD_URL } from "../../components/loader/criticalAssets";
 
 function Bird({ timeOffset = 0, ...props }) {
   const group = useRef();
-  const { scene, animations } = useGLTF("/models/bird.glb");
+  const { scene, animations } = useGLTF(BIRD_URL);
   const clone = useMemo(() => cloneSkinned(scene), [scene]);
   const { nodes, materials } = useGraph(clone);
   const { actions } = useAnimations(animations, group);
@@ -62,4 +63,4 @@ export default function Birds() {
   );
 }
 
-useGLTF.preload("/models/bird.glb");
+useGLTF.preload(BIRD_URL);

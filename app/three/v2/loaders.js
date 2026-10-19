@@ -2,6 +2,7 @@ import { useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { BASIS_PATH } from "../../components/loader/criticalAssets";
 
 // ONE KTX2Loader for the page (it owns a transcoder worker pool; three warns
 // about several active ones). The scene and the sidebar product viewer use the
@@ -11,7 +12,7 @@ let ktx2Loader = null;
 
 export function getKTX2Loader(renderer) {
   if (!ktx2Loader) {
-    ktx2Loader = new KTX2Loader().setTranscoderPath("/basis/");
+    ktx2Loader = new KTX2Loader().setTranscoderPath(BASIS_PATH);
     ktx2Loader.detectSupport(renderer);
   }
   return ktx2Loader;

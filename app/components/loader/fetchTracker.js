@@ -9,6 +9,10 @@ import useLoadingStore from "./loadingStore";
  * Installed once on the client while the loader is up; removed after the reveal
  * so later fetches (Shopify, Moos chat, product GLBs) are untouched.
  *
+ * prefetchAssets(urls) starts those downloads right away (the loader's JS runs
+ * well before the 3D chunk and WebGPU init are done) and hands the bytes to
+ * three's own request for the same URL later, once.
+ *
  * Dev only: `?slowload=1` throttles those responses (~0.6 MB/s per file, plus
  * a start delay) to watch the loader animate on a fast machine.
  */
@@ -16,6 +20,10 @@ import useLoadingStore from "./loadingStore";
 const TRACKED = /\/(models|basis)\//;
 
 let original = null;
+/** absolute URL → Promise<{ buf, status, statusText, headers } | null> */
+const prefetched = new Map();
+
+const absolute = (url) => new URL(url, window.location.href).href;
 
 function urlOf(input) {
   if (typeof input === "string") return input;
@@ -44,8 +52,24 @@ export function installFetchTracker() {
     if (!TRACKED.test(url) || (init?.method && init.method !== "GET"))
       return original.call(this, input, init);
 
+    const key = absolute(url);
+    const early = prefetched.get(key);
+    if (early) {
+      prefetched.delete(key);
+      const hit = await early;
+      if (hit)
+        return new Response(hit.buf, {
+          status: hit.status,
+          statusText: hit.statusText,
+          headers: hit.headers,
+        });
+    }
+    return countedFetch(input, init);
+  };
+
+  async function countedFetch(input, init) {
     if (slow) await sleep(400 * slow);
-    const res = await original.call(this, input, init);
+    const res = await original.call(window, input, init);
     if (!res.ok || !res.body) return res;
 
     const total = Number(res.headers.get("content-length")) || 0;
@@ -68,11 +92,38 @@ export function installFetchTracker() {
       statusText: res.statusText,
       headers: res.headers,
     });
+  }
+
+  prefetchImpl = (urls) => {
+    for (const url of urls) {
+      const key = absolute(url);
+      if (prefetched.has(key)) continue;
+      prefetched.set(
+        key,
+        countedFetch(key)
+          .then(async (res) =>
+            res.ok
+              ? { buf: await res.arrayBuffer(), status: res.status, statusText: res.statusText, headers: new Headers(res.headers) }
+              : null
+          )
+          // A failed prefetch falls back to a normal request.
+          .catch(() => null)
+      );
+    }
   };
+}
+
+let prefetchImpl = null;
+
+/** Start these /models/ + /basis/ downloads now (no-op before installFetchTracker). */
+export function prefetchAssets(urls) {
+  prefetchImpl?.(urls);
 }
 
 export function uninstallFetchTracker() {
   if (!original) return;
   window.fetch = original;
   original = null;
+  prefetched.clear();
+  prefetchImpl = null;
 }

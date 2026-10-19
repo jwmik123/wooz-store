@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { InfoIcon } from "lucide-react";
 import useLoadingStore, { rawProgress } from "./loadingStore";
-import { installFetchTracker, uninstallFetchTracker } from "./fetchTracker";
+import { installFetchTracker, prefetchAssets, uninstallFetchTracker } from "./fetchTracker";
+import { CRITICAL_ASSETS } from "./criticalAssets";
 import { SKY_SCRIPT } from "./skyPalette";
 import Sprout from "./Sprout";
 import LoadTimings from "./LoadTimings";
@@ -33,7 +34,11 @@ import { EASE, prefersReducedMotion } from "../ui/tokens";
  *   reduced motion: plain cross-fades, the camera cuts.
  */
 
-if (typeof window !== "undefined") installFetchTracker();
+if (typeof window !== "undefined") {
+  installFetchTracker();
+  // GLB / KTX2 / basis start downloading now, next to the 3D chunk + WebGPU init.
+  prefetchAssets(CRITICAL_ASSETS);
+}
 
 const LABELS = {
   boot: "Unlocking the gate",

@@ -13,10 +13,9 @@ import { DEFAULT_PRESET, FINISH_PRESETS, createStudioFinish } from "./studio/wal
 import StudioMaterialControls from "./studio/StudioMaterialControls";
 import { spotHighlightNode } from "./signs/spotGlow";
 
-// Phones get the same mesh with a 2048² albedo (studio-mobile.glb, ~2.3 MB lighter).
-const IS_PHONE =
-  typeof navigator !== "undefined" && /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent);
-export const STUDIO_URL = IS_PHONE ? "/models/v2/studio-mobile.glb" : "/models/v2/studio.glb";
+// URL (phone vs desktop GLB) lives with the loader's prefetch list.
+import { STUDIO_URL } from "../../components/loader/criticalAssets";
+export { STUDIO_URL };
 
 /*
  * Studio coordinate frame
