@@ -24,6 +24,8 @@ const PIXEL_SHARE = 0.85;
 /** Cost of a tier without DOF + bloom, relative to with. */
 const NO_POST_FX = 0.75;
 const MAX_GUARD_STEPS = 3;
+/** Even the low tier costs this × the budget → point the visitor to the 2D site. */
+const HEAVY_FACTOR = 2.5;
 
 async function waitForGpu(gl) {
   const device = gl.backend.device;
@@ -98,6 +100,8 @@ export default function QualityMonitor() {
             tier =
               TIER_ORDER.find((t, i) => predict(ms, dpr, startTier, t) <= (i < from ? budget / 2 : budget)) ??
               "low";
+            if (predict(ms, dpr, startTier, "low") > budget * HEAVY_FACTOR)
+              useQualityStore.getState().setTooHeavy("slow");
           }
           useQualityStore.getState().setCalibrated(
             { ms: ms != null ? +ms.toFixed(2) : null, dpr, from: startTier, budget },
@@ -130,8 +134,12 @@ export default function QualityMonitor() {
     g.frames.length = 0;
     const slow = median > (mobile.current ? SLOW_FRAME_MS.mobile : SLOW_FRAME_MS.desktop);
     g.slowWindows = slow ? g.slowWindows + 1 : 0;
-    if (g.slowWindows >= 2 && g.cooldown <= 0 && g.steps < MAX_GUARD_STEPS) {
-      if (q.stepDown()) {
+    if (g.slowWindows >= 2 && g.cooldown <= 0) {
+      // Already at the bottom (or out of steps) and still far off target: too heavy.
+      const atBottom = g.steps >= MAX_GUARD_STEPS || !q.stepDown();
+      const limit = (mobile.current ? SLOW_FRAME_MS.mobile : SLOW_FRAME_MS.desktop) * 1.5;
+      if (atBottom && median > limit) q.setTooHeavy("slow");
+      if (!atBottom) {
         g.steps++;
         if (process.env.NODE_ENV === "development")
           console.info(

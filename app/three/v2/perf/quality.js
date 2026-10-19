@@ -49,6 +49,19 @@ export function tierDpr(tier, mobile = isMobileDevice()) {
 
 const forced = urlTier();
 
+/** The 2D storefront weak devices are pointed to (components/ui/LiteFallback.jsx). */
+export const LITE_URL = "https://shop.wooz.store/";
+
+/** No WebGPU and no WebGL2: the scene cannot run at all. */
+export function cannotRender3D() {
+  if (typeof window === "undefined" || navigator.gpu) return false;
+  try {
+    return !document.createElement("canvas").getContext("webgl2");
+  } catch {
+    return true;
+  }
+}
+
 // Phones: no depth of field and a thinner meadow on every tier — they load and
 // compile faster, and on a small screen the DOF is barely visible anyway.
 const PHONE_GRASS = 0.55;
@@ -71,10 +84,21 @@ const useQualityStore = create((set, get) => ({
   calibrated: Boolean(forced),
   /** Last calibration result, for the #debug overlay. */
   calibration: null,
+  /**
+   * Why the 3D scene is too heavy for this device ("unsupported" | "error" |
+   * "slow"), or null. Shows the 2D-site prompt (components/ui/LiteFallback.jsx).
+   */
+  tooHeavy: null,
 
   setVeiled: (veiled) => set({ veiled }),
   setTier: (tier) => set({ tier, dpr: tierDpr(tier) }),
   setDpr: (dpr) => set({ dpr }),
+  /** First reason wins; ?quality= pinned tiers never trigger the slow prompt. */
+  setTooHeavy: (reason) => {
+    const s = get();
+    if (s.tooHeavy || (reason === "slow" && s.forced)) return;
+    set({ tooHeavy: reason });
+  },
   setCalibrated: (calibration, tier) =>
     set({ calibrated: true, calibration, tier, dpr: tierDpr(tier) }),
 

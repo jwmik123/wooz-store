@@ -14,6 +14,7 @@ import TimeClock from "./components/ui/TimeClock";
 import useSoundStore from "./stores/soundStore";
 import { AlignLeft } from "lucide-react";
 import CinematicOverlay from "./components/cinematic/CinematicOverlay";
+import LiteFallback from "./components/ui/LiteFallback";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
@@ -123,6 +124,7 @@ export default function Home() {
       <MoosChat />
       <TimeClock />
       <CinematicOverlay />
+      <LiteFallback />
     </main>
   );
 }
