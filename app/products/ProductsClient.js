@@ -4,13 +4,14 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
+import useEmblaCarousel from "embla-carousel-react";
 import { Rotate3d, Images, ChevronLeft, ChevronRight, ChevronDown, Hand } from "lucide-react";
 import client from "@/lib/shopify";
 import { discountPercent } from "@/lib/sale";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
 import ZoomImage from "../components/ui/ZoomImage";
-import Lightbox from "../components/ui/Lightbox";
+import { openPhotoViewer } from "../components/ui/photoViewer";
 import { EASE, STAGGER, formatPrice, prefersReducedMotion } from "../components/ui/tokens";
 import { swatchFor, isLightSwatch } from "./swatches";
 
@@ -448,13 +449,11 @@ function ProductStage({
 }) {
   const threeRef = useRef(null);
   const photoRef = useRef(null);
-  const trackRef = useRef(null);
   const thumbsRef = useRef(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const [hint, setHint] = useState(true);
   const [zoomed, setZoomed] = useState(false);
-  const [lightbox, setLightbox] = useState(false);
-  const frameRef = useRef(null);
+  const viewerRef = useRef(null);
   const firstMode = useRef(true);
 
   useEffect(() => {
@@ -500,14 +499,23 @@ function ProductStage({
     );
   }, [mode]);
 
-  // Keep the scroll-snap track in sync with imageIndex.
+  // Photo slider. Dragging pauses while a desktop photo is zoomed in.
+  const [emblaRef, emblaApi] = useEmblaCarousel({ watchDrag: !zoomed, duration: 26 });
+
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const x = imageIndex * track.clientWidth;
-    if (Math.abs(track.scrollLeft - x) > 2)
-      track.scrollTo({ left: x, behavior: prefersReducedMotion() || mode !== "photo" ? "auto" : "smooth" });
-  }, [imageIndex, mode, images.length]);
+    if (!emblaApi) return;
+    const onSelect = () => setImageIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, setImageIndex]);
+
+  // Thumbnails, colour picks and arrows set imageIndex; follow along.
+  useEffect(() => {
+    if (!emblaApi || emblaApi.selectedScrollSnap() === imageIndex) return;
+    emblaApi.scrollTo(imageIndex, prefersReducedMotion() || mode !== "photo");
+  }, [emblaApi, imageIndex, mode, images.length]);
 
   // Keep the active thumbnail in view (horizontal only; never scrolls the panel).
   useEffect(() => {
@@ -518,12 +526,20 @@ function ProductStage({
     strip.scrollTo({ left, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [imageIndex]);
 
-  const onTrackScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-    const i = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
-    if (i !== imageIndex) setImageIndex(i);
+  const openViewer = async () => {
+    if (viewerRef.current) return;
+    viewerRef.current = true;
+    const pswp = await openPhotoViewer({
+      images,
+      index: imageIndex,
+      alt: product?.title || "Product",
+      getSlideEl: (i) => emblaApi?.slideNodes()[i],
+      onChange: setImageIndex,
+    });
+    viewerRef.current = pswp;
+    pswp.on("destroy", () => (viewerRef.current = null));
   };
+  useEffect(() => () => viewerRef.current?.destroy?.(), []);
 
   const step = (dir) => {
     if (!images.length) return;
@@ -535,7 +551,6 @@ function ProductStage({
   return (
     <div className="flex flex-col gap-3">
       <div
-        ref={frameRef}
         className="relative w-full overflow-hidden aspect-square md:aspect-[5/6] max-h-[52dvh] md:max-h-[60vh] rounded-wz-lg isolate shadow-wz-inner"
         style={{
           backgroundColor: `color-mix(in oklab, ${hex} ${isLightSwatch(hex) ? 34 : 16}%, rgb(var(--wz-paper)))`,
@@ -596,8 +611,7 @@ function ProductStage({
         {/* Photo layer */}
         <div ref={photoRef} className="absolute inset-0 group/photos" style={{ visibility: "hidden" }}>
           <div
-            ref={trackRef}
-            onScroll={onTrackScroll}
+            ref={emblaRef}
             tabIndex={mode === "photo" ? 0 : -1}
             aria-roledescription="carousel"
             aria-label="Product photos"
@@ -608,14 +622,14 @@ function ProductStage({
                 step(e.key === "ArrowRight" ? 1 : -1);
               }
             }}
-            className={`flex w-full h-full wz-no-scrollbar snap-x snap-mandatory outline-none focus-visible:shadow-[inset_0_0_0_3px_rgb(var(--wz-green))] ${
-              zoomed ? "overflow-hidden" : "overflow-x-auto"
-            }`}
+            className="w-full h-full overflow-hidden outline-none focus-visible:shadow-[inset_0_0_0_3px_rgb(var(--wz-green))]"
           >
+            <div className="flex h-full touch-pan-y">
             {images.map((img, i) => (
               <div
                 key={img.url}
-                className="relative w-full h-full snap-center shrink-0"
+                data-slide={i}
+                className="relative w-full h-full min-w-0 shrink-0 grow-0 basis-full"
                 aria-roledescription="slide"
                 aria-label={`${i + 1} of ${images.length}`}
               >
@@ -625,11 +639,12 @@ function ProductStage({
                     alt={img.altText || `${product?.title || "Product"} photo ${i + 1}`}
                     priority={i === 0}
                     onZoomChange={setZoomed}
-                    onOpen={() => setLightbox(true)}
+                    onOpen={openViewer}
                   />
                 )}
               </div>
             ))}
+            </div>
           </div>
           {images.length > 1 && (
             <>
@@ -637,7 +652,7 @@ function ProductStage({
                 type="button"
                 onClick={() => step(-1)}
                 aria-label="Previous photo"
-                className="absolute hidden -translate-y-1/2 opacity-0 md:grid left-3 top-1/2 wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-opacity duration-wz-base"
+                className="absolute hidden opacity-0 md:grid left-3 top-[calc(50%-1.25rem)] wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] duration-wz-base"
               >
                 <ChevronLeft className="w-4 h-4" strokeWidth={2} />
               </button>
@@ -645,7 +660,7 @@ function ProductStage({
                 type="button"
                 onClick={() => step(1)}
                 aria-label="Next photo"
-                className="absolute hidden -translate-y-1/2 opacity-0 md:grid right-3 top-1/2 wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-opacity duration-wz-base"
+                className="absolute hidden opacity-0 md:grid right-3 top-[calc(50%-1.25rem)] wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] duration-wz-base"
               >
                 <ChevronRight className="w-4 h-4" strokeWidth={2} />
               </button>
@@ -675,21 +690,10 @@ function ProductStage({
         <ViewSwitch mode={mode} setMode={setMode} />
       </div>
 
-      {lightbox && (
-        <Lightbox
-          images={images}
-          index={imageIndex}
-          onIndexChange={setImageIndex}
-          onClose={() => setLightbox(false)}
-          getOriginRect={() => frameRef.current?.getBoundingClientRect()}
-          alt={product?.title || "Product"}
-        />
-      )}
-
       {/* Thumbnails (photo mode) */}
       <div className="wz-collapse" data-open={mode === "photo" && images.length > 1}>
         <div>
-          <div ref={thumbsRef} className="relative flex gap-2 px-0.5 pt-0.5 pb-1 overflow-x-auto wz-no-scrollbar" role="tablist" aria-label="Choose photo">
+          <div ref={thumbsRef} className="relative flex gap-2 p-1 overflow-x-auto wz-no-scrollbar" role="tablist" aria-label="Choose photo">
             {images.map((img, i) => (
               <button
                 key={img.url}

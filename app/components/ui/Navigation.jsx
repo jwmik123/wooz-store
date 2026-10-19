@@ -45,6 +45,7 @@ const Navigation = () => {
     const onKey = (e) => {
       const { sidebarOpen, cartOpen, productHandle, setSidebarOpen } =
         collectionStore.getState();
+      if (e.defaultPrevented) return; // e.g. the photo viewer handled it
       const tag = e.target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable)
         return;
