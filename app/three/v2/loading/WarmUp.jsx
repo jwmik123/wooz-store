@@ -129,6 +129,7 @@ export default function WarmUp() {
       }
       if (cancelled) return;
       const compileMs = performance.now() - t0;
+      useLoadingStore.getState().mark("compiled");
       useLoadingStore.getState().setCompile(1);
       useLoadingStore.getState().setCompiled();
       useLoadingStore.getState().setPhase("calibrate");
@@ -140,11 +141,13 @@ export default function WarmUp() {
       if (cancelled) return;
       if (!skip && postState.scenePass && postState.scenePass !== compiledPass) {
         get().setFrameloop("never");
+        useLoadingStore.getState().mark("recompile");
         try {
           await compileScene(gl, scene, camera);
         } catch {
           /* best effort */
         }
+        useLoadingStore.getState().mark("recompiled");
         get().setFrameloop("always");
       }
       if (cancelled) return;

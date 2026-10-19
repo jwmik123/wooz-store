@@ -63,6 +63,8 @@ const useLoadingStore = create((set, get) => ({
     set((s) => ({
       bytes: { loaded: s.bytes.loaded + loaded, total: s.bytes.total + total },
     })),
+  /** Diagnostic timestamp without a phase change (?debug timings overlay). */
+  mark: (name) => set((s) => ({ timings: { ...s.timings, [name]: Math.round(now()) } })),
   setCompile: (compile) => set({ compile }),
   setSettle: (settle) => set({ settle }),
   setCompiled: () => set({ compiled: true }),

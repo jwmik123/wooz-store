@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Component, Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva } from "leva";
 import { createSceneRenderer, getBackendName } from "./renderer";
@@ -24,11 +24,30 @@ import useDebug from "./debug/useDebug";
 import QualityMonitor from "./perf/QualityMonitor";
 import WarmUp from "./loading/WarmUp";
 import useQualityStore, { VEILED_DPR } from "./perf/quality";
+import useLoadingStore from "../../components/loader/loadingStore";
+
+// ?debug timings: the 3D chunk has loaded and evaluated.
+useLoadingStore.getState().mark("sceneChunk");
 
 const isMobileUA = () =>
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
+
+/** Renderer or scene crashed (no GPU, lost device…) → offer the 2D site instead. */
+class SceneBoundary extends Component {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error) {
+    console.error("[wooz] 3D scene failed", error);
+    useQualityStore.getState().setTooHeavy("error");
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 /**
  * V2 scene composition. One line per feature; features talk via
@@ -42,7 +61,7 @@ export default function Scene() {
   const dpr = useQualityStore((s) => (s.veiled ? VEILED_DPR : s.dpr));
 
   return (
-    <>
+    <SceneBoundary>
       <Leva hidden={!debug} collapsed={false} />
       <Canvas
         style={{ width: "100%", height: "100%" }}
@@ -52,6 +71,7 @@ export default function Scene() {
         gl={createSceneRenderer}
         onCreated={({ gl }) => {
           if (typeof window !== "undefined") window.__renderer = gl;
+          useLoadingStore.getState().mark("renderer");
           console.info(`[wooz] renderer backend: ${getBackendName(gl)}`);
         }}
       >
@@ -78,6 +98,6 @@ export default function Scene() {
         <PostPipeline />
         {debug && <Debug />}
       </Canvas>
-    </>
+    </SceneBoundary>
   );
 }

@@ -8,6 +8,7 @@ import useLoadingStore, { rawProgress } from "./loadingStore";
 import { installFetchTracker, uninstallFetchTracker } from "./fetchTracker";
 import { SKY_SCRIPT } from "./skyPalette";
 import Sprout from "./Sprout";
+import LoadTimings from "./LoadTimings";
 import IntroScreen from "../ui/IntroScreen";
 import collectionStore from "../../stores/collectionStore";
 import useCameraStore, { INTRO_MOVES } from "../../stores/cameraStore";
@@ -115,6 +116,7 @@ export default function Loader() {
   // ── Progress loop (monotonic, eased; real signals from loadingStore) ─────
   useEffect(() => {
     setHtmlStage("loading");
+    useLoadingStore.getState().mark("hydrated");
     if (process.env.NODE_ENV === "development") {
       // Dev: ?slowmo=4 plays the choreography 4× slower (for reviewing frames).
       const slowmo = parseFloat(new URLSearchParams(window.location.search).get("slowmo"));
@@ -223,6 +225,7 @@ export default function Loader() {
 
   return (
     <>
+      <LoadTimings />
       {!inside && (
         <div ref={rootRef} className="wz-loader" suppressHydrationWarning role="status" aria-live="polite">
           {/* Paints the visitor's sky before hydration (no flash of a wrong colour). */}
