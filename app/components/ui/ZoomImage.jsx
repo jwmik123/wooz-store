@@ -6,7 +6,7 @@ import Image from "next/image";
 /**
  * A product photo that fills its frame and zooms in place on click (desktop):
  * the zoom origin follows the pointer, so moving the mouse pans the detail.
- * Touch devices keep plain swiping (zoom is pointer-fine only).
+ * Touch devices keep plain swiping; a tap calls `onOpen` (fullscreen viewer).
  */
 const ZoomImage = ({
   src,
@@ -15,6 +15,7 @@ const ZoomImage = ({
   priority = false,
   zoom = 2.2,
   onZoomChange,
+  onOpen,
   className = "",
 }) => {
   const ref = useRef(null);
@@ -35,7 +36,7 @@ const ZoomImage = ({
   };
 
   const toggle = (e) => {
-    if (!canZoom()) return;
+    if (!canZoom()) return onOpen?.();
     updateOrigin(e);
     const next = !zoomed;
     setZoomed(next);
@@ -63,7 +64,6 @@ const ZoomImage = ({
         alt={alt}
         fill
         sizes={sizes}
-        quality={85}
         priority={priority}
         draggable={false}
         onLoad={() => setLoaded(true)}

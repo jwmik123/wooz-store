@@ -10,6 +10,7 @@ import { discountPercent } from "@/lib/sale";
 import collectionStore from "../stores/collectionStore";
 import useCheckoutStore from "../stores/checkoutStore";
 import ZoomImage from "../components/ui/ZoomImage";
+import Lightbox from "../components/ui/Lightbox";
 import { EASE, STAGGER, formatPrice, prefersReducedMotion } from "../components/ui/tokens";
 import { swatchFor, isLightSwatch } from "./swatches";
 
@@ -47,7 +48,7 @@ const PRODUCT_QUERY = `
       }
       options { name values }
       images(first: 20) {
-        edges { node { url altText } }
+        edges { node { url altText width height } }
       }
     }
   }
@@ -452,6 +453,8 @@ function ProductStage({
   const [canvasReady, setCanvasReady] = useState(false);
   const [hint, setHint] = useState(true);
   const [zoomed, setZoomed] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+  const frameRef = useRef(null);
   const firstMode = useRef(true);
 
   useEffect(() => {
@@ -532,6 +535,7 @@ function ProductStage({
   return (
     <div className="flex flex-col gap-3">
       <div
+        ref={frameRef}
         className="relative w-full overflow-hidden aspect-square md:aspect-[5/6] max-h-[52dvh] md:max-h-[60vh] rounded-wz-lg isolate shadow-wz-inner"
         style={{
           backgroundColor: `color-mix(in oklab, ${hex} ${isLightSwatch(hex) ? 34 : 16}%, rgb(var(--wz-paper)))`,
@@ -621,6 +625,7 @@ function ProductStage({
                     alt={img.altText || `${product?.title || "Product"} photo ${i + 1}`}
                     priority={i === 0}
                     onZoomChange={setZoomed}
+                    onOpen={() => setLightbox(true)}
                   />
                 )}
               </div>
@@ -670,6 +675,17 @@ function ProductStage({
         <ViewSwitch mode={mode} setMode={setMode} />
       </div>
 
+      {lightbox && (
+        <Lightbox
+          images={images}
+          index={imageIndex}
+          onIndexChange={setImageIndex}
+          onClose={() => setLightbox(false)}
+          getOriginRect={() => frameRef.current?.getBoundingClientRect()}
+          alt={product?.title || "Product"}
+        />
+      )}
+
       {/* Thumbnails (photo mode) */}
       <div className="wz-collapse" data-open={mode === "photo" && images.length > 1}>
         <div>
@@ -687,7 +703,7 @@ function ProductStage({
                   i === imageIndex ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : "opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image src={img.url} alt="" fill sizes="56px" quality={50} className="object-cover" />
+                <Image src={img.url} alt="" fill sizes="56px" className="object-cover" />
               </button>
             ))}
           </div>
