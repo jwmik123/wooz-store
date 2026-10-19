@@ -17,9 +17,9 @@ import { create } from "zustand";
  */
 
 export const TIERS = {
-  high: { dpr: 1.75, grass: 1, shadowMapSize: 2048, shadowHz: 24, dof: true, bloom: true },
-  medium: { dpr: 1.4, grass: 0.7, shadowMapSize: 1536, shadowHz: 15, dof: true, bloom: true },
-  low: { dpr: 1, grass: 0.45, shadowMapSize: 1024, shadowHz: 10, dof: false, bloom: false },
+  high: { dpr: 1.75, mobileDpr: 2, grass: 1, shadowMapSize: 2048, shadowHz: 24, dof: true, bloom: true },
+  medium: { dpr: 1.4, mobileDpr: 2, grass: 0.7, shadowMapSize: 1536, shadowHz: 15, dof: true, bloom: true },
+  low: { dpr: 1, mobileDpr: 1.5, grass: 0.45, shadowMapSize: 1024, shadowHz: 10, dof: false, bloom: false },
 };
 export const TIER_ORDER = ["high", "medium", "low"];
 
@@ -41,10 +41,14 @@ function urlTier() {
 
 const deviceDpr = () => (typeof window === "undefined" ? 1 : window.devicePixelRatio || 1);
 
-/** Effective DPR cap for a tier on this device (phones never above 1.5). */
+/**
+ * Effective DPR cap for a tier on this device. Phones get their own (higher)
+ * caps: at 3× device DPR the desktop caps upscale the image > 2× and it reads
+ * as blurry on a small, close-up screen.
+ */
 export function tierDpr(tier, mobile = isMobileDevice()) {
-  const cap = TIERS[tier].dpr;
-  return Math.min(deviceDpr(), mobile ? Math.min(cap, 1.5) : cap);
+  const { dpr, mobileDpr } = TIERS[tier];
+  return Math.min(deviceDpr(), mobile ? mobileDpr : dpr);
 }
 
 const forced = urlTier();
