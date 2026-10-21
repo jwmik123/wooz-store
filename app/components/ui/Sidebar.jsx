@@ -146,7 +146,7 @@ export const Sidebar = () => {
       style={{ visibility: "hidden" }}
       className="wz-panel fixed z-wz-panel outline-none
         inset-x-0 bottom-0 h-[86dvh]
-        md:inset-x-auto md:h-auto md:top-[var(--wz-panel-inset)] md:bottom-[var(--wz-panel-inset)] md:right-[var(--wz-panel-inset)] md:w-[var(--wz-panel-width)]"
+        md:inset-x-auto md:h-auto md:top-[calc(var(--wz-banner-h)+var(--wz-panel-inset))] md:bottom-[var(--wz-panel-inset)] md:right-[var(--wz-panel-inset)] md:w-[var(--wz-panel-width)]"
     >
       <div className="relative flex flex-col h-full overflow-hidden wz-glass rounded-t-wz-xl md:rounded-wz-xl text-ink">
         {/* Header (also the drag zone on mobile) */}

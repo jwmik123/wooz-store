@@ -14,7 +14,7 @@ const Cart = () => {
     <button
       type="button"
       aria-label={`Open bag, ${count} item${count === 1 ? "" : "s"}`}
-      className="fixed z-wz-chrome flex items-center gap-2 h-10 pl-3.5 pr-2 rounded-full top-4 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 wz-glass-chip text-ink wz-focus transition-transform duration-wz-fast ease-wz-out hover:scale-[1.03] active:scale-[0.97]"
+      className="fixed z-wz-chrome flex items-center gap-2 h-10 pl-3.5 pr-2 rounded-full top-[calc(var(--wz-banner-h)+1rem)] right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 wz-glass-chip text-ink wz-focus transition-transform duration-wz-fast ease-wz-out hover:scale-[1.03] active:scale-[0.97]"
       onClick={() => {
         setCartOpen(true);
         setSidebarOpen(true);

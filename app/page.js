@@ -15,6 +15,7 @@ import useSoundStore from "./stores/soundStore";
 import { AlignLeft } from "lucide-react";
 import CinematicOverlay from "./components/cinematic/CinematicOverlay";
 import LiteFallback from "./components/ui/LiteFallback";
+import SaleBanner from "./components/ui/SaleBanner";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
@@ -48,7 +49,7 @@ export default function Home() {
 
   return (
     <main className="h-[100dvh] max-h-[100dvh] overflow-hidden">
-      <div className="fixed z-wz-chrome flex items-center gap-1 p-1 rounded-full top-4 left-4 wz-glass-chip text-ink">
+      <div className="fixed z-wz-chrome flex items-center gap-1 p-1 rounded-full wz-below-banner top-[calc(var(--wz-banner-h)+1rem)] left-4 wz-glass-chip text-ink">
         <button
           type="button"
           className="flex items-center h-8 gap-2 pl-2.5 pr-3.5 rounded-full transition-colors duration-wz-fast hover:bg-ink/5 wz-focus"
@@ -125,6 +126,7 @@ export default function Home() {
       <TimeClock />
       <CinematicOverlay />
       <LiteFallback />
+      <SaleBanner />
     </main>
   );
 }

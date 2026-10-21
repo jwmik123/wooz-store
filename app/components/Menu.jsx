@@ -71,7 +71,7 @@ const Menu = ({
       ></div> */}
         <div
           ref={navRef}
-          className="fixed z-10 overflow-hidden wz-glass inset-y-[var(--wz-panel-inset)] left-[var(--wz-panel-inset)] w-[calc(100%-2*var(--wz-panel-inset))] md:w-[460px] rounded-wz-xl"
+          className="fixed z-10 overflow-hidden wz-glass top-[calc(var(--wz-banner-h)+var(--wz-panel-inset))] bottom-[var(--wz-panel-inset)] left-[var(--wz-panel-inset)] w-[calc(100%-2*var(--wz-panel-inset))] md:w-[460px] rounded-wz-xl"
         >
           <div className="flex flex-col justify-center h-full gap-5">
             <div className="flex flex-col">

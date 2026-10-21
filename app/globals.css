@@ -71,6 +71,8 @@
   --wz-z-overlay: 10;
   --wz-z-panel: 40;
   --wz-z-chrome: 50;
+  /* Sale marquee height (components/ui/SaleBanner.jsx); top chrome sits below it. */
+  --wz-banner-h: 0px;
 
   --toastify-color-success: rgb(var(--wz-green));
   --toastify-font-family: var(--wz-font-sans);
@@ -472,4 +474,70 @@ body {
 .pswp .pswp__button--zoom { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .pswp .pswp__button--zoom { display: grid; }
+}
+
+/* Sale marquee (components/ui/SaleBanner.jsx) */
+html[data-wz-sale] {
+  --wz-banner-h: 28px;
+}
+.wz-sale-banner {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--wz-z-chrome);
+  height: 28px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: #d9412f; /* same red as the board ribbons (signs/signAtlas.js) */
+  color: #fff6e8;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: transform var(--wz-dur-slow) var(--wz-ease-out);
+}
+.wz-sale-banner[data-shown] {
+  transform: none;
+}
+.wz-sale-track {
+  display: flex;
+  width: max-content;
+  animation: wz-sale-marquee 38s linear infinite;
+}
+.wz-sale-run {
+  display: flex;
+  flex-shrink: 0;
+}
+.wz-sale-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  white-space: nowrap;
+}
+.wz-sale-item b {
+  font-weight: 800;
+}
+.wz-sale-dot {
+  width: 4px;
+  height: 4px;
+  margin: 0 1.6em;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.6;
+}
+@keyframes wz-sale-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wz-sale-track {
+    animation: none;
+  }
+}
+/* Top chrome eases down with the banner. */
+.wz-below-banner {
+  transition: top var(--wz-dur-slow) var(--wz-ease-out);
 }
