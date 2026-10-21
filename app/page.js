@@ -34,15 +34,6 @@ export default function Home() {
   const bookVisible = collectionStore((state) => state.bookVisible);
   const setBookVisible = collectionStore((state) => state.setBookVisible);
 
-  useEffect(() => {
-    // Initialize sound store
-    useSoundStore.getState().initialize();
-
-    return () => {
-      useSoundStore.getState().cleanup();
-    };
-  }, []);
-
   const handleCloseBook = () => {
     setBookVisible(false);
     resetCamera(introScreen);

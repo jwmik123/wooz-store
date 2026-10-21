@@ -313,7 +313,7 @@ const Page = ({ number, front, back, page, opened, bookClosed, ...props }) => {
         e.stopPropagation();
         setPage(opened ? number : number + 1);
         setHighlighted(false);
-        useSoundStore.getState().sounds.pageTurn?.play();
+        useSoundStore.getState().playSound("pageTurn");
       }}
     >
       <primitive
@@ -339,7 +339,7 @@ export const Book = ({ ...props }) => {
           timeout = setTimeout(
             () => {
               goToPage();
-              useSoundStore.getState().sounds.pageTurn?.play();
+              useSoundStore.getState().playSound("pageTurn");
             },
             Math.abs(page - delayedPage) > 2 ? 50 : 150
           );

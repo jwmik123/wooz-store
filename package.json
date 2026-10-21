@@ -18,6 +18,7 @@
     "ai": "^7.0.142",
     "embla-carousel-react": "^8.6.0",
     "gsap": "^3.12.5",
+    "howler": "^2.2.4",
     "jotai": "^2.11.0",
     "leva": "^0.10.1",
     "lucide-react": "^0.454.0",
