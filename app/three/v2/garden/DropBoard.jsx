@@ -175,16 +175,17 @@ function drawFace(g, f, open, locale) {
   g.fillText("Sale drop", tx, ty);
 
   // Subtitle + unit labels: small caps, cream.
-  g.fillStyle = "rgba(255,241,214,0.92)";
+  g.fillStyle = "#fff1d6";
   const caps = (text, x, y, size, spacing) => {
-    g.font = `600 ${Math.round(size * PX)}px ${f.sans}`;
+    g.font = `700 ${Math.round(size * PX)}px ${f.sans}`;
     if ("letterSpacing" in g) g.letterSpacing = `${spacing}px`;
     g.fillText(text.toUpperCase(), fx(x), fy(y));
   };
-  caps(open ? tr("board.open") : dropLabel(locale), 0, 0.16, 0.075, 10);
+  caps(open ? tr("board.open") : dropLabel(locale), 0, 0.16, 0.082, 8);
   if (!open)
     tr("board.units").forEach((label, k) => {
-      caps(label, (tileX(k * 2) + tileX(k * 2 + 1)) / 2, FLAP_Y - TILE_H / 2 - 0.085, 0.06, 8);
+      // Legible on a phone too (the board is ~3 m from the portrait camera).
+      caps(label, (tileX(k * 2) + tileX(k * 2 + 1)) / 2, FLAP_Y - TILE_H / 2 - 0.1, 0.088, 6);
     });
   if ("letterSpacing" in g) g.letterSpacing = "0px";
 }
@@ -226,10 +227,21 @@ function drawAtlas(f) {
   return c;
 }
 
-function drawButtonLabel(f, text, icon) {
+const LABEL_W = 640;
+const LABEL_ICON = 70;
+
+/** One font size for both button labels: the largest that fits the longer one. */
+function labelFontSize(f, texts) {
+  const g = document.createElement("canvas").getContext("2d");
+  g.font = `700 100px ${f.sans}`;
+  const widest = Math.max(...texts.map((t) => g.measureText(t).width));
+  return Math.min(100, Math.floor((100 * (LABEL_W - LABEL_ICON - 26 - 50)) / widest));
+}
+
+function drawButtonLabel(f, text, icon, size) {
   const c = document.createElement("canvas");
-  c.width = 640;
-  c.height = Math.round((640 * (BTN.h - 0.03)) / (BTN.w - 0.04));
+  c.width = LABEL_W;
+  c.height = Math.round((LABEL_W * (BTN.h - 0.03)) / (BTN.w - 0.04));
   const g = c.getContext("2d");
   const ink = "#1B3327";
   g.strokeStyle = ink;
@@ -237,11 +249,8 @@ function drawButtonLabel(f, text, icon) {
   g.lineWidth = 9;
   g.lineCap = "round";
   g.lineJoin = "round";
-  const iconW = 70;
-  // Largest size up to 80 px that leaves a margin on both sides.
-  g.font = `600 80px ${f.sans}`;
-  const fit = Math.min(80, Math.floor((80 * (c.width - iconW - 26 - 60)) / g.measureText(text).width));
-  g.font = `600 ${fit}px ${f.sans}`;
+  const iconW = LABEL_ICON;
+  g.font = `700 ${size}px ${f.sans}`; // bold, as large as fits (legible on phones)
   const tw = g.measureText(text).width;
   const x0 = (c.width - tw - iconW - 26) / 2;
   const cy = c.height / 2;
@@ -294,14 +303,15 @@ function useCanvases(locale) {
       face.height = FACE_H;
       const faceCtx = face.getContext("2d");
       drawFace(faceCtx, f, false, locale);
+      const labelSize = labelFontSize(f, [tr("board.calendar"), tr("board.remind")]);
       made = {
         fonts: f,
         faceCtx,
         face: canvasTexture(face),
         atlas: canvasTexture(drawAtlas(f)),
         labels: {
-          calendar: drawButtonLabel(f, tr("board.calendar"), "calendar"),
-          remind: drawButtonLabel(f, tr("board.remind"), "alarm"),
+          calendar: drawButtonLabel(f, tr("board.calendar"), "calendar", labelSize),
+          remind: drawButtonLabel(f, tr("board.remind"), "alarm", labelSize),
         },
       };
       setRes(made);
@@ -552,7 +562,9 @@ function makeMaterials() {
 }
 
 function makeTexturedMaterials(tex) {
-  const face = new MeshStandardNodeMaterial({ roughness: 0.45, alphaTest: 0.5, side: DoubleSide });
+  // Low alpha test: at a distance (smaller mips) thin letters average below 0.5
+  // and would break up.
+  const face = new MeshStandardNodeMaterial({ roughness: 0.45, alphaTest: 0.15, side: DoubleSide });
   face.name = "dropBoardFace";
   const t = texture(tex.face);
   face.colorNode = t;
