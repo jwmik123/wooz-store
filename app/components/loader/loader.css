@@ -262,6 +262,29 @@ html[data-wz-stage="inside"] .z-wz-chrome {
   text-shadow: 0 0 12px rgb(0 0 0 / 0.45), 0 0 26px rgb(0 0 0 / 0.3);
 }
 .wz-intro[data-dark] .decoration-ink\/30 { text-decoration-color: rgb(var(--wz-paper) / 0.4); }
+/* Second entry next to "Step inside": the 2D shop, solid paper so it reads on grass. */
+.wz-btn-shop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: rgb(var(--wz-paper));
+  color: rgb(var(--wz-ink));
+  font-weight: 600;
+  box-shadow: 0 10px 24px -12px rgb(var(--wz-ink) / 0.45), inset 0 0 0 1px rgb(var(--wz-ink) / 0.08);
+  transition: transform var(--wz-dur-fast) var(--wz-ease-out), background-color var(--wz-dur-base) var(--wz-ease-out);
+}
+.wz-btn-shop:hover { background: rgb(var(--wz-mint, 190 226 205)); }
+.wz-btn-shop:active { transform: scale(0.98); }
+/* Night: the primary turns paper, so the shop button goes outlined. */
+.wz-intro[data-dark] .wz-btn-shop {
+  background: rgb(var(--wz-paper) / 0.12);
+  color: rgb(var(--wz-paper));
+  box-shadow: inset 0 0 0 1.5px rgb(var(--wz-paper) / 0.7);
+  backdrop-filter: blur(8px);
+}
+.wz-intro[data-dark] .wz-btn-shop:hover { background: rgb(var(--wz-paper) / 0.22); }
 .wz-intro[data-dark] .wz-btn-primary {
   background: rgb(var(--wz-paper));
   color: rgb(var(--wz-ink));

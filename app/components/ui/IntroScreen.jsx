@@ -4,6 +4,8 @@ import { forwardRef, useEffect, useState } from "react";
 import useEnvironmentStore from "../../stores/environmentStore";
 import { dropLong, useDropStore } from "@/lib/drop";
 import { useLocale, useT } from "@/lib/i18n";
+import { LayoutGrid } from "lucide-react";
+import { useShopHref } from "@/lib/shop2d";
 
 // Same window the lamps/stars use: dusk → dawn.
 const isDark = (h) => h >= 20.6 || h < 6.1;
@@ -33,6 +35,7 @@ const IntroScreen = forwardRef(function IntroScreen(
   // board in the garden (three/v2/garden/DropBoard.jsx) is the call to action.
   const closed = useDropStore((s) => s.phase !== "open") && mounted;
   const openSheet = useDropStore((s) => s.openSheet);
+  const shopHref = useShopHref("intro");
   const t = useT();
   const locale = useLocale();
   return (
@@ -88,14 +91,20 @@ const IntroScreen = forwardRef(function IntroScreen(
           className={`${closed ? "hidden" : "flex wz-fade-in"} flex-col items-center gap-2 ${interactive ? "pointer-events-auto" : ""}`}
           data-intro="actions"
         >
-          <button
-            type="button"
-            onClick={() => onStart(true)}
-            disabled={!interactive}
-            className="h-14 px-9 wz-btn-primary text-wz-base"
-          >
-            {t("intro.step")}
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => onStart(true)}
+              disabled={!interactive}
+              className="h-14 px-9 wz-btn-primary text-wz-base"
+            >
+              {t("intro.step")}
+            </button>
+            <a href={shopHref} className="h-14 px-8 wz-btn-shop text-wz-base wz-focus">
+              <LayoutGrid className="w-[18px] h-[18px]" strokeWidth={1.75} />
+              {t("shop2d.intro")}
+            </a>
+          </div>
           <button
             type="button"
             onClick={() => onStart(false)}

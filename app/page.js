@@ -12,12 +12,13 @@ import Menu from "./components/Menu";
 import MoosChat from "./components/moos/MoosChat";
 import TimeClock from "./components/ui/TimeClock";
 import useSoundStore from "./stores/soundStore";
-import { AlignLeft } from "lucide-react";
+import { AlignLeft, LayoutGrid } from "lucide-react";
 import CinematicOverlay from "./components/cinematic/CinematicOverlay";
 import LiteFallback from "./components/ui/LiteFallback";
 import SaleBanner from "./components/ui/SaleBanner";
 import DropSheet from "./components/ui/DropSheet";
 import { detectLocale, useLocaleStore, useT } from "@/lib/i18n";
+import { useShopHref } from "@/lib/shop2d";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
@@ -25,6 +26,7 @@ const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
   const t = useT();
+  const shopHref = useShopHref("chrome", { withProduct: true });
 
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [openModel, setOpenModel] = useState(false);
@@ -97,6 +99,14 @@ export default function Home() {
             </svg>
           </span>
         </button>
+        <a
+          href={shopHref}
+          aria-label={t("shop2d.label")}
+          className="flex items-center h-8 gap-2 px-3 rounded-full bg-leaf text-paper transition-colors duration-wz-fast hover:bg-leaf/90 wz-focus"
+        >
+          <LayoutGrid className="w-[16px] h-[16px]" strokeWidth={1.75} />
+          <span className="text-xs font-semibold tracking-wide">{t("shop2d.button")}</span>
+        </a>
       </div>
 
       <Menu

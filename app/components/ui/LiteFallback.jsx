@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import useQualityStore, { LITE_URL, cannotRender3D } from "../../three/v2/perf/quality";
+import useQualityStore, { cannotRender3D } from "../../three/v2/perf/quality";
+import { useShopHref } from "@/lib/shop2d";
 import { useT } from "@/lib/i18n";
 
 /*
@@ -21,6 +22,7 @@ export default function LiteFallback() {
   const reason = useQualityStore((s) => s.tooHeavy);
   const [dismissed, setDismissed] = useState(false);
   const t = useT();
+  const shopHref = useShopHref(`fallback-${reason}`);
 
   useEffect(() => {
     try {
@@ -59,7 +61,7 @@ export default function LiteFallback() {
         <p className="text-wz-sm text-ink-soft">
           {t("lite.copy")}
         </p>
-        <a href={LITE_URL} className="flex items-center h-12 px-8 mt-2 wz-btn-primary text-wz-base">
+        <a href={shopHref} className="flex items-center h-12 px-8 mt-2 wz-btn-primary text-wz-base">
           {t("lite.go")}
         </a>
         {reason === "slow" && (

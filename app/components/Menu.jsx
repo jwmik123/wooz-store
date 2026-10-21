@@ -5,6 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { Instagram, Facebook, X } from "lucide-react";
 import { LOCALES, useLocaleStore, useT } from "@/lib/i18n";
+import { useShopHref } from "@/lib/shop2d";
 
 const Menu = ({
   isNavOpen,
@@ -19,6 +20,7 @@ const Menu = ({
 
   const [modelInfo, setModelInfo] = useState([]);
   const t = useT();
+  const shopHref = useShopHref("menu");
   const locale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
 
@@ -118,8 +120,7 @@ const Menu = ({
               <Link
                 data-animation-link="no-animation"
                 className="transition-all duration-200 hover:font-bold"
-                href="https://shop.wooz.store/"
-                target="_blank"
+                href={shopHref}
               >
                 {t("menu.site2d")}
               </Link>

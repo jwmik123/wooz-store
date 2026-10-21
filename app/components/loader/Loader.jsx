@@ -17,6 +17,7 @@ import useSoundStore from "../../stores/soundStore";
 import { focusPull } from "../../three/v2/post/focusOverride";
 import { EASE, prefersReducedMotion } from "../ui/tokens";
 import { tr, useLocale, useT } from "@/lib/i18n";
+import { useShopHref } from "@/lib/shop2d";
 
 /*
  * Loading → reveal → intro → enter, as one piece of choreography.
@@ -72,6 +73,7 @@ export default function Loader() {
   const [hint, setHint] = useState(false);
   const t = useT();
   const locale = useLocale();
+  const shopHref = useShopHref("loader");
 
   // The label is written imperatively per phase; rewrite it when the language lands.
   useEffect(() => {
@@ -261,9 +263,15 @@ export default function Loader() {
                 0%
               </span>
             </div>
-            <span className="wz-eyebrow wz-loader-foot !tracking-[0.18em]">
-              {t("loader.sound")}
-            </span>
+            <div className="wz-loader-foot flex flex-col items-center gap-3">
+              <span className="wz-eyebrow !tracking-[0.18em]">{t("loader.sound")}</span>
+              <a
+                href={shopHref}
+                className="text-xs font-medium underline rounded-full underline-offset-4 decoration-current/30 hover:decoration-current wz-focus"
+              >
+                {t("shop2d.loader")}
+              </a>
+            </div>
           </div>
         </div>
       )}
