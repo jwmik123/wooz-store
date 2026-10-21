@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Leva } from "leva";
 import { createSceneRenderer, getBackendName } from "./renderer";
 import { SharedUniforms } from "./uniforms";
@@ -25,6 +25,8 @@ import QualityMonitor from "./perf/QualityMonitor";
 import WarmUp from "./loading/WarmUp";
 import useQualityStore, { VEILED_DPR } from "./perf/quality";
 import useLoadingStore from "../../components/loader/loadingStore";
+import collectionStore from "../../stores/collectionStore";
+import { setPointerCursor } from "./interactions";
 
 // ?debug timings: the 3D chunk has loaded and evaluated.
 useLoadingStore.getState().mark("sceneChunk");
@@ -47,6 +49,20 @@ class SceneBoundary extends Component {
   render() {
     return this.state.failed ? null : this.props.children;
   }
+}
+
+/**
+ * No 3D hover / clicks on the intro screen: "Step inside" is the only way in
+ * (a rack / book / Moos click from there left the intro overlay up).
+ */
+function IntroEventGate() {
+  const setEvents = useThree((s) => s.setEvents);
+  const intro = collectionStore((s) => s.introScreen);
+  useEffect(() => {
+    setEvents({ enabled: !intro });
+    if (intro) setPointerCursor(false);
+  }, [intro, setEvents]);
+  return null;
 }
 
 /**
@@ -76,6 +92,7 @@ export default function Scene() {
         }}
       >
         <SharedUniforms />
+        <IntroEventGate />
         <QualityMonitor />
         <WarmUp />
         <CameraRig debug={debug} isMobile={isMobile} />
