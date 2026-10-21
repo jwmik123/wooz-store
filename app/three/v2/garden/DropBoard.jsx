@@ -50,7 +50,9 @@ import useLoadingStore from "../../../components/loader/loadingStore";
 // introDrop / introDropPortrait, whose DOF focus sits on these spots).
 export const DROP_BOARD = {
   landscape: { x: -3.0, z: 6.9, rotY: 0.6, top: 2.6, scale: 1.1 },
-  portrait: { x: 0, z: 11.4, rotY: 0.06, top: 2.15, scale: 0.78 },
+  // Portrait: three layers (title / greenhouse front / this board), the board
+  // low in the foreground on the path so its buttons sit in the thumb zone.
+  portrait: { x: 0, z: 7.6, rotY: 0, top: 1.42, scale: 0.75 },
 };
 
 const isPortrait = () => typeof window !== "undefined" && window.innerWidth / window.innerHeight < 0.8;
@@ -629,6 +631,9 @@ export default function DropBoard() {
     return g;
   }, [low]);
   const labelGeo = useMemo(() => new PlaneGeometry(BTN.w - 0.04, BTN.h - 0.03), []);
+  // Tap area: the button plus a margin, mostly vertical (≥ 44 px on a phone).
+  const hitGeo = useMemo(() => new PlaneGeometry(BTN.w + 0.06, BTN.h * 1.9), []);
+  const hitMat = useMemo(() => new MeshBasicNodeMaterial({ visible: false }), []);
   const faceGeo = useMemo(() => new PlaneGeometry(PW, PH), []);
 
   const bulbs = useMemo(() => {
@@ -655,10 +660,11 @@ export default function DropBoard() {
   useEffect(() => () => buttonGeo.dispose(), [buttonGeo]);
   useEffect(
     () => () => {
-      [plank, colons, labelGeo, faceGeo, flapRow.geometry].forEach((g) => g.dispose());
+      [plank, colons, labelGeo, hitGeo, faceGeo, flapRow.geometry].forEach((g) => g.dispose());
+      hitMat.dispose();
       Object.values(mats).forEach((m) => m.dispose());
     },
-    [plank, colons, labelGeo, faceGeo, flapRow, mats]
+    [plank, colons, labelGeo, hitGeo, hitMat, faceGeo, flapRow, mats]
   );
   useEffect(
     () => () => {
@@ -731,6 +737,13 @@ export default function DropBoard() {
   const opening = useRef(false);
   const colonRef = useRef();
   const sheet = useDropStore((s) => s.sheet);
+  // The Awwwards ribbon (fixed, bottom right) would cover the sheet's options.
+  useEffect(() => {
+    const html = document.documentElement;
+    if (sheet) html.dataset.wzDropSheet = "";
+    else delete html.dataset.wzDropSheet;
+    return () => delete html.dataset.wzDropSheet;
+  }, [sheet]);
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1);
@@ -786,13 +799,14 @@ export default function DropBoard() {
           <mesh geometry={flapRow.geometry} material={tMats.flaps} frustumCulled={false} raycast={noRay} />
           {BUTTONS.map(({ key, x }) => (
             <group key={key} ref={(g) => (groupRefs.current[key] = g)} position={[x, PLANK_Y, 0.03]}>
+              <mesh geometry={buttonGeo} material={tMats.buttons[key].body} position={[0, 0, -0.05]} castShadow raycast={noRay} />
+              {/* Invisible tap area, taller than the button (thumbs on phones). */}
               <mesh
                 ref={(m) => (buttonRefs.current[key] = m)}
                 userData={{ key }}
-                geometry={buttonGeo}
-                material={tMats.buttons[key].body}
-                position={[0, 0, -0.05]}
-                castShadow
+                geometry={hitGeo}
+                material={hitMat}
+                position={[0, 0, 0.02]}
               />
               <mesh geometry={labelGeo} material={tMats.buttons[key].label} position={[0, 0, 0.0135]} raycast={noRay} />
             </group>

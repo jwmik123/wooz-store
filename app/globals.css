@@ -557,3 +557,16 @@ html[data-wz-sale] {
 .wz-below-banner {
   transition: top var(--wz-dur-slow) var(--wz-ease-out);
 }
+
+/* Phones, intro shot: the Awwwards ribbon's iframe (138 × 208 px, mostly
+   transparent above the badge) sits over the countdown board's push-buttons
+   (three/v2/garden/DropBoard.jsx); let taps through until the visitor is inside. */
+@media (max-aspect-ratio: 4/5) {
+  html[data-wz-stage="intro"] #awwwards-embed,
+  html[data-wz-stage="intro"] #awwwards-embed iframe {
+    pointer-events: none;
+  }
+}
+html[data-wz-drop-sheet] #awwwards-embed {
+  visibility: hidden;
+}

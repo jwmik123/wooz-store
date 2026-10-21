@@ -52,12 +52,15 @@ const CAMERA_POSITIONS = {
     focus: new THREE.Vector3(-0.94, -0.48, 3.28),
     focusRange: 14,
   },
-  // Portrait: the board stands on the path in front of the door, the greenhouse above it.
+  // Portrait: three layers on a phone (375 × 812): title on top, the greenhouse
+  // front straight on in the middle (≈ 37–67 % of the height, ~70 % of the
+  // width, big enough to wipe), the board low in the foreground (≈ 66–89 %,
+  // clear of the bottom chrome).
   introDropPortrait: {
-    position: new THREE.Vector3(0.8, 1.2, 17.5),
-    target: new THREE.Vector3(0, -0.9, 4),
-    focus: new THREE.Vector3(0.16, -0.49, 6.66),
-    focusRange: 20,
+    position: new THREE.Vector3(0, 0.6, 11.5),
+    target: new THREE.Vector3(0, 0.3, 3),
+    focus: new THREE.Vector3(0, 0.35, 4.5),
+    focusRange: 16,
   },
   // Where the intro reveal starts (loader → intro): higher, farther and tilted
   // up into the sky, so the loader's sky dissolves into the real one before the
