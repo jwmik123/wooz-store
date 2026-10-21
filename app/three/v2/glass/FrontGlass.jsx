@@ -9,23 +9,27 @@ import { createGlassMaterial, createSashMaterial } from "./glassMaterial";
 
 /*
  * Temporary glass front for the sale-drop countdown: the greenhouse's front is
- * normally open (./layout.js), so while it is "closed" a glazed gable with a
+ * normally open (./layout.js), so while it is "closed" a glazed front with a
  * double door fills it (and fogs up with the rest of the glass). At T-0 the
  * doors swing out; after "Step inside" the whole front fades away, so the
  * overview (camera just outside the front) is as before.
  *
- * World metres: front plane z = 3.44, glass x ±2.04, floor y -1.87, eave 0.75,
- * ridge 1.98; doorway x ±0.55 up to y 0.45.
+ * World metres: front plane z = 3.44, glass x ±2.04, floor y -1.87, eave beam
+ * 0.75, gable glazed up to just under the roof (mullions carried up into it);
+ * doorway x ±0.55 up to y 0.45.
  */
 
 const Z = 3.44;
 const X = 2.04;
 const Y0 = -1.87;
 const EAVE = 0.75;
-const RIDGE = 1.98;
 const DOOR_X = 0.55;
 const DOOR_TOP = 0.45;
 const BAR = 0.045;
+// Gable: the roof's glazing plane (layout.js: y 1.107 at |x| 1.796, slope
+// 0.4863) less the wooden frame's depth, out to just inside the corner posts.
+const GX = 2.0;
+const gableY = (ax) => 1.107 - 0.4863 * (ax - 1.796) - 0.13;
 
 /** Flat polygon (fan) in the z = 0 plane, uv = (x, metres above Y0). */
 function pane(points) {
@@ -56,7 +60,8 @@ function buildFixed() {
     pane([[-X, Y0], [-DOOR_X, Y0], [-DOOR_X, EAVE], [-X, EAVE]]),
     pane([[DOOR_X, Y0], [X, Y0], [X, EAVE], [DOOR_X, EAVE]]),
     pane([[-DOOR_X, DOOR_TOP], [DOOR_X, DOOR_TOP], [DOOR_X, EAVE], [-DOOR_X, EAVE]]),
-    pane([[-X, EAVE], [X, EAVE], [0, RIDGE]]),
+    // Gable, kept just inside the wooden front frame (follows the roof slope).
+    pane([[-GX, EAVE], [GX, EAVE], [GX, gableY(GX)], [0, gableY(0)], [-GX, gableY(GX)]]),
   ]);
   const frame = merge([
     bar(BAR, EAVE - Y0, -DOOR_X - BAR / 2, (Y0 + EAVE) / 2),
@@ -65,6 +70,11 @@ function buildFixed() {
     bar(2 * X, BAR, 0, EAVE),
     // Two mullions in each side panel, like the side walls.
     ...[-1, 1].flatMap((s) => [bar(BAR * 0.7, EAVE - Y0, s * 1.05, (Y0 + EAVE) / 2), bar(BAR * 0.7, EAVE - Y0, s * 1.55, (Y0 + EAVE) / 2)]),
+    // The mullions run on up into the gable to the roof slope, plus a king post.
+    ...[0, -DOOR_X, DOOR_X, -1.05, 1.05, -1.55, 1.55].map((x) => {
+      const h = gableY(Math.abs(x)) - EAVE + 0.04;
+      return bar(BAR * 0.7, h, x, EAVE + h / 2);
+    }),
   ]);
   return { glass, frame };
 }
