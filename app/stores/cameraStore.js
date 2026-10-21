@@ -43,18 +43,20 @@ const CAMERA_POSITIONS = {
   },
   // Intro shot while the sale drop countdown runs (lib/drop.js): pulled back so
   // the countdown board (garden/DropBoard.jsx, left of the path) and the
-  // greenhouse share the frame. `focus` just behind the board, so the board is
-  // sharp and the greenhouse only softly out of focus.
+  // greenhouse share the frame. A wide in-focus range (board ≈ 7.5 m to the
+  // greenhouse's back ≈ 22 m) keeps both sharp; only the garden behind blurs.
   introDrop: {
     position: new THREE.Vector3(1.6, 0.7, 16.5),
     target: new THREE.Vector3(-1.5, -0.5, 5),
-    focus: new THREE.Vector3(-1.9, -0.2, 8.4),
+    focus: new THREE.Vector3(-1.5, -0.5, 5),
+    focusRange: 20,
   },
   // Portrait: the board stands on the path in front of the door, the greenhouse above it.
   introDropPortrait: {
     position: new THREE.Vector3(0.8, 1.2, 17.5),
     target: new THREE.Vector3(0, -0.9, 4),
-    focus: new THREE.Vector3(0, -0.2, 9.8),
+    focus: new THREE.Vector3(0.16, -0.49, 6.66),
+    focusRange: 20,
   },
   // Where the intro reveal starts (loader → intro): higher, farther and tilted
   // up into the sky, so the loader's sky dissolves into the real one before the
@@ -239,6 +241,7 @@ const useCameraStore = create((set, get) => ({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
       targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
+      targetFocusRange: config.focusRange ?? null,
       preset: "intro",
       move: { name: "reveal", ...INTRO_MOVES.reveal, duration: instant ? 0 : INTRO_MOVES.reveal.duration },
     });
@@ -252,6 +255,7 @@ const useCameraStore = create((set, get) => ({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
       targetFocus: null,
+      targetFocusRange: null,
       preset: "default",
       move: {
         name: "enter",
@@ -267,6 +271,8 @@ const useCameraStore = create((set, get) => ({
   targetCameraTarget: new THREE.Vector3(),
   /** Explicit DOF focus point for the current shot (null = autofocus raycast). */
   targetFocus: null,
+  /** In-focus depth range (m) for the current shot (null = the leva default). */
+  targetFocusRange: null,
   /** Name of the last preset (updateCameraConfig / resetCamera), null after manual moves. */
   preset: null,
 
@@ -276,6 +282,7 @@ const useCameraStore = create((set, get) => ({
     set({
       targetCameraPosition: new THREE.Vector3().copy(position),
       targetFocus: null,
+      targetFocusRange: null,
       preset: null,
     });
   },
@@ -291,7 +298,7 @@ const useCameraStore = create((set, get) => ({
   cinematicShot: -1,
   setCinematic: (cinematic) => {
     if (cinematic === get().cinematic) return;
-    if (cinematic) set({ cinematic: true, cinematicShot: -1, preset: "cinematic", targetFocus: null });
+    if (cinematic) set({ cinematic: true, cinematicShot: -1, preset: "cinematic", targetFocus: null, targetFocusRange: null });
     else set({ cinematic: false, cinematicShot: -1 });
   },
 
@@ -305,6 +312,7 @@ const useCameraStore = create((set, get) => ({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
       targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
+      targetFocusRange: config.focusRange ?? null,
       preset: CAMERA_POSITIONS[type] ? type : "default",
     });
   },
@@ -329,6 +337,7 @@ const useCameraStore = create((set, get) => ({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
       targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
+      targetFocusRange: config.focusRange ?? null,
       preset: isIntroScreen ? "intro" : "default",
     });
   },

@@ -164,7 +164,6 @@ export default function PostPipeline() {
     { collapsed: true }
   );
 
-  uFocusRange.value = c.focusRange;
   uBokehScale.value = c.bokehScale;
   uBlurStrength.value = c.blur;
   uAoIntensity.value = c.aoIntensity;
@@ -217,6 +216,9 @@ export default function PostPipeline() {
     const a = focusPull.amount;
     uBlurStrength.value = c.blur * (1 + a * focusPull.blur);
     if (a > 0) uFocusDistance.value += (focusPull.distance - uFocusDistance.value) * a;
+    // Per-shot in-focus range (cameraStore focusRange), eased like the focus pull.
+    const range = useCameraStore.getState().targetFocusRange ?? c.focusRange;
+    uFocusRange.value += (range - uFocusRange.value) * 0.06;
   });
 
   useEffect(() => {
