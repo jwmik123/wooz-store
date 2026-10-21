@@ -5,6 +5,7 @@ import {
   clamp,
   dot,
   float,
+  select,
   max,
   mix,
   normalWorld,
@@ -25,7 +26,7 @@ import { uKeyLightDirection, uNightFactor, uSkyHorizon, uSkyZenith, uSunColor } 
 import { uLampColor, uLampGlow } from "../lighting/interior";
 import { bakedLightsNode } from "../lighting/keyLight";
 import { getFinishNoiseTexture } from "../studio/finishNoise";
-import { getFogMaskTexture, uFog, uFogLine } from "./fog";
+import { DOODLE, FOG_MASK_W, getFogDoodleTexture, getFogMaskTexture, uFog, uFogLine } from "./fog";
 
 /*
  * Greenhouse glass: no transmission/refraction, just what clean float glass
@@ -95,27 +96,57 @@ export function createGlassMaterial({ fog = null, fade = null } = {}) {
 
   if (fog) {
     m.name = "greenhouseGlassFogged";
-    const wiped = smoothstep(0.06, 0.55, texture(getFogMaskTexture(), screenUV).r);
+    const noiseTex = getFinishNoiseTexture();
     const dried = smoothstep(uFogLine.sub(0.45), uFogLine, positionWorld.y);
-    // uv = metres on the pane: patchy density, beads, and clear runs where
-    // drops have trickled down.
-    const patch = texture(getFinishNoiseTexture(), uv().mul(0.55)).r;
-    const beads = smoothstep(0.8, 0.93, texture(getFinishNoiseTexture(), uv().mul(7.0)).b);
-    const runs = smoothstep(0.8, 0.86, texture(getFinishNoiseTexture(), uv().mul(vec2(3.7, 0.22))).g);
+
+    // Finger trails (screen space) and the doodles on the front glass (world
+    // x/y), both R = cleared track, G = water drops (./fingerStroke.js). The
+    // drops are shaded by a one-texel emboss: highlight towards the light
+    // (upper left), a darker refracting rim on the other side.
+    const maskTex = getFogMaskTexture();
+    const mt = 1 / FOG_MASK_W;
+    const mk = texture(maskTex, screenUV);
+    const mkOff = texture(maskTex, screenUV.add(vec2(mt, mt)));
+    const P = positionWorld;
+    const onFront = abs(Nw.z).greaterThan(0.7).and(P.z.greaterThan(3));
+    const dUv = vec2(P.x.sub(DOODLE.x0), float(DOODLE.y0).sub(P.y)).mul(DOODLE.ppm / DOODLE.size);
+    const dt = 1.5 / DOODLE.size;
+    const dd = texture(getFogDoodleTexture(), dUv);
+    const ddOff = texture(getFogDoodleTexture(), dUv.add(vec2(dt, dt)));
+    const front = select(onFront, float(1), float(0));
+    const track = mk.r.max(dd.r.mul(front)).clamp(0, 1);
+    const drops = mk.g.max(dd.g.mul(front)).clamp(0, 1);
+    const dropsOff = mkOff.g.max(ddOff.g.mul(front)).clamp(0, 1);
+    const shine = drops.sub(dropsOff).max(0);
+    const rimShade = dropsOff.sub(drops).max(0);
+
+    // Haze: condensation is heavier low on a pane (uv.y = metres above its
+    // lower edge), patchy over large areas, with a fine frosted grain.
+    const patch = texture(noiseTex, uv().mul(0.45)).r;
+    const heavy = mix(float(1), float(0.8), smoothstep(0.2, 2.2, uv().y));
+    // A wiped track is never bone dry: a thin streaky film stays behind.
+    const film = mix(float(0.1), float(0.22), texture(noiseTex, uv().mul(vec2(31.0, 9.0))).b);
+    const cleared = track.mul(float(1).sub(film)).max(drops.mul(0.55));
     const density = uFog
-      .mul(float(1).sub(wiped))
       .mul(float(1).sub(dried))
-      .mul(mix(float(0.78), float(1), patch))
-      .mul(float(1).sub(runs.mul(0.4)));
-    // A rim of beads along the edge of a wipe, like a finger leaves.
-    const rim = wiped.mul(float(1).sub(wiped)).mul(4).mul(beads.add(0.25)).mul(uFog).mul(float(1).sub(dried));
+      .mul(heavy)
+      .mul(mix(float(0.82), float(1), patch))
+      .mul(float(1).sub(cleared));
 
     const tint = mix(vec3(0.9, 0.93, 0.92), uLampColor.mul(0.35).add(vec3(0.06, 0.07, 0.08)), uNightFactor);
     const behind = fog.blur ? viewportMipTexture(screenUV, float(4.5)).rgb : tint.mul(0.55);
-    const milk = behind.mul(0.62).add(tint.mul(0.4)).add(beads.mul(0.12));
+    // Dense, milky condensation: the room behind only as soft blurred colour.
+    const milk = behind.mul(0.62).add(tint.mul(0.4));
     const fA = density.mul(fog.blur ? 0.96 : 0.78);
-    rgb = rgb.mul(float(1).sub(fA)).add(milk.mul(fA)).add(tint.mul(rim.mul(0.18)));
-    a = a.mul(float(1).sub(fA)).add(fA).add(rim.mul(0.12)).min(1);
+    const wet = uFog.mul(float(1).sub(dried));
+    const sky = mix(uSkyHorizon, uSkyZenith, 0.6).add(uSunColor.mul(0.25));
+    rgb = rgb
+      .mul(float(1).sub(fA))
+      .add(milk.mul(fA))
+      .add(sky.mul(shine.mul(0.45).mul(wet)))
+      .sub(vec3(rimShade.mul(0.08).mul(wet)))
+      .max(0);
+    a = a.mul(float(1).sub(fA)).add(fA).add(shine.mul(0.15).mul(wet)).min(1);
   }
   if (fade) {
     rgb = rgb.mul(fade);

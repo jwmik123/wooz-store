@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { createGlassGeometry, createSashFrameGeometry } from "./layout";
 import { createGlassMaterial, createSashMaterial } from "./glassMaterial";
@@ -18,34 +18,32 @@ const noRaycast = () => {};
 const DRY = { start: 0.3, duration: 2.4, from: 2.4, to: -2.4 };
 const DOORS = { start: 1.8, duration: 1.6 };
 
-/** Pointer wipes on the fogged glass: mouse just moving over it, touch dragging. */
+/**
+ * Pointer wipes on the fogged glass: mouse just moving over it, touch dragging.
+ * The brush eases after the pointer (a soft follower), so strokes come out as
+ * smooth curves instead of the raw, jittery pointer path.
+ */
 function useFogWiping(active) {
   const dom = useThree((s) => s.gl.domElement);
+  const st = useRef({ target: null, brush: null, touching: false });
+
   useEffect(() => {
     if (!active) return;
-    let last = null;
-    let touching = false;
-    const live = () => useDropStore.getState().phase === "before" && useLoadingStore.getState().revealed;
+    const s = st.current;
     const onMove = (e) => {
-      if (!live() || (e.pointerType !== "mouse" && !touching)) return (last = null);
-      if (last) {
-        const d = Math.hypot(e.clientX - last.x, e.clientY - last.y);
-        // Interpolate fast strokes so the trail has no gaps.
-        const steps = Math.min(12, Math.ceil(d / 14));
-        for (let i = 1; i <= steps; i++) {
-          const t = i / steps;
-          wipeFog(last.x + (e.clientX - last.x) * t, last.y + (e.clientY - last.y) * t, Math.min(1, d / 40));
-        }
-      }
-      last = { x: e.clientX, y: e.clientY };
+      if (e.pointerType !== "mouse" && !s.touching) return;
+      s.target = { x: e.clientX, y: e.clientY };
     };
     const onDown = (e) => {
-      touching = true;
-      last = { x: e.clientX, y: e.clientY };
+      s.touching = true;
+      s.target = { x: e.clientX, y: e.clientY };
+      s.brush = { ...s.target };
     };
-    const onUp = () => {
-      touching = false;
-      last = null;
+    const onUp = (e) => {
+      if (e.pointerType === "mouse" && e.type === "pointerup") return;
+      s.touching = false;
+      s.target = null;
+      s.brush = null;
     };
     dom.addEventListener("pointermove", onMove);
     dom.addEventListener("pointerdown", onDown);
@@ -58,6 +56,26 @@ function useFogWiping(active) {
       dom.removeEventListener("pointerleave", onUp);
     };
   }, [active, dom]);
+
+  useFrame((_, delta) => {
+    const s = st.current;
+    if (!active || !s.target) return;
+    if (useDropStore.getState().phase !== "before" || !useLoadingStore.getState().revealed) return;
+    if (!s.brush) s.brush = { ...s.target };
+    const k = 1 - Math.exp(-Math.min(delta, 0.05) * 14);
+    const from = s.brush;
+    const to = { x: from.x + (s.target.x - from.x) * k, y: from.y + (s.target.y - from.y) * k };
+    const d = Math.hypot(to.x - from.x, to.y - from.y);
+    if (d < 0.5) return;
+    // Stamp along the eased segment; faster strokes wipe a little harder.
+    const steps = Math.min(16, Math.ceil(d / 4));
+    const strength = Math.min(1, 0.35 + d / 30);
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      wipeFog(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, strength / Math.sqrt(steps));
+    }
+    s.brush = to;
+  });
 }
 
 /**

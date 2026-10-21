@@ -27,7 +27,8 @@ import { uNightFactor } from "../uniforms";
 import { terrainHeight } from "./gardenCommon";
 import { useTierSettings } from "../perf/quality";
 import { setPointerCursor } from "../interactions";
-import { DROP_LABEL, dropTime, useDropStore } from "@/lib/drop";
+import { dropLabel, dropTime, useDropStore } from "@/lib/drop";
+import { tr, useLocale } from "@/lib/i18n";
 import useLoadingStore from "../../../components/loader/loadingStore";
 
 /*
@@ -49,7 +50,7 @@ import useLoadingStore from "../../../components/loader/loadingStore";
 // Framed together with the greenhouse by the intro shot (cameraStore
 // introDrop / introDropPortrait, whose DOF focus sits on these spots).
 export const DROP_BOARD = {
-  landscape: { x: -2.6, z: 10.2, rotY: 0.59, top: 2.6, scale: 1.15 },
+  landscape: { x: -3.0, z: 6.9, rotY: 0.6, top: 2.6, scale: 1.1 },
   portrait: { x: 0, z: 11.4, rotY: 0.06, top: 2.15, scale: 0.78 },
 };
 
@@ -145,7 +146,7 @@ const PX = FACE_W / PW; // px per metre
 const fx = (x) => FACE_W / 2 + x * PX;
 const fy = (y) => FACE_H / 2 - y * PX;
 
-function drawFace(g, f, open) {
+function drawFace(g, f, open, locale) {
   g.clearRect(0, 0, FACE_W, FACE_H);
   g.textAlign = "center";
   g.textBaseline = "middle";
@@ -178,18 +179,19 @@ function drawFace(g, f, open) {
     if ("letterSpacing" in g) g.letterSpacing = `${spacing}px`;
     g.fillText(text.toUpperCase(), fx(x), fy(y));
   };
-  caps(open ? "We're open · step inside" : DROP_LABEL, 0, 0.16, 0.075, 10);
+  caps(open ? tr("board.open") : dropLabel(locale), 0, 0.16, 0.075, 10);
   if (!open)
-    ["Days", "Hours", "Min", "Sec"].forEach((label, k) => {
+    tr("board.units").forEach((label, k) => {
       caps(label, (tileX(k * 2) + tileX(k * 2 + 1)) / 2, FLAP_Y - TILE_H / 2 - 0.085, 0.06, 8);
     });
   if ("letterSpacing" in g) g.letterSpacing = "0px";
 }
 
-// Flap glyph atlas: 4 × 4 cells, each a whole tile (dark card, cream glyph).
-const GLYPHS = "0123456789NOWPE ";
+// Flap glyph atlas: 4 × 5 cells, each a whole tile (dark card, cream glyph).
+// Letters cover NOW OPEN and NU OPEN (board.flaps in lib/i18n.js).
+const GLYPHS = "0123456789NOWPE U";
 const COLS = 4;
-const ROWS = 4;
+const ROWS = 5;
 const CELL_W = 180;
 const CELL_H = Math.round((CELL_W * TILE_H) / TILE_W);
 
@@ -277,7 +279,8 @@ function drawButtonLabel(f, text, icon) {
   return canvasTexture(c);
 }
 
-function useCanvases() {
+/** Rebuilt when the language changes (lettering + button labels). */
+function useCanvases(locale) {
   const [res, setRes] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -288,15 +291,15 @@ function useCanvases() {
       face.width = FACE_W;
       face.height = FACE_H;
       const faceCtx = face.getContext("2d");
-      drawFace(faceCtx, f, false);
+      drawFace(faceCtx, f, false, locale);
       made = {
         fonts: f,
         faceCtx,
         face: canvasTexture(face),
         atlas: canvasTexture(drawAtlas(f)),
         labels: {
-          calendar: drawButtonLabel(f, "Add to calendar", "calendar"),
-          remind: drawButtonLabel(f, "Remind me", "alarm"),
+          calendar: drawButtonLabel(f, tr("board.calendar"), "calendar"),
+          remind: drawButtonLabel(f, tr("board.remind"), "alarm"),
         },
       };
       setRes(made);
@@ -309,7 +312,7 @@ function useCanvases() {
       made.labels.calendar.dispose();
       made.labels.remind.dispose();
     };
-  }, []);
+  }, [locale]);
   return res;
 }
 
@@ -646,7 +649,8 @@ export default function DropBoard() {
     return m;
   }, [built, mats, low]);
 
-  const tex = useCanvases();
+  const locale = useLocale();
+  const tex = useCanvases(locale);
   const tMats = useMemo(() => (tex ? makeTexturedMaterials(tex) : null), [tex]);
 
   useEffect(() => () => (built.panel.dispose(), built.rim.dispose()), [built]);
@@ -729,6 +733,15 @@ export default function DropBoard() {
 
   // --- Per frame: countdown → flaps, bulbs, buttons -------------------------
   const opening = useRef(false);
+  // Language switched after T-0: fresh canvases start closed, show the open face again.
+  useEffect(() => {
+    if (!opening.current) return;
+    flapRow.set(tr("board.flaps"));
+    if (tex) {
+      drawFace(tex.faceCtx, tex.fonts, true, locale);
+      tex.face.needsUpdate = true;
+    }
+  }, [tex, locale, flapRow]);
   const colonRef = useRef();
   const sheet = useDropStore((s) => s.sheet);
 
@@ -742,9 +755,9 @@ export default function DropBoard() {
     } else if (!opening.current) {
       opening.current = true;
       flapRow.startOpening();
-      flapRow.set("NOW OPEN");
+      flapRow.set(tr("board.flaps"));
       if (tex) {
-        drawFace(tex.faceCtx, tex.fonts, true);
+        drawFace(tex.faceCtx, tex.fonts, true, locale);
         tex.face.needsUpdate = true;
       }
       if (colonRef.current) colonRef.current.visible = false;

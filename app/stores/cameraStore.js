@@ -43,13 +43,14 @@ const CAMERA_POSITIONS = {
   },
   // Intro shot while the sale drop countdown runs (lib/drop.js): pulled back so
   // the countdown board (garden/DropBoard.jsx, left of the path) and the
-  // greenhouse share the frame. A wide in-focus range (board ≈ 7.5 m to the
-  // greenhouse's back ≈ 22 m) keeps both sharp; only the garden behind blurs.
+  // greenhouse share the frame, close enough that the fogged glass invites a
+  // wipe. A wide in-focus range (board ≈ 7.5 m to the greenhouse's back ≈ 17 m)
+  // keeps both sharp; only the garden behind blurs.
   introDrop: {
-    position: new THREE.Vector3(1.6, 0.7, 16.5),
-    target: new THREE.Vector3(-1.5, -0.5, 5),
-    focus: new THREE.Vector3(-1.5, -0.5, 5),
-    focusRange: 20,
+    position: new THREE.Vector3(1.3, 0.3, 13.0),
+    target: new THREE.Vector3(-0.9, 0.15, 3),
+    focus: new THREE.Vector3(-0.94, -0.48, 3.28),
+    focusRange: 14,
   },
   // Portrait: the board stands on the path in front of the door, the greenhouse above it.
   introDropPortrait: {
