@@ -11,7 +11,7 @@ const WIDTHS = [750, 1080, 1600, 2048];
  * `getSlideEl(i)` returns the stage slide for photo i: the viewer zooms out of
  * its <img> and back into it, and uses the already-loaded file as placeholder.
  */
-export async function openPhotoViewer({ images, index, alt, getSlideEl, onChange }) {
+export async function openPhotoViewer({ images, index, alt, getSlideEl, onChange, titles = {} }) {
   const { default: PhotoSwipe } = await import("photoswipe");
 
   const dataSource = images.map((img, i) => {
@@ -43,9 +43,9 @@ export async function openPhotoViewer({ images, index, alt, getSlideEl, onChange
     doubleTapAction: "zoom",
     secondaryZoomLevel: 2.5,
     maxZoomLevel: 4,
-    arrowPrevTitle: "Previous photo",
-    arrowNextTitle: "Next photo",
-    closeTitle: "Close photos",
+    arrowPrevTitle: titles.prev ?? "Previous photo",
+    arrowNextTitle: titles.next ?? "Next photo",
+    closeTitle: titles.close ?? "Close photos",
     zoomTitle: "Zoom",
   });
   pswp.on("change", () => onChange?.(pswp.currIndex));

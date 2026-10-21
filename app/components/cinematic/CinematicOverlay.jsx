@@ -4,13 +4,14 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import useCameraStore from "../../stores/cameraStore";
 import { EASE, d } from "../ui/tokens";
+import { useT } from "@/lib/i18n";
 import "./cinematic.css";
 
 // One credit per shot, cycling (the reel has 8 shots, so each comes round twice).
 const CREDITS = [
-  { label: "Wooz Studio", name: "A garden full of clothes" },
-  { label: "3D design", name: "Kevin Schipper", href: "https://kevinschipper.com", host: "kevinschipper.com" },
-  { label: "Development", name: "Joël Mik", href: "https://joelmik.nl", host: "joelmik.nl" },
+  { label: "Wooz Studio", name: "cin.tagline" },
+  { label: "cin.design", name: "Kevin Schipper", href: "https://kevinschipper.com", host: "kevinschipper.com" },
+  { label: "cin.dev", name: "Joël Mik", href: "https://joelmik.nl", host: "joelmik.nl" },
 ];
 
 /**
@@ -24,6 +25,7 @@ export default function CinematicOverlay() {
   const shot = useCameraStore((s) => s.cinematicShot);
   const root = useRef(null);
   const credit = useRef(null);
+  const t = useT();
 
   // Bars in / out + hide the chrome.
   useEffect(() => {
@@ -102,13 +104,13 @@ export default function CinematicOverlay() {
       <div className="wz-cin-bar wz-cin-bar--top">
         <span className="wz-cin-hint wz-eyebrow">
           <span className="wz-cin-hint-dot" aria-hidden />
-          Tap anywhere to return
+          {t("cin.return")}
         </span>
       </div>
       <div className="wz-cin-bar wz-cin-bar--bottom">
         <div ref={credit} className="wz-cin-credit" role="status" aria-live="polite">
-          <span className="wz-eyebrow wz-cin-credit-label">{c.label}</span>
-          <span className="wz-cin-credit-name">{c.name}</span>
+          <span className="wz-eyebrow wz-cin-credit-label">{c.label.startsWith("cin.") ? t(c.label) : c.label}</span>
+          <span className="wz-cin-credit-name">{c.name.startsWith("cin.") ? t(c.name) : c.name}</span>
           {c.href && (
             <a className="wz-cin-credit-link" href={c.href} target="_blank" rel="noreferrer">
               {c.host}

@@ -14,6 +14,7 @@ import ZoomImage from "../components/ui/ZoomImage";
 import { openPhotoViewer } from "../components/ui/photoViewer";
 import { EASE, STAGGER, formatPrice, prefersReducedMotion } from "../components/ui/tokens";
 import { swatchFor, isLightSwatch } from "./swatches";
+import { useLocale, useT } from "@/lib/i18n";
 
 const ProductCanvas = dynamic(() => import("../three/ProductCanvas"), {
   ssr: false,
@@ -54,6 +55,16 @@ const PRODUCT_QUERY = `
     }
   }
 `;
+
+// Only the description in the visitor's language (Shopify Translate & Adapt;
+// falls back to the default text). Options / colours stay in the default
+// language: swatches and variant matching key on those names.
+const DESCRIPTION_QUERY = `
+  query GetDescription($handle: String!, $language: LanguageCode) @inContext(language: $language) {
+    product(handle: $handle) { descriptionHtml }
+  }
+`;
+const descriptionCache = new Map();
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const productCache = new Map();
@@ -106,24 +117,50 @@ export default function ProductsClient({ active = true }) {
     };
   }, [productHandle]);
 
+  // Translated description (NL), swapped in when it arrives.
+  const locale = useLocale();
+  const t = useT();
+  const [description, setDescription] = useState(null);
+  useEffect(() => {
+    setDescription(null);
+    if (!productHandle || locale === "en") return;
+    const key = `${locale}:${productHandle}`;
+    if (descriptionCache.has(key)) return setDescription(descriptionCache.get(key));
+    let cancelled = false;
+    client
+      .request(DESCRIPTION_QUERY, { variables: { handle: productHandle, language: locale.toUpperCase() } })
+      .then((res) => {
+        const html = res?.data?.product?.descriptionHtml;
+        if (!html) return;
+        descriptionCache.set(key, html);
+        if (!cancelled) setDescription(html);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [productHandle, locale]);
+
   if (!productHandle) return null;
   if (error && !product)
     return (
       <div className="px-6 py-16 text-center text-ink-soft">
-        Couldn&apos;t load this piece right now. Please try again.
+        {t("product.error")}
       </div>
     );
 
   return (
     <ProductView
       product={product && product.handle === productHandle ? product : null}
+      description={description}
       productHandle={productHandle}
       active={active}
     />
   );
 }
 
-function ProductView({ product, productHandle, active }) {
+function ProductView({ product, productHandle, active, description }) {
+  const t = useT();
   const addToCart = useCheckoutStore((s) => s.addToCart);
   const reduceMotion = useReducedMotion();
   const rootRef = useRef(null);
@@ -262,7 +299,7 @@ function ProductView({ product, productHandle, active }) {
             <div className="flex items-center gap-2">
               <span className="capitalize wz-eyebrow">{kind}</span>
               <span className="w-1 h-1 rounded-full bg-ink/25" aria-hidden />
-              <span className="wz-eyebrow !text-leaf">Made in Holland</span>
+              <span className="wz-eyebrow !text-leaf">{t("product.made")}</span>
             </div>
             <div className="flex items-end justify-between gap-4">
               <h2 className="wz-display text-wz-display text-ink text-balance">{title}</h2>
@@ -286,7 +323,7 @@ function ProductView({ product, productHandle, active }) {
           {colors.length > 0 && (
             <fieldset data-reveal className="flex flex-col gap-3">
               <legend className="flex items-baseline justify-between w-full mb-3">
-                <span className="wz-eyebrow">Colour</span>
+                <span className="wz-eyebrow">{t("product.colour")}</span>
                 <span className="text-sm text-ink">{selectedColor}</span>
               </legend>
               <div className="flex flex-wrap gap-2.5">
@@ -303,7 +340,7 @@ function ProductView({ product, productHandle, active }) {
                         checked={checked}
                         onChange={() => setSelectedColor(color)}
                         className="sr-only peer"
-                        aria-label={`${color}${available ? "" : " (sold out)"}`}
+                        aria-label={`${color}${available ? "" : t("product.soldOutSuffix")}`}
                       />
                       <span
                         className={`block w-10 h-10 rounded-full transition-transform duration-wz-base ease-wz-spring
@@ -333,9 +370,9 @@ function ProductView({ product, productHandle, active }) {
           {sizes.length > 0 && (
             <fieldset data-reveal ref={sizeGroupRef} className="flex flex-col">
               <legend className="flex items-baseline justify-between w-full mb-3">
-                <span className="wz-eyebrow">Size</span>
+                <span className="wz-eyebrow">{t("product.size")}</span>
                 <span className="text-sm text-ink-soft">
-                  {selectedSize ? selectedSize : "Pick your fit"}
+                  {selectedSize ? selectedSize : t("product.pickFit")}
                 </span>
               </legend>
               <div
@@ -355,7 +392,7 @@ function ProductView({ product, productHandle, active }) {
                         disabled={!available}
                         onChange={() => setSelectedSize(size)}
                         className="sr-only peer"
-                        aria-label={`Size ${size}${available ? "" : " (sold out)"}`}
+                        aria-label={`${t("product.sizeAria", { size })}${available ? "" : t("product.soldOutSuffix")}`}
                       />
                       <span
                         className={`relative flex items-center justify-center h-12 rounded-wz-sm text-sm font-semibold
@@ -382,23 +419,20 @@ function ProductView({ product, productHandle, active }) {
           <div data-reveal className="border-t border-[color:var(--wz-line)]">
             <Accordion
               id="details"
-              title="Details"
+              title={t("product.details")}
               open={openSection === "details"}
               onToggle={(id) => setOpenSection((s) => (s === id ? null : id))}
             >
-              <div className="wz-prose" dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+              <div className="wz-prose" dangerouslySetInnerHTML={{ __html: description || product.descriptionHtml }} />
             </Accordion>
             <Accordion
               id="care"
-              title="Made with care"
+              title={t("product.care")}
               open={openSection === "care"}
               onToggle={(id) => setOpenSection((s) => (s === id ? null : id))}
             >
               <div className="wz-prose">
-                <p>
-                  Every Wooz piece is handmade by experienced tailors close to home in the
-                  Netherlands, so it doesn&apos;t have to travel far. Made to carry a happy message.
-                </p>
+                <p>{t("product.careCopy")}</p>
                 <p>
                   <a
                     className="underline rounded-sm underline-offset-4 decoration-ink/30 hover:decoration-ink wz-focus"
@@ -406,7 +440,7 @@ function ProductView({ product, productHandle, active }) {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Terms of service
+                    {t("product.terms")}
                   </a>
                 </p>
               </div>
@@ -447,6 +481,7 @@ function ProductStage({
   active,
   reduceMotion,
 }) {
+  const t = useT();
   const threeRef = useRef(null);
   const photoRef = useRef(null);
   const thumbsRef = useRef(null);
@@ -532,9 +567,10 @@ function ProductStage({
     const pswp = await openPhotoViewer({
       images,
       index: imageIndex,
-      alt: product?.title || "Product",
+      alt: product?.title || t("product.fallbackTitle"),
       getSlideEl: (i) => emblaApi?.slideNodes()[i],
       onChange: setImageIndex,
+      titles: { prev: t("product.prevPhoto"), next: t("product.nextPhoto"), close: t("product.closePhotos") },
     });
     viewerRef.current = pswp;
     pswp.on("destroy", () => (viewerRef.current = null));
@@ -603,7 +639,7 @@ function ProductStage({
           >
             <div className="flex items-center gap-2 py-2 pl-3 pr-4 rounded-full wz-glass-chip text-ink">
               <Hand className="w-4 h-4 wz-nudge" strokeWidth={1.75} />
-              <span className="text-xs font-semibold tracking-wide">Drag to play</span>
+              <span className="text-xs font-semibold tracking-wide">{t("product.drag")}</span>
             </div>
           </div>
         </div>
@@ -614,7 +650,7 @@ function ProductStage({
             ref={emblaRef}
             tabIndex={mode === "photo" ? 0 : -1}
             aria-roledescription="carousel"
-            aria-label="Product photos"
+            aria-label={t("product.photos")}
             onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                 e.preventDefault();
@@ -631,12 +667,12 @@ function ProductStage({
                 data-slide={i}
                 className="relative w-full h-full min-w-0 shrink-0 grow-0 basis-full"
                 aria-roledescription="slide"
-                aria-label={`${i + 1} of ${images.length}`}
+                aria-label={t("product.photoOf", { i: i + 1, n: images.length })}
               >
                 {(mode === "photo" || Math.abs(i - imageIndex) < 1) && (
                   <ZoomImage
                     src={img.url}
-                    alt={img.altText || `${product?.title || "Product"} photo ${i + 1}`}
+                    alt={img.altText || t("product.photoAlt", { title: product?.title || t("product.fallbackTitle"), i: i + 1 })}
                     priority={i === 0}
                     onZoomChange={setZoomed}
                     onOpen={openViewer}
@@ -651,7 +687,7 @@ function ProductStage({
               <button
                 type="button"
                 onClick={() => step(-1)}
-                aria-label="Previous photo"
+                aria-label={t("product.prevPhoto")}
                 className="absolute hidden opacity-0 md:grid left-3 top-[calc(50%-1.25rem)] wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] duration-wz-base"
               >
                 <ChevronLeft className="w-4 h-4" strokeWidth={2} />
@@ -659,7 +695,7 @@ function ProductStage({
               <button
                 type="button"
                 onClick={() => step(1)}
-                aria-label="Next photo"
+                aria-label={t("product.nextPhoto")}
                 className="absolute hidden opacity-0 md:grid right-3 top-[calc(50%-1.25rem)] wz-icon-btn wz-glass-chip group-hover/photos:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] duration-wz-base"
               >
                 <ChevronRight className="w-4 h-4" strokeWidth={2} />
@@ -693,14 +729,14 @@ function ProductStage({
       {/* Thumbnails (photo mode) */}
       <div className="wz-collapse" data-open={mode === "photo" && images.length > 1}>
         <div>
-          <div ref={thumbsRef} className="relative flex gap-2 p-1 overflow-x-auto wz-no-scrollbar" role="tablist" aria-label="Choose photo">
+          <div ref={thumbsRef} className="relative flex gap-2 p-1 overflow-x-auto wz-no-scrollbar" role="tablist" aria-label={t("product.choosePhoto")}>
             {images.map((img, i) => (
               <button
                 key={img.url}
                 type="button"
                 role="tab"
                 aria-selected={i === imageIndex}
-                aria-label={`Photo ${i + 1}`}
+                aria-label={t("product.photo", { i: i + 1 })}
                 tabIndex={mode === "photo" ? 0 : -1}
                 onClick={() => setImageIndex(i)}
                 className={`relative shrink-0 w-14 h-14 overflow-hidden rounded-wz-sm transition-all duration-wz-base ease-wz-out wz-focus ${
@@ -718,14 +754,15 @@ function ProductStage({
 }
 
 function ViewSwitch({ mode, setMode }) {
+  const t = useT();
   const options = [
     { id: "3d", label: "3D", Icon: Rotate3d },
-    { id: "photo", label: "Photos", Icon: Images },
+    { id: "photo", label: t("product.viewPhotos"), Icon: Images },
   ];
   return (
     <div
       role="radiogroup"
-      aria-label="Product view"
+      aria-label={t("product.view")}
       className="absolute top-3 left-3 z-10 grid grid-cols-2 p-1 rounded-full wz-glass-chip"
     >
       <span
@@ -802,6 +839,7 @@ function Smiley({ drawn }) {
 }
 
 function AddToBagButton({ status, soldOut, needsSize, price, compareAt, summary, onClick }) {
+  const t = useT();
   const added = status === "added";
   const loading = status === "loading";
   return (
@@ -818,17 +856,17 @@ function AddToBagButton({ status, soldOut, needsSize, price, compareAt, summary,
         {added ? (
           <span className="flex items-center justify-center w-full gap-2">
             <Smiley drawn />
-            Added to your bag
+            {t("product.added")}
           </span>
         ) : loading ? (
           <span className="flex items-center justify-center w-full gap-2">
             <span className="w-4 h-4 border-2 rounded-full border-paper/30 border-t-paper animate-spin" />
-            Adding…
+            {t("product.adding")}
           </span>
         ) : (
           <>
             <span className="flex flex-col items-start leading-tight">
-              <span>{soldOut ? "Sold out" : needsSize ? "Select a size" : "Add to bag"}</span>
+              <span>{soldOut ? t("product.soldOut") : needsSize ? t("product.selectSize") : t("product.add")}</span>
               {summary && !soldOut && (
                 <span className="text-[11px] font-medium tracking-wide text-paper/60">{summary}</span>
               )}
@@ -849,8 +887,9 @@ function AddToBagButton({ status, soldOut, needsSize, price, compareAt, summary,
 }
 
 function DetailsSkeleton() {
+  const t = useT();
   return (
-    <div className="flex flex-col gap-6 px-5 pt-6 pb-8 md:px-7" aria-busy="true" aria-label="Loading product">
+    <div className="flex flex-col gap-6 px-5 pt-6 pb-8 md:px-7" aria-busy="true" aria-label={t("product.loading")}>
       <div className="w-24 h-3 rounded-full wz-skeleton" />
       <div className="w-3/4 h-10 rounded-wz-sm wz-skeleton" />
       <div className="flex gap-2.5">

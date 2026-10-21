@@ -2,6 +2,7 @@ import { Box3, Matrix4, Vector3 } from "three/webgpu";
 import { STUDIO_OFFSET } from "../Studio";
 import { SWEEP_AXIS } from "../wind/clothWind";
 import { TABLE_SPOTS } from "./tableSpots";
+import { tr } from "@/lib/i18n";
 
 export { TABLE_SPOTS };
 
@@ -42,7 +43,7 @@ const uniqueColours = (items) => new Set(items.map((i) => i.color)).size;
 /** "Hoodies · 4 colours" (hover chip). */
 export function rackLabel(type, items) {
   const n = uniqueColours(items);
-  return `${RACK_NAMES[type] ?? type} · ${n} colour${n === 1 ? "" : "s"}`;
+  return tr("hover.colours", { name: RACK_NAMES[type] ?? type, n });
 }
 
 /** Studio-local (see Studio.jsx) -> world: (-z, y, x) + STUDIO_OFFSET. */

@@ -8,6 +8,7 @@ import { DROP_AT } from "@/lib/drop";
  *   ?remind=early  1 day + 1 hour before + at the start
  *   ?remind=open   only at the start
  *   (default)      30 min before + at the start
+ *   ?lang=nl       Dutch event text (default English)
  */
 
 const ALARMS = {
@@ -16,10 +17,25 @@ const ALARMS = {
   default: ["-PT30M", "PT0M"],
 };
 
+const COPY = {
+  en: {
+    open: "The Wooz sale drop is open",
+    soon: "The Wooz sale drop opens soon",
+    description: "The Wooz greenhouse opens for the sale drop. https://wooz.store",
+  },
+  nl: {
+    open: "De Wooz sale drop is open",
+    soon: "De Wooz sale drop gaat zo open",
+    description: "De kas van Wooz gaat open voor de sale drop. https://wooz.store",
+  },
+};
+
 const stamp = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
 export function GET(request) {
-  const remind = new URL(request.url).searchParams.get("remind");
+  const params = new URL(request.url).searchParams;
+  const remind = params.get("remind");
+  const copy = COPY[params.get("lang")] ?? COPY.en;
   const alarms = ALARMS[remind] ?? ALARMS.default;
   const start = DROP_AT;
   const end = new Date(start.getTime() + 2 * 3600e3);
@@ -27,7 +43,7 @@ export function GET(request) {
   const alarm = (trigger) => [
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
-    `DESCRIPTION:${trigger === "PT0M" ? "The Wooz sale drop is open" : "The Wooz sale drop opens soon"}`,
+    `DESCRIPTION:${trigger === "PT0M" ? copy.open : copy.soon}`,
     `TRIGGER:${trigger}`,
     "END:VALARM",
   ];
@@ -45,7 +61,7 @@ export function GET(request) {
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(end)}`,
     "SUMMARY:Wooz sale drop",
-    "DESCRIPTION:The Wooz greenhouse opens for the sale drop. https://wooz.store",
+    `DESCRIPTION:${copy.description}`,
     "URL:https://wooz.store",
     "LOCATION:https://wooz.store",
     ...alarms.flatMap(alarm),

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import useQualityStore, { LITE_URL, cannotRender3D } from "../../three/v2/perf/quality";
+import { useT } from "@/lib/i18n";
 
 /*
  * Points visitors to the 2D storefront when the 3D garden is too heavy for
@@ -16,15 +17,10 @@ import useQualityStore, { LITE_URL, cannotRender3D } from "../../three/v2/perf/q
 
 const DISMISS_KEY = "wz-lite-dismissed";
 
-const COPY = {
-  unsupported: "Your browser can't show our 3D garden.",
-  error: "Something went wrong loading our 3D garden.",
-  slow: "Our 3D garden is a bit too heavy for this device.",
-};
-
 export default function LiteFallback() {
   const reason = useQualityStore((s) => s.tooHeavy);
   const [dismissed, setDismissed] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     try {
@@ -58,13 +54,13 @@ export default function LiteFallback() {
       <div className="flex flex-col items-center w-full max-w-sm gap-4 px-6 py-8 text-center wz-glass rounded-wz-lg text-ink">
         <span className="wz-eyebrow !text-ink/70">Wooz Studio</span>
         <h2 id="wz-lite-title" className="wz-display text-[clamp(1.75rem,1.4rem+1.5vw,2.25rem)] leading-tight">
-          {COPY[reason]}
+          {t(`lite.${reason}`)}
         </h2>
         <p className="text-wz-sm text-ink-soft">
-          No worries: the full collection is waiting on our 2D website.
+          {t("lite.copy")}
         </p>
         <a href={LITE_URL} className="flex items-center h-12 px-8 mt-2 wz-btn-primary text-wz-base">
-          Go to the 2D website
+          {t("lite.go")}
         </a>
         {reason === "slow" && (
           <button
@@ -72,7 +68,7 @@ export default function LiteFallback() {
             onClick={dismiss}
             className="px-3 py-2 text-sm font-medium underline rounded-full underline-offset-4 decoration-ink/30 hover:decoration-ink text-ink wz-focus"
           >
-            Try 3D anyway
+            {t("lite.anyway")}
           </button>
         )}
       </div>

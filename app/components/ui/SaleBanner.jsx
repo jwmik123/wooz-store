@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useSaleHandles } from "@/lib/sale";
-import { DROP_LABEL, useDropClosed } from "@/lib/drop";
+import { dropLabel, useDropClosed } from "@/lib/drop";
+import { useLocale, useT } from "@/lib/i18n";
 import useLoadingStore from "../loader/loadingStore";
 import useCameraStore from "../../stores/cameraStore";
 
@@ -21,6 +22,8 @@ export default function SaleBanner() {
   const loading = useLoadingStore((s) => s.stage === "loading");
   const cinematic = useCameraStore((s) => s.cinematic);
   const drop = useDropClosed();
+  const t = useT();
+  const label = dropLabel(useLocale());
   const max = Math.max(0, ...sale.values());
   const shown = (max > 0 || drop) && !loading && !cinematic;
 
@@ -36,11 +39,11 @@ export default function SaleBanner() {
     <span key={i} className="wz-sale-item">
       {drop ? (
         <>
-          Sale drop <b>{DROP_LABEL}</b>
+          Sale drop <b>{label}</b>
         </>
       ) : (
         <>
-          Sale <b>up to −{max}%</b>
+          Sale <b>{t("sale.upTo", { pct: max })}</b>
         </>
       )}
       <span aria-hidden className="wz-sale-dot" />
@@ -48,7 +51,7 @@ export default function SaleBanner() {
   ));
 
   return (
-    <div className="wz-sale-banner" data-shown={shown || undefined} role="status" aria-label={drop ? `Sale drop: ${DROP_LABEL}` : `Sale: up to ${max}% off`}>
+    <div className="wz-sale-banner" data-shown={shown || undefined} role="status" aria-label={drop ? t("sale.dropAria", { date: label }) : t("sale.aria", { pct: max })}>
       <div className="wz-sale-track" aria-hidden>
         <div className="wz-sale-run">{items}</div>
         <div className="wz-sale-run">{items}</div>

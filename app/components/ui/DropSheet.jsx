@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { AlarmClock, CalendarPlus, X } from "lucide-react";
-import { DROP_LONG, googleCalendarUrl, useDropStore } from "@/lib/drop";
+import { dropLong, googleCalendarUrl, useDropStore } from "@/lib/drop";
+import { useLocale, useT } from "@/lib/i18n";
 
 /*
  * Bottom sheet behind the two push-buttons on the countdown board
@@ -14,15 +15,22 @@ const ICS = "/api/drop.ics";
 
 const isAndroid = () => typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
 
-function options(kind) {
+function options(kind, t, locale) {
+  const ics = `${ICS}?lang=${locale}`;
   if (kind === "remind")
     return [
-      { key: "early", title: "A day before and an hour before", note: "Calendar alerts on your phone", href: `${ICS}?remind=early` },
-      { key: "open", title: "Only when it opens", note: "One alert at 15:00", href: `${ICS}?remind=open` },
+      { key: "early", title: t("drop.early"), note: t("drop.earlyNote"), href: `${ics}&remind=early` },
+      { key: "open", title: t("drop.openOnly"), note: t("drop.openOnlyNote"), href: `${ics}&remind=open` },
     ];
-  const apple = { key: "apple", title: "Apple Calendar", note: "iPhone, iPad, Mac", href: ICS };
-  const google = { key: "google", title: "Google Calendar", note: "Android, browser", href: googleCalendarUrl(), external: true };
-  const outlook = { key: "outlook", title: "Outlook or other", note: "Opens a calendar file", href: ICS };
+  const apple = { key: "apple", title: "Apple Calendar", note: t("drop.appleNote"), href: ics };
+  const google = {
+    key: "google",
+    title: "Google Calendar",
+    note: t("drop.googleNote"),
+    href: googleCalendarUrl({ title: t("drop.gcalTitle"), details: t("drop.gcalDetails") }),
+    external: true,
+  };
+  const outlook = { key: "outlook", title: t("drop.other"), note: t("drop.otherNote"), href: ics };
   return isAndroid() ? [google, apple, outlook] : [apple, google, outlook];
 }
 
@@ -30,6 +38,8 @@ export default function DropSheet() {
   const sheet = useDropStore((s) => s.sheet);
   const close = useDropStore((s) => s.closeSheet);
   const panel = useRef(null);
+  const t = useT();
+  const locale = useLocale();
   const open = !!sheet;
 
   useEffect(() => {
@@ -64,21 +74,21 @@ export default function DropSheet() {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-col gap-1">
             <h2 id="wz-drop-sheet-title" className="wz-display text-wz-xl leading-tight">
-              {remind ? "Remind me" : "Add to calendar"}
+              {remind ? t("drop.remindTitle") : t("drop.calendarTitle")}
             </h2>
-            <p className="text-wz-sm text-ink-soft">The greenhouse opens {DROP_LONG}.</p>
+            <p className="text-wz-sm text-ink-soft">{t("drop.opens", { date: dropLong(locale) })}</p>
           </div>
           <button
             type="button"
             onClick={close}
-            aria-label="Close"
+            aria-label={t("chrome.close")}
             className="grid shrink-0 w-9 h-9 rounded-full place-items-center bg-ink/5 hover:bg-ink/10 wz-focus"
           >
             <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
         <ul className="flex flex-col gap-2">
-          {(sheet ? options(sheet) : []).map((o) => (
+          {(sheet ? options(sheet, t, locale) : []).map((o) => (
             <li key={o.key}>
               <a
                 href={o.href}

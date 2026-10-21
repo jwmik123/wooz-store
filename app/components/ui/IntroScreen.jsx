@@ -2,7 +2,8 @@
 
 import { forwardRef, useEffect, useState } from "react";
 import useEnvironmentStore from "../../stores/environmentStore";
-import { DROP_LONG, useDropStore } from "@/lib/drop";
+import { dropLong, useDropStore } from "@/lib/drop";
+import { useLocale, useT } from "@/lib/i18n";
 
 // Same window the lamps/stars use: dusk → dawn.
 const isDark = (h) => h >= 20.6 || h < 6.1;
@@ -32,6 +33,8 @@ const IntroScreen = forwardRef(function IntroScreen(
   // board in the garden (three/v2/garden/DropBoard.jsx) is the call to action.
   const closed = useDropStore((s) => s.phase !== "open") && mounted;
   const openSheet = useDropStore((s) => s.openSheet);
+  const t = useT();
+  const locale = useLocale();
   return (
     <div
       ref={ref}
@@ -42,7 +45,7 @@ const IntroScreen = forwardRef(function IntroScreen(
     >
       <div className="flex flex-col items-center gap-3 text-center">
         <span className="wz-eyebrow !text-ink/70" data-intro="eyebrow">
-          Welcome to
+          {t("intro.welcome")}
         </span>
         <h1 className="wz-display text-[clamp(3rem,2rem+5vw,6.5rem)] leading-[0.95] text-ink">
           <span className="sr-only">Wooz Studio</span>
@@ -57,17 +60,7 @@ const IntroScreen = forwardRef(function IntroScreen(
           className="wz-intro-copy max-w-[21rem] md:max-w-[30rem] mt-2 text-center text-wz-sm font-medium text-ink"
           data-intro="copy"
         >
-          {closed ? (
-            <>
-              The glasshouse is closed until the sale drop on {DROP_LONG}. Press
-              a button on the sign so you don&apos;t miss it.
-            </>
-          ) : (
-            <>
-              A little glasshouse at the end of a wild garden. Wander in, try
-              things on, take something happy home.
-            </>
-          )}
+          {closed ? t("intro.closed", { date: dropLong(locale) }) : t("intro.open")}
         </p>
       </div>
 
@@ -76,8 +69,8 @@ const IntroScreen = forwardRef(function IntroScreen(
           // Keyboard / screen-reader route to the sheet the 3D buttons open.
           <div className={`flex gap-2 ${interactive ? "pointer-events-auto" : ""}`}>
             {[
-              ["calendar", "Add the sale drop to your calendar"],
-              ["remind", "Remind me about the sale drop"],
+              ["calendar", t("intro.srCalendar")],
+              ["remind", t("intro.srRemind")],
             ].map(([key, label]) => (
               <button
                 key={key}
@@ -101,7 +94,7 @@ const IntroScreen = forwardRef(function IntroScreen(
             disabled={!interactive}
             className="h-14 px-9 wz-btn-primary text-wz-base"
           >
-            Step inside
+            {t("intro.step")}
           </button>
           <button
             type="button"
@@ -109,7 +102,7 @@ const IntroScreen = forwardRef(function IntroScreen(
             disabled={!interactive}
             className="px-3 py-2 text-sm font-medium underline rounded-full underline-offset-4 decoration-ink/30 hover:decoration-ink text-ink wz-focus wz-intro-copy"
           >
-            Step inside without sound
+            {t("intro.stepMuted")}
           </button>
         </div>
       </div>

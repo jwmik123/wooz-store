@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { InfoIcon } from "lucide-react";
 import { useRackHover } from "../v2/signs/signState";
+import { useT } from "@/lib/i18n";
 
 /**
  * Small chip next to the cursor while a rack / signboard / table piece is hovered
@@ -35,6 +36,7 @@ function HoverChip() {
 
 const PointsOfInterest = () => {
   const [showInfo, setShowInfo] = useState(false);
+  const t = useT();
 
   return (
     <>
@@ -48,7 +50,7 @@ const PointsOfInterest = () => {
         />
         {showInfo && (
           <div className="text-center text-black">
-            tap anything that glows to explore it.
+            {t("hint.glowLong")}
           </div>
         )}
       </div>

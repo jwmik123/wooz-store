@@ -6,12 +6,15 @@ import { Book } from "./Book";
 import { openCollection, openTablePiece, setPointerCursor } from "./interactions";
 import { TABLE_SPOTS } from "./signs/signLayout";
 import { finePointer, setSpotHover, useRackHover } from "./signs/signState";
+import { tr } from "@/lib/i18n";
 
 /** Hover glow (studio shell material, signs/spotGlow.js) + cursor chip. */
 function spotOver(key) {
   if (!finePointer()) return;
   setSpotHover(TABLE_SPOTS[key]);
-  useRackHover.setState({ label: TABLE_SPOTS[key].label });
+  // Totebag = product name (stays); the others say what happens.
+  const label = key === "totebag" ? TABLE_SPOTS[key].label : tr(`spot.${key}`);
+  useRackHover.setState({ label });
 }
 function spotOut() {
   setSpotHover(null);

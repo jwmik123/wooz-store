@@ -9,6 +9,7 @@ import useCartCount from "./useCartCount";
 import CartList from "./CartList";
 import { useCollectionNav } from "./Navigation";
 import { EASE, DUR, STAGGER, prefersReducedMotion } from "./tokens";
+import { useT } from "@/lib/i18n";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -27,6 +28,7 @@ export const Sidebar = () => {
   const setSidebarOpen = collectionStore((s) => s.setSidebarOpen);
   const setCartOpen = collectionStore((s) => s.setCartOpen);
   const count = useCartCount();
+  const t = useT();
 
   const panelRef = useRef(null);
   const productLayerRef = useRef(null);
@@ -140,7 +142,7 @@ export const Sidebar = () => {
       ref={panelRef}
       role="dialog"
       aria-modal="false"
-      aria-label={cartOpen ? "Your bag" : "Product details"}
+      aria-label={cartOpen ? t("panel.bag") : t("panel.product")}
       tabIndex={-1}
       inert={!sidebarOpen ? true : undefined}
       style={{ visibility: "hidden" }}
@@ -167,7 +169,7 @@ export const Sidebar = () => {
                   type="button"
                   className="wz-icon-btn"
                   onClick={() => go("prev")}
-                  aria-label="Previous collection"
+                  aria-label={t("panel.prev")}
                 >
                   <ChevronLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />
                 </button>
@@ -184,7 +186,7 @@ export const Sidebar = () => {
                   type="button"
                   className="wz-icon-btn"
                   onClick={() => go("next")}
-                  aria-label="Next collection"
+                  aria-label={t("panel.next")}
                 >
                   <ChevronRight className="w-[18px] h-[18px]" strokeWidth={1.75} />
                 </button>
@@ -196,7 +198,7 @@ export const Sidebar = () => {
                     type="button"
                     className="wz-icon-btn"
                     onClick={() => setCartOpen(false)}
-                    aria-label="Back to product"
+                    aria-label={t("panel.back")}
                   >
                     <ArrowLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />
                   </button>
@@ -210,7 +212,7 @@ export const Sidebar = () => {
                   type="button"
                   className="relative wz-icon-btn"
                   onClick={() => setCartOpen(true)}
-                  aria-label={`Open bag, ${count} item${count === 1 ? "" : "s"}`}
+                  aria-label={t("bag.open", { n: count })}
                 >
                   <ShoppingBag className="w-[18px] h-[18px]" strokeWidth={1.75} />
                   {count > 0 && (
@@ -227,7 +229,7 @@ export const Sidebar = () => {
                 type="button"
                 className="wz-icon-btn"
                 onClick={close}
-                aria-label="Close panel (Esc)"
+                aria-label={t("panel.close")}
               >
                 <X className="w-[18px] h-[18px]" strokeWidth={1.75} />
               </button>

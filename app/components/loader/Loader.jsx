@@ -16,6 +16,7 @@ import useCameraStore, { INTRO_MOVES } from "../../stores/cameraStore";
 import useSoundStore from "../../stores/soundStore";
 import { focusPull } from "../../three/v2/post/focusOverride";
 import { EASE, prefersReducedMotion } from "../ui/tokens";
+import { tr, useLocale, useT } from "@/lib/i18n";
 
 /*
  * Loading → reveal → intro → enter, as one piece of choreography.
@@ -40,13 +41,6 @@ if (typeof window !== "undefined") {
   prefetchAssets(CRITICAL_ASSETS);
 }
 
-const LABELS = {
-  boot: "Unlocking the gate",
-  assets: "Planting the garden",
-  compile: "Watering the flowers",
-  calibrate: "Polishing the glass",
-  settle: "Letting it bloom",
-};
 
 const CLOUDS = [
   { top: "9%", left: "6%", w: "34vw", h: "11vw", dur: "46s", delay: "-8s" },
@@ -76,6 +70,14 @@ export default function Loader() {
   const [stage, setStage] = useState("loading");
   const [interactive, setInteractive] = useState(false);
   const [hint, setHint] = useState(false);
+  const t = useT();
+  const locale = useLocale();
+
+  // The label is written imperatively per phase; rewrite it when the language lands.
+  useEffect(() => {
+    const { phase } = useLoadingStore.getState();
+    if (labelRef.current) labelRef.current.textContent = tr(`loader.${phase || "boot"}`);
+  }, [locale]);
 
   const q = (sel) => welcomeRef.current?.querySelectorAll(sel) ?? [];
 
@@ -159,7 +161,7 @@ export default function Loader() {
       if (numRef.current) numRef.current.textContent = `${Math.floor(shown * 100)}%`;
       if (s.phase !== phase && labelRef.current) {
         phase = s.phase;
-        labelRef.current.textContent = LABELS[phase];
+        labelRef.current.textContent = tr(`loader.${phase}`);
       }
       if (shown >= 1) {
         startReveal();
@@ -252,7 +254,7 @@ export default function Loader() {
             <Sprout ref={sproutRef} />
             <div className="wz-loader-caption wz-eyebrow">
               <span ref={labelRef} className="wz-loader-label">
-                {LABELS.boot}
+                {t("loader.boot")}
               </span>
               <span className="wz-loader-dot" aria-hidden />
               <span ref={numRef} className="wz-loader-num">
@@ -260,7 +262,7 @@ export default function Loader() {
               </span>
             </div>
             <span className="wz-eyebrow wz-loader-foot !tracking-[0.18em]">
-              Best with sound on
+              {t("loader.sound")}
             </span>
           </div>
         </div>
@@ -275,7 +277,7 @@ export default function Loader() {
         aria-hidden={!hint}
       >
         <InfoIcon className="w-4 h-4" strokeWidth={1.75} />
-        <span className="whitespace-nowrap">Tap anything that glows</span>
+        <span className="whitespace-nowrap">{t("hint.glow")}</span>
       </div>
     </>
   );

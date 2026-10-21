@@ -17,12 +17,14 @@ import CinematicOverlay from "./components/cinematic/CinematicOverlay";
 import LiteFallback from "./components/ui/LiteFallback";
 import SaleBanner from "./components/ui/SaleBanner";
 import DropSheet from "./components/ui/DropSheet";
+import { detectLocale, useLocaleStore, useT } from "@/lib/i18n";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
 
 export default function Home() {
   const introScreen = collectionStore((state) => state.introScreen);
+  const t = useT();
 
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [openModel, setOpenModel] = useState(false);
@@ -33,6 +35,12 @@ export default function Home() {
   const resetCamera = cameraStore((state) => state.resetCamera);
   const bookVisible = collectionStore((state) => state.bookVisible);
   const setBookVisible = collectionStore((state) => state.setBookVisible);
+
+  useEffect(() => {
+    // Device language (or the visitor's earlier pick), after hydration.
+    useLocaleStore.getState().setLocale(detectLocale());
+    // Sound lives in the layout (components/Sound.jsx): no teardown on route change.
+  }, []);
 
   const handleCloseBook = () => {
     setBookVisible(false);
@@ -52,12 +60,12 @@ export default function Home() {
           }}
         >
           <AlignLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />
-          <span className="text-xs font-semibold tracking-wide">Menu</span>
+          <span className="text-xs font-semibold tracking-wide">{t("chrome.menu")}</span>
         </button>
         <span className="w-px h-4 bg-ink/10" aria-hidden />
         <button
           type="button"
-          aria-label={soundOn ? "Mute sound" : "Turn sound on"}
+          aria-label={soundOn ? t("chrome.soundOff") : t("chrome.soundOn")}
           aria-pressed={soundOn}
           className="grid h-8 px-3 rounded-full place-items-center transition-colors duration-wz-fast hover:bg-ink/5 wz-focus"
           onClick={() => {
@@ -105,7 +113,7 @@ export default function Home() {
           onClick={() => handleCloseBook()}
           className="absolute z-10 flex items-center justify-center w-32 h-12 -translate-x-1/2 bg-white rounded-md cursor-pointer bottom-4 left-1/2 text-primary"
         >
-          <span>close book</span>
+          <span>{t("chrome.closeBook")}</span>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { Instagram, Facebook, X } from "lucide-react";
+import { LOCALES, useLocaleStore, useT } from "@/lib/i18n";
 
 const Menu = ({
   isNavOpen,
@@ -17,6 +18,9 @@ const Menu = ({
   const modelRef = useRef(null);
 
   const [modelInfo, setModelInfo] = useState([]);
+  const t = useT();
+  const locale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
 
   useEffect(() => {
     if (openModel) {
@@ -94,7 +98,7 @@ const Menu = ({
                       setModelInfo(path);
                     }}
                   >
-                    {path.charAt(0) + path.slice(1)}
+                    {t(path === "About" ? "menu.about" : "menu.sustainability")}
                   </div>
                 </div>
               ))}
@@ -109,7 +113,7 @@ const Menu = ({
                 target="_blank"
                 href="https://shop.wooz.store/policies/terms-of-service"
               >
-                Terms of Service
+                {t("menu.terms")}
               </Link>
               <Link
                 data-animation-link="no-animation"
@@ -117,9 +121,30 @@ const Menu = ({
                 href="https://shop.wooz.store/"
                 target="_blank"
               >
-                2D Website
+                {t("menu.site2d")}
               </Link>
-              <div className="flex items-center gap-2 mt-10">
+              <div
+                role="radiogroup"
+                aria-label={t("lang.label")}
+                className="flex items-center gap-1 p-1 mt-8 rounded-full w-fit wz-glass-chip"
+              >
+                {LOCALES.map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    role="radio"
+                    aria-checked={locale === l}
+                    lang={l}
+                    onClick={() => setLocale(l, true)}
+                    className={`h-8 px-3.5 rounded-full text-xs font-semibold tracking-wide transition-colors duration-wz-fast wz-focus ${
+                      locale === l ? "bg-ink text-paper" : "text-ink hover:bg-ink/5"
+                    }`}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-6">
                 <Link
                   href="https://www.instagram.com/woozclothing/"
                   target="_blank"
@@ -144,7 +169,7 @@ const Menu = ({
       >
         <button
           type="button"
-          aria-label="Close"
+          aria-label={t("chrome.close")}
           className="absolute z-10 wz-icon-btn top-3 right-3"
           onClick={() => {
             setOpenModel(false);
@@ -157,33 +182,21 @@ const Menu = ({
           {modelInfo === "About" && (
             <div className="flex flex-col items-center justify-center h-full px-1 text-center md:px-24">
               <h1 className="mb-6 text-2xl sm:text-3xl md:text-5xl wz-display">
-                {" "}
-                Our Story
+                {t("about.title")}
               </h1>
               <div className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
-                <p className="mb-4">
-                  Creating a community through our brand by sharing happy
-                  moments together while wearing Wooz clothing. Let’s make the
-                  world a happier and healthier place.
-                </p>
+                <p className="mb-4">{t("about.p1")}</p>
                 <br />
-                <p>
-                  Our mission is to create items that carry a happy message that
-                  will inspire people to live a happier life so that they can
-                  share it with others.
-                </p>{" "}
+                <p>{t("about.p2")}</p>{" "}
                 <br />
                 <p className="italic">
-                  'A smile from you can change someone else's day!'
+                  {t("about.quote")}
                 </p>
                 <p>
                   {" "}
                   <br />
-                  Aiming for a fair production process which creates premium
-                  quality garments, Wooz' pieces are entirely hand made in the
-                  Netherlands. The garments are made by experienced tailors
-                  close to Wooz in the Netherlands. <br /> <br />
-                  <span className="font-bold ">LOVE</span>
+                  {t("about.p3")} <br /> <br />
+                  <span className="font-bold ">{t("about.love")}</span>
                 </p>
               </div>
             </div>
@@ -191,22 +204,17 @@ const Menu = ({
           {modelInfo === "Sustainability" && (
             <div className="flex flex-col items-center justify-center h-full px-8 text-center md:px-24">
               <h1 className="mb-6 text-2xl sm:text-3xl md:text-5xl wz-display">
-                What sustainability means to Wooz
+                {t("sus.title")}
               </h1>
               <p className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
-                Being sustainable is very important to us. We try to keep our
-                footprint as small as possible. We will also continue to
-                research and develop sustainable products to take the best care
-                of planet earth.
+                {t("sus.p1")}
               </p>
 
               <h1 className="mt-10 mb-6 text-2xl sm:text-3xl md:text-4xl wz-display">
-                Made in Holland
+                {t("sus.madeTitle")}
               </h1>
               <p className="text-sm md:text-lg max-w-prose mx-auto text-ink-soft">
-                The clothing of Wooz is produced in a responsible way in the
-                Netherlands. The production is close to 'home' so it doesn't
-                have to travel far :)
+                {t("sus.p2")}
               </p>
             </div>
           )}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import useEnvironmentStore from "../../stores/environmentStore";
 import { timeSettings } from "../../three/v2/uniforms";
+import { useT } from "@/lib/i18n";
 
 /*
  * Scene clock (top right). Shows the time the scene is rendering — the
@@ -22,13 +23,13 @@ const fmt = (h) => {
 };
 
 function phase(h) {
-  if (h < 5 || h >= 21.5) return { label: "Night", night: true };
-  if (h < 7) return { label: "Sunrise", night: false };
-  if (h < 11) return { label: "Morning", night: false };
-  if (h < 15) return { label: "Midday", night: false };
-  if (h < 18.75) return { label: "Afternoon", night: false };
-  if (h < 20.25) return { label: "Golden hour", night: false };
-  return { label: "Dusk", night: true };
+  if (h < 5 || h >= 21.5) return { label: "clock.night", night: true };
+  if (h < 7) return { label: "clock.sunrise", night: false };
+  if (h < 11) return { label: "clock.morning", night: false };
+  if (h < 15) return { label: "clock.midday", night: false };
+  if (h < 18.75) return { label: "clock.afternoon", night: false };
+  if (h < 20.25) return { label: "clock.golden", night: false };
+  return { label: "clock.dusk", night: true };
 }
 
 // Sky colour per hour for the dial ring (conic gradient, 0 h at the top).
@@ -60,6 +61,7 @@ export default function TimeClock() {
   const setTimeOfDay = useEnvironmentStore((s) => s.setTimeOfDay);
   const setMode = useEnvironmentStore((s) => s.setMode);
   const syncLocalTime = useEnvironmentStore((s) => s.syncLocalTime);
+  const t = useT();
 
   const [mounted, setMounted] = useState(false); // SSR has no local time
   const [open, setOpen] = useState(false);
@@ -174,7 +176,7 @@ export default function TimeClock() {
     <div ref={rootRef} className="wz-clock fixed z-wz-chrome !z-[35] wz-below-banner top-[calc(var(--wz-banner-h)+4.25rem)] left-4 items-start md:top-[calc(var(--wz-banner-h)+1rem)] md:left-auto md:right-4 md:items-end flex flex-col gap-2">
       <button
         type="button"
-        aria-label={`Studio time: ${fmt(timeOfDay)}. Tap to change the time, hold to fast-forward.`}
+        aria-label={t("clock.aria", { time: fmt(timeOfDay) })}
         aria-expanded={open}
         onPointerDown={onChipDown}
         onPointerUp={onChipUp}
@@ -190,15 +192,15 @@ export default function TimeClock() {
         {ffwd ? (
           <span className="text-[10px] font-semibold text-primary">⏩</span>
         ) : live ? (
-          <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--wz-green))]" title="Live" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--wz-green))]" title={t("clock.live")} />
         ) : null}
       </button>
 
       {open && (
         <div className="wz-glass rounded-wz-xl p-4 w-[232px] text-ink shadow-xl">
           <div className="flex items-baseline justify-between mb-3">
-            <span className="wz-eyebrow !text-ink/60">Garden time</span>
-            <span className="text-[11px] font-semibold text-ink-soft">{label}</span>
+            <span className="wz-eyebrow !text-ink/60">{t("clock.title")}</span>
+            <span className="text-[11px] font-semibold text-ink-soft">{t(label)}</span>
           </div>
 
           <div
@@ -208,7 +210,7 @@ export default function TimeClock() {
             className="relative mx-auto w-[168px] h-[168px] rounded-full cursor-grab active:cursor-grabbing touch-none select-none"
             style={{ background: ringGradient }}
             role="slider"
-            aria-label="Time of day"
+            aria-label={t("clock.slider")}
             aria-valuemin={0}
             aria-valuemax={24}
             aria-valuenow={Math.round(timeOfDay * 10) / 10}
@@ -224,7 +226,7 @@ export default function TimeClock() {
               <div>
                 <div className="wz-display text-[2rem] leading-none tabular-nums">{fmt(timeOfDay)}</div>
                 <div className="mt-1 text-[10px] font-semibold tracking-[0.14em] uppercase text-ink-soft">
-                  {live ? "Live" : playing ? "A day in 24s" : "Drag the sun"}
+                  {live ? t("clock.live") : playing ? t("clock.playing") : t("clock.drag")}
                 </div>
               </div>
             </div>
@@ -249,7 +251,7 @@ export default function TimeClock() {
 
           <div className="flex gap-2 mt-4">
             <button type="button" onClick={playDay} className="flex-1 h-9 rounded-full wz-btn-primary !text-xs">
-              {playing ? "Pause" : "Play a day"}
+              {playing ? t("clock.pause") : t("clock.play")}
             </button>
             <button
               type="button"
@@ -257,11 +259,11 @@ export default function TimeClock() {
               disabled={live}
               className="h-9 px-4 rounded-full text-xs font-semibold border border-ink/15 hover:bg-ink/5 disabled:opacity-40 wz-focus"
             >
-              Now
+              {t("clock.now")}
             </button>
           </div>
           <p className="mt-3 text-[10px] leading-snug text-ink-soft text-center">
-            Psst: hold the clock to fast-forward time.
+            {t("clock.psst")}
           </p>
         </div>
       )}

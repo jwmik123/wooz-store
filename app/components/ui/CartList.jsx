@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Plus, Minus, Trash2 } from "lucide-react";
 import useCheckoutStore from "../../stores/checkoutStore";
 import { formatPrice } from "./tokens";
+import { useT } from "@/lib/i18n";
 
 function EmptySmiley() {
   return (
@@ -28,6 +29,7 @@ const CartList = ({ onClose }) => {
   const updateQuantity = useCheckoutStore((s) => s.updateQuantity);
   const removeFromCart = useCheckoutStore((s) => s.removeFromCart);
   const clearCart = useCheckoutStore((s) => s.clearCart);
+  const t = useT();
 
   const lines = cart?.lines?.edges || [];
 
@@ -36,13 +38,13 @@ const CartList = ({ onClose }) => {
       <div className="flex flex-col items-center justify-center h-full gap-5 px-8 pb-16 text-center">
         <EmptySmiley />
         <div className="flex flex-col gap-2">
-          <h2 className="wz-display text-wz-xl text-ink">Your bag is still empty</h2>
+          <h2 className="wz-display text-wz-xl text-ink">{t("bag.emptyTitle")}</h2>
           <p className="text-wz-sm text-ink-soft max-w-[18rem] mx-auto">
-            Wander through the studio and tap a clothing rack to find something that makes you smile.
+            {t("bag.emptyCopy")}
           </p>
         </div>
         <button type="button" onClick={onClose} className="h-12 px-6 mt-2 wz-btn-primary text-wz-sm">
-          Explore the studio
+          {t("bag.explore")}
         </button>
       </div>
     );
@@ -59,7 +61,7 @@ const CartList = ({ onClose }) => {
     <div className="flex flex-col min-h-full">
       <div className="px-5 pt-2 pb-4 md:px-7">
         <h2 className="wz-display text-wz-display text-ink">
-          Your bag <span className="text-ink-soft/70 text-wz-xl tabular-nums">({count})</span>
+          {t("bag.title")} <span className="text-ink-soft/70 text-wz-xl tabular-nums">({count})</span>
         </h2>
       </div>
 
@@ -97,7 +99,7 @@ const CartList = ({ onClose }) => {
                           ? removeFromCart(node.id)
                           : updateQuantity(node.id, node.quantity - 1)
                       }
-                      aria-label={node.quantity === 1 ? `Remove ${title}` : `Decrease quantity of ${title}`}
+                      aria-label={node.quantity === 1 ? t("bag.remove", { title }) : t("bag.decrease", { title })}
                     >
                       {node.quantity === 1 ? (
                         <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
@@ -112,7 +114,7 @@ const CartList = ({ onClose }) => {
                       type="button"
                       className="w-9 h-9 wz-icon-btn"
                       onClick={() => updateQuantity(node.id, node.quantity + 1)}
-                      aria-label={`Increase quantity of ${title}`}
+                      aria-label={t("bag.increase", { title })}
                     >
                       <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                     </button>
@@ -141,12 +143,12 @@ const CartList = ({ onClose }) => {
 
       <div className="sticky bottom-0 px-3 pt-6 pb-3 mt-auto md:px-4 md:pb-4 bg-gradient-to-t from-paper via-paper/90 to-transparent">
         <div className="flex items-baseline justify-between px-2 mb-3">
-          <span className="wz-eyebrow">Subtotal</span>
+          <span className="wz-eyebrow">{t("bag.subtotal")}</span>
           <span className="text-xl font-display tabular-nums text-ink">
             {formatPrice(subtotal, currency)}
           </span>
         </div>
-        <p className="px-2 mb-3 text-xs text-ink-soft">Shipping & taxes calculated at checkout.</p>
+        <p className="px-2 mb-3 text-xs text-ink-soft">{t("bag.shipping")}</p>
         <button
           type="button"
           className="w-full h-14 wz-btn-primary text-wz-base"
@@ -155,7 +157,7 @@ const CartList = ({ onClose }) => {
             clearCart();
           }}
         >
-          Checkout
+          {t("bag.checkout")}
         </button>
       </div>
     </div>
