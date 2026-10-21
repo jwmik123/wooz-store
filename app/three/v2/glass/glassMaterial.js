@@ -12,9 +12,11 @@ import {
   positionWorld,
   pow,
   reflect,
+  screenUV,
   smoothstep,
   texture,
   uv,
+  viewportMipTexture,
   vec2,
   vec3,
   vec4,
@@ -23,6 +25,7 @@ import { uKeyLightDirection, uNightFactor, uSkyHorizon, uSkyZenith, uSunColor } 
 import { uLampColor, uLampGlow } from "../lighting/interior";
 import { bakedLightsNode } from "../lighting/keyLight";
 import { getFinishNoiseTexture } from "../studio/finishNoise";
+import { getFogMaskTexture, uFog, uFogLine } from "./fog";
 
 /*
  * Greenhouse glass: no transmission/refraction, just what clean float glass
@@ -33,8 +36,15 @@ import { getFinishNoiseTexture } from "../studio/finishNoise";
  *   - at night the reflection turns into the warm interior instead of the sky;
  *   - a faint green body tint that grows at grazing angles (edge-on glass);
  *   - a hint of dust / dried rain near the lower edge of each plane.
+ *
+ * Options:
+ *   fog   condensation layer for the sale-drop countdown (./fog.js): the scene
+ *         behind blurred (mip-mapped viewport copy, `fog.blur`; a flat milky
+ *         layer without it), droplets, run streaks, wiped clear by the
+ *         visitor's pointer and dried top-down by the sun at T-0.
+ *   fade  uniform multiplying the whole layer (the temporary front wall).
  */
-export function createGlassMaterial() {
+export function createGlassMaterial({ fog = null, fade = null } = {}) {
   const m = new MeshBasicNodeMaterial({
     transparent: true,
     depthWrite: false,
@@ -80,8 +90,37 @@ export function createGlassMaterial() {
   const greenA = mix(float(0.015), float(0.12), pow(float(1).sub(cosT), 3));
   const green = vec3(0.16, 0.26, 0.2).mul(mix(1, 0.15, uNightFactor));
 
-  const rgb = refl.mul(F).add(glint).add(dustColor.mul(dust)).add(green.mul(greenA));
-  const a = clamp(F.add(dust).add(greenA).add(glint.g.mul(0.5)), 0, 0.9);
+  let rgb = refl.mul(F).add(glint).add(dustColor.mul(dust)).add(green.mul(greenA));
+  let a = clamp(F.add(dust).add(greenA).add(glint.g.mul(0.5)), 0, 0.9);
+
+  if (fog) {
+    m.name = "greenhouseGlassFogged";
+    const wiped = smoothstep(0.06, 0.55, texture(getFogMaskTexture(), screenUV).r);
+    const dried = smoothstep(uFogLine.sub(0.45), uFogLine, positionWorld.y);
+    // uv = metres on the pane: patchy density, beads, and clear runs where
+    // drops have trickled down.
+    const patch = texture(getFinishNoiseTexture(), uv().mul(0.55)).r;
+    const beads = smoothstep(0.8, 0.93, texture(getFinishNoiseTexture(), uv().mul(7.0)).b);
+    const runs = smoothstep(0.8, 0.86, texture(getFinishNoiseTexture(), uv().mul(vec2(3.7, 0.22))).g);
+    const density = uFog
+      .mul(float(1).sub(wiped))
+      .mul(float(1).sub(dried))
+      .mul(mix(float(0.78), float(1), patch))
+      .mul(float(1).sub(runs.mul(0.4)));
+    // A rim of beads along the edge of a wipe, like a finger leaves.
+    const rim = wiped.mul(float(1).sub(wiped)).mul(4).mul(beads.add(0.25)).mul(uFog).mul(float(1).sub(dried));
+
+    const tint = mix(vec3(0.9, 0.93, 0.92), uLampColor.mul(0.35).add(vec3(0.06, 0.07, 0.08)), uNightFactor);
+    const behind = fog.blur ? viewportMipTexture(screenUV, float(4.5)).rgb : tint.mul(0.55);
+    const milk = behind.mul(0.62).add(tint.mul(0.4)).add(beads.mul(0.12));
+    const fA = density.mul(fog.blur ? 0.96 : 0.78);
+    rgb = rgb.mul(float(1).sub(fA)).add(milk.mul(fA)).add(tint.mul(rim.mul(0.18)));
+    a = a.mul(float(1).sub(fA)).add(fA).add(rim.mul(0.12)).min(1);
+  }
+  if (fade) {
+    rgb = rgb.mul(fade);
+    a = a.mul(fade);
+  }
   m.colorNode = vec4(0, 0, 0, 1);
   m.outputNode = vec4(rgb, a);
   return m;
