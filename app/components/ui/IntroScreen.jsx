@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useState } from "react";
 import useEnvironmentStore from "../../stores/environmentStore";
+import { DROP_LONG, useDropStore } from "@/lib/drop";
 
 // Same window the lamps/stars use: dusk → dawn.
 const isDark = (h) => h >= 20.6 || h < 6.1;
@@ -27,6 +28,10 @@ const IntroScreen = forwardRef(function IntroScreen(
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const dark = useEnvironmentStore((s) => isDark(s.timeOfDay)) && mounted;
+  // Before the sale drop the greenhouse is closed: no way in, the countdown
+  // board in the garden (three/v2/garden/DropBoard.jsx) is the call to action.
+  const closed = useDropStore((s) => s.phase !== "open") && mounted;
+  const openSheet = useDropStore((s) => s.openSheet);
   return (
     <div
       ref={ref}
@@ -52,14 +57,42 @@ const IntroScreen = forwardRef(function IntroScreen(
           className="wz-intro-copy max-w-[21rem] md:max-w-[30rem] mt-2 text-center text-wz-sm font-medium text-ink"
           data-intro="copy"
         >
-          A little glasshouse at the end of a wild garden. Wander in, try things
-          on, take something happy home.
+          {closed ? (
+            <>
+              The glasshouse is closed until the sale drop on {DROP_LONG}. Press
+              a button on the sign so you don&apos;t miss it.
+            </>
+          ) : (
+            <>
+              A little glasshouse at the end of a wild garden. Wander in, try
+              things on, take something happy home.
+            </>
+          )}
         </p>
       </div>
 
       <div className="flex flex-col items-center gap-5">
+        {closed && (
+          // Keyboard / screen-reader route to the sheet the 3D buttons open.
+          <div className={`flex gap-2 ${interactive ? "pointer-events-auto" : ""}`}>
+            {[
+              ["calendar", "Add the sale drop to your calendar"],
+              ["remind", "Remind me about the sale drop"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => openSheet(key)}
+                disabled={!interactive}
+                className="sr-only focus:not-sr-only px-4 py-2 text-sm font-medium rounded-full wz-glass-chip text-ink wz-focus"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         <div
-          className={`flex flex-col items-center gap-2 ${interactive ? "pointer-events-auto" : ""}`}
+          className={`${closed ? "hidden" : "flex wz-fade-in"} flex-col items-center gap-2 ${interactive ? "pointer-events-auto" : ""}`}
           data-intro="actions"
         >
           <button

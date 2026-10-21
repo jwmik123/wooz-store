@@ -11,6 +11,8 @@ import Trees from "./Trees";
 import Props from "./Props";
 import Critters from "./Critters";
 import SaleSign from "./SaleSign";
+import DropBoard from "./DropBoard";
+import { useDropStore } from "@/lib/drop";
 import { useTierSettings } from "../perf/quality";
 
 /*
@@ -34,6 +36,7 @@ export default function Garden({ isMobile = false }) {
       props: true,
       critters: true,
       saleSign: true,
+      dropBoard: true,
       fog: {
         value: uGardenFog.value,
         min: 0,
@@ -56,6 +59,8 @@ export default function Garden({ isMobile = false }) {
   const quality = isMobile ? 0.4 : 1;
   // Adaptive quality tier (perf/quality.js) thins the grass on slower GPUs.
   const tier = useTierSettings();
+  // Before the sale drop the countdown board stands in for the sale arrow.
+  const dropClosed = useDropStore((s) => s.closed);
 
   return (
     <>
@@ -64,7 +69,8 @@ export default function Garden({ isMobile = false }) {
       {c.flowers && <Flowers quality={isMobile ? 0.5 : 1} />}
       {c.trees && <Trees quality={isMobile ? 0.6 : 1} />}
       {c.props && <Props />}
-      {c.saleSign && <SaleSign />}
+      {c.saleSign && !dropClosed && <SaleSign />}
+      {c.dropBoard && dropClosed && <DropBoard />}
       {c.critters && <Critters quality={isMobile ? 0.5 : 1} />}
     </>
   );

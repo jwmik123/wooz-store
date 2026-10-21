@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import * as THREE from "three";
 import useSoundStore from "./soundStore";
+import { useDropStore } from "@/lib/drop";
 import { MOOS_HOME, MOOS_HOME_MOBILE, moosBody } from "../three/v2/moos/moosBody";
 
 const CAMERA_POSITIONS = {
@@ -39,6 +40,21 @@ const CAMERA_POSITIONS = {
   introPortrait: {
     position: new THREE.Vector3(1.2, 0.2, 15),
     target: new THREE.Vector3(0, -0.7, 0),
+  },
+  // Intro shot while the sale drop countdown runs (lib/drop.js): pulled back so
+  // the countdown board (garden/DropBoard.jsx, left of the path) and the
+  // greenhouse share the frame. `focus` just behind the board, so the board is
+  // sharp and the greenhouse only softly out of focus.
+  introDrop: {
+    position: new THREE.Vector3(1.6, 0.7, 16.5),
+    target: new THREE.Vector3(-1.5, -0.5, 5),
+    focus: new THREE.Vector3(-1.9, -0.2, 8.4),
+  },
+  // Portrait: the board stands on the path in front of the door, the greenhouse above it.
+  introDropPortrait: {
+    position: new THREE.Vector3(0.8, 1.2, 17.5),
+    target: new THREE.Vector3(0, -0.9, 4),
+    focus: new THREE.Vector3(0, -0.2, 9.8),
   },
   // Where the intro reveal starts (loader → intro): higher, farther and tilted
   // up into the sky, so the loader's sky dissolves into the real one before the
@@ -169,6 +185,14 @@ export const CINEMATIC_SHOTS = [
   }),
 ];
 
+/** The intro shot for this screen (the countdown framing while the drop is closed). */
+function introConfig() {
+  const portrait = isPortrait();
+  if (useDropStore.getState().closed)
+    return CAMERA_POSITIONS[portrait ? "introDropPortrait" : "introDrop"];
+  return CAMERA_POSITIONS[portrait ? "introPortrait" : "intro"];
+}
+
 /** Starting pose of the intro reveal (CameraRig holds it while the loader is up). */
 export const getIntroStart = () =>
   CAMERA_POSITIONS[isPortrait() ? "introPortraitStart" : "introStart"];
@@ -210,11 +234,11 @@ const useCameraStore = create((set, get) => ({
 
   /** Loader hand-over: crane from introStart to the intro shot. `instant` for reduced motion. */
   playIntroReveal: ({ instant = false } = {}) => {
-    const config = CAMERA_POSITIONS[isPortrait() ? "introPortrait" : "intro"];
+    const config = introConfig();
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
-      targetFocus: null,
+      targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
       preset: "intro",
       move: { name: "reveal", ...INTRO_MOVES.reveal, duration: instant ? 0 : INTRO_MOVES.reveal.duration },
     });
@@ -300,15 +324,11 @@ const useCameraStore = create((set, get) => ({
   // Reset to default or intro position based on intro screen state
   resetCamera: (isIntroScreen = false) => {
     useSoundStore.getState().playSound("swoosh");
-    const portrait =
-      typeof window !== "undefined" && window.innerWidth / window.innerHeight < 0.8;
-    const config = isIntroScreen
-      ? CAMERA_POSITIONS[portrait ? "introPortrait" : "intro"]
-      : CAMERA_POSITIONS.default;
+    const config = isIntroScreen ? introConfig() : CAMERA_POSITIONS.default;
     set({
       targetCameraPosition: new THREE.Vector3().copy(config.position),
       targetCameraTarget: new THREE.Vector3().copy(config.target),
-      targetFocus: null,
+      targetFocus: config.focus ? new THREE.Vector3().copy(config.focus) : null,
       preset: isIntroScreen ? "intro" : "default",
     });
   },

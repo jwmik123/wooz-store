@@ -16,6 +16,7 @@ import { AlignLeft } from "lucide-react";
 import CinematicOverlay from "./components/cinematic/CinematicOverlay";
 import LiteFallback from "./components/ui/LiteFallback";
 import SaleBanner from "./components/ui/SaleBanner";
+import DropSheet from "./components/ui/DropSheet";
 
 // WebGPU scene is client-only (three/webgpu touches navigator.gpu / canvas).
 const Scene = dynamic(() => import("./three/v2/Scene"), { ssr: false });
@@ -127,6 +128,7 @@ export default function Home() {
       <CinematicOverlay />
       <LiteFallback />
       <SaleBanner />
+      <DropSheet />
     </main>
   );
 }

@@ -476,6 +476,22 @@ body {
   .pswp .pswp__button--zoom { display: grid; }
 }
 
+/* "Step inside" appearing when the sale drop opens mid-visit (IntroScreen). */
+.wz-fade-in {
+  animation: wz-fade-in 1.1s var(--wz-ease-out) both;
+}
+@keyframes wz-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wz-fade-in {
+    animation: none;
+  }
+}
+
 /* Sale marquee (components/ui/SaleBanner.jsx) */
 html[data-wz-sale] {
   --wz-banner-h: 28px;
