@@ -3,7 +3,8 @@ import { SIGN_H, SIGN_W } from "./signLayout";
 
 /*
  * One shared canvas atlas for every signboard face + sale tag: 1 column ×
- * ROWS. Cells 0..3 = signs, SALE_CELL0.. = sale tags (same aspect).
+ * ROWS. Cells 0..3 = signs (on-sale racks get a red "−X%" corner ribbon
+ * painted on), SALE_CELL0.. = standalone sale tags (same aspect).
  * Redrawn in place when the brand fonts / sale data arrive.
  */
 
@@ -51,7 +52,36 @@ function grain(g, w, h, seed) {
   g.globalAlpha = 1;
 }
 
-function drawCell(g, i, sign, fonts) {
+/** Red diagonal "−X%" sash across the board's top-right corner. */
+function drawCornerRibbon(g, pct, fonts) {
+  // Band = points where (CW - x) + y is in [MID ± HALF] (45° across the corner).
+  const MID = CH * 0.6;
+  const HALF = CH * 0.16;
+  g.save();
+  g.beginPath();
+  g.rect(0, 0, CW, CH);
+  g.clip();
+  g.fillStyle = SALE;
+  g.beginPath();
+  g.moveTo(CW - (MID - HALF), 0);
+  g.lineTo(CW - (MID + HALF), 0);
+  g.lineTo(CW, MID + HALF);
+  g.lineTo(CW, MID - HALF);
+  g.closePath();
+  g.fill();
+  g.translate(CW - MID / 2, MID / 2);
+  g.rotate(Math.PI / 4);
+  g.fillStyle = SALE_INK;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  const sans = (s) => `700 ${s}px ${fonts.sans}`;
+  const label = `−${pct}%`;
+  g.font = sans(fit(g, label, sans, Math.round(HALF * 1.15), MID * 0.95));
+  g.fillText(label, 0, HALF * 0.06);
+  g.restore();
+}
+
+function drawCell(g, i, sign, fonts, pct) {
   g.save();
   g.translate(0, i * CH);
   g.fillStyle = CREAM;
@@ -65,32 +95,36 @@ function drawCell(g, i, sign, fonts) {
   g.textAlign = "center";
   g.textBaseline = "middle";
   const display = (s) => `600 ${s}px ${fonts.display}`;
-  g.font = display(fit(g, sign.name, display, Math.round(CH * 0.62), CW * 0.84));
-  g.fillText(sign.name, CW / 2, CH * 0.53);
+  // On sale: name a bit narrower / left so it clears the corner ribbon.
+  const w = pct ? 0.7 : 0.84;
+  const x = pct ? 0.44 : 0.5;
+  g.font = display(fit(g, sign.name, display, Math.round(CH * 0.62), CW * w));
+  g.fillText(sign.name, CW * x, CH * 0.53);
+  if (pct) drawCornerRibbon(g, pct, fonts);
   g.restore();
 }
 
-/** Red sale swing tag: "Sale −X%" + a punched hole on the left. */
+/** Small red standalone sale tag (table pieces): just "−X%". */
 function drawSaleCell(g, i, pct, fonts) {
   g.save();
   g.translate(0, i * CH);
   g.fillStyle = SALE;
   g.fillRect(0, 0, CW, CH);
   g.fillStyle = SALE_INK;
-  g.beginPath();
-  g.arc(CH * 0.42, CH / 2, CH * 0.13, 0, Math.PI * 2);
-  g.fill();
   g.textAlign = "center";
   g.textBaseline = "middle";
   const sans = (s) => `700 ${s}px ${fonts.sans}`;
-  const label = `Sale −${pct}%`;
-  g.font = sans(fit(g, label, sans, Math.round(CH * 0.56), CW - CH * 1.1));
-  g.fillText(label, CW / 2 + CH * 0.3, CH * 0.53);
+  const label = `−${pct}%`;
+  g.font = sans(fit(g, label, sans, Math.round(CH * 0.62), CW * 0.8));
+  g.fillText(label, CW / 2, CH * 0.53);
   g.restore();
 }
 
-/** Builds (or redraws) the atlas for `signs` + `saleTags` (layoutSaleTags). */
-export function drawSignAtlas(signs, saleTags, texture) {
+/**
+ * Builds (or redraws) the atlas for `signs` + `saleTags` (layoutSaleTags);
+ * `sale` (Map handle -> %) adds the boards' corner ribbons.
+ */
+export function drawSignAtlas(signs, saleTags, texture, sale) {
   const canvas = texture?.image ?? document.createElement("canvas");
   canvas.width = CW;
   canvas.height = CH * ROWS;
@@ -100,7 +134,7 @@ export function drawSignAtlas(signs, saleTags, texture) {
     sans: cssFont("--wz-font-sans", "system-ui, sans-serif"),
   };
   g.clearRect(0, 0, canvas.width, canvas.height);
-  signs.forEach((s, i) => drawCell(g, i, s, fonts));
+  signs.forEach((s, i) => drawCell(g, i, s, fonts, sale?.get(s.key)));
   saleTags?.forEach((t, k) => drawSaleCell(g, SALE_CELL0 + k, t.pct, fonts));
   if (texture) {
     texture.needsUpdate = true;

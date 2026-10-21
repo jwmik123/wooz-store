@@ -50,9 +50,9 @@ import {
 
 /*
  * Shop signage: one signboard hung above each rack on two steel wires
- * (replaced the hanging garment tags). On-sale racks get a small red
- * "Sale −X%" swing tag off the board's corner (the totebag one stands on the
- * table): same instanced mesh as the boards. Draw calls: 1 (boards + sale
+ * (replaced the hanging garment tags). On-sale racks get a red "−X%" corner
+ * ribbon painted on their board; the totebag (no board) gets a small "−X%"
+ * tag standing on the table: same instanced mesh as the boards. Draw calls: 1 (boards + sale
  * tags) + 1 (wires).
  * Also runs the idle discoverability sweep over the racks' garments and the
  * table pieces (coffee cup, lookbook, totebag) in turn.
@@ -129,11 +129,11 @@ function SignBoards({ signs, sale, debug }) {
   // Redraw once the brand fonts are in, and whenever the sale data changes.
   useEffect(() => {
     let alive = true;
-    loadSignFonts().then(() => alive && drawSignAtlas(signs, saleTags, atlas));
+    loadSignFonts().then(() => alive && drawSignAtlas(signs, saleTags, atlas, sale));
     return () => {
       alive = false;
     };
-  }, [signs, saleTags, atlas]);
+  }, [signs, saleTags, atlas, sale]);
 
   // Instances: boards 0..n-1, then the sale tags. `keys[i]` = what instance i
   // opens (the totebag tag opens the totebag).

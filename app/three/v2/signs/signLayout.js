@@ -7,7 +7,7 @@ export { TABLE_SPOTS };
 
 /*
  * Rack signboards: what they say and where they hang (WORLD space), plus the
- * red sale tags (table pieces: tableSpots.js).
+ * standalone sale tag (table pieces: tableSpots.js).
  *
  * Board: SIGN_W × SIGN_H × SIGN_D, local origin at its centre, printed face
  * +Z. Hung on two steel wires from the roof straight above the rack.
@@ -23,11 +23,9 @@ export const WIRE_X = SIGN_W * 0.38;
  * sits ~0.12 m above the garments, then ~0.2 m clear air.
  */
 const SIGN_LIFT = 0.32;
-/** Sale swing tag: same aspect as the board (shares its atlas cell size). */
-export const SALE_SCALE = 0.42;
-const SALE_W = SIGN_W * SALE_SCALE;
+/** Table sale tag: same aspect as the board (shares its atlas cell size). */
+export const SALE_SCALE = 0.3;
 const SALE_H = SIGN_H * SALE_SCALE;
-const SALE_STRING = 0.045;
 
 /** Default overview camera (boards turn their face towards it). */
 const VIEW = new Vector3(0, 0, 5);
@@ -128,39 +126,16 @@ export function layoutSigns(groups, ceilingAt) {
   return signs;
 }
 
-const _x = new Vector3();
-
 /**
- * Small red "Sale −X%" swing tags for the handles in `sale` (Map handle -> %):
- * one hanging off the lower right corner of an on-sale rack's board (short
- * string, sways with it), one standing on the table beside the totebag.
- * Each: { key, pct, signIndex (-1 = none), center, yaw, pitch, pivot, still,
- * string?: { top, len } }.
+ * Standalone red "−X%" tags for the handles in `sale` (Map handle -> %).
+ * Racks don't get one (their board carries a corner ribbon, signAtlas.js);
+ * only the totebag, which has no board: a small tag standing on the table
+ * beside it. Each: { key, pct, signIndex (-1 = none), center, yaw, pitch,
+ * pivot, still, string?: { top, len } }.
  */
 export function layoutSaleTags(signs, sale) {
   const tags = [];
   if (!sale?.size) return tags;
-  signs.forEach((s, i) => {
-    const pct = sale.get(s.key);
-    if (!pct) return;
-    _x.set(Math.cos(s.yaw), 0, -Math.sin(s.yaw));
-    const top = s.center
-      .clone()
-      .addScaledVector(_x, SIGN_W * 0.36)
-      .add(new Vector3(0, -SIGN_H / 2, 0));
-    const center = top.clone().add(new Vector3(0, -SALE_STRING - SALE_H / 2, 0));
-    tags.push({
-      key: s.key,
-      pct,
-      signIndex: i,
-      center,
-      yaw: s.yaw,
-      pitch: 0,
-      pivot: s.pivot,
-      still: 0,
-      string: { top, len: SALE_STRING },
-    });
-  });
   const tote = sale.get("totebag");
   if (tote) {
     // Standing on the table beside the bag, leaning back a little.
