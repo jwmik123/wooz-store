@@ -314,21 +314,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Keep the Awwwards ribbon out of the way while the shop panel is open */
-#awwwards-embed {
-  transition: opacity var(--wz-dur-base) var(--wz-ease-out);
-}
-html[data-wz-panel="open"] #awwwards-embed {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* …and while the Moos chat is open (MoosChat.jsx sets data-wz-chat) */
-html[data-wz-chat="open"] #awwwards-embed {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* Moos launcher: a soft breathing halo so it reads against the scene. */
 .wz-moos-launcher::after {
   content: "";
@@ -558,15 +543,3 @@ html[data-wz-sale] {
   transition: top var(--wz-dur-slow) var(--wz-ease-out);
 }
 
-/* Phones, intro shot: the Awwwards ribbon's iframe (138 × 208 px, mostly
-   transparent above the badge) sits over the countdown board's push-buttons
-   (three/v2/garden/DropBoard.jsx); let taps through until the visitor is inside. */
-@media (max-aspect-ratio: 4/5) {
-  html[data-wz-stage="intro"] #awwwards-embed,
-  html[data-wz-stage="intro"] #awwwards-embed iframe {
-    pointer-events: none;
-  }
-}
-html[data-wz-drop-sheet] #awwwards-embed {
-  visibility: hidden;
-}

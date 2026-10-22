@@ -22,9 +22,7 @@ import { getLocale, useT } from "@/lib/i18n";
  *  - desktop: floating panel at --wz-panel-inset, bottom-right; it moves to the
  *    left while the shop panel (html[data-wz-panel="open"]) owns the right.
  *  - mobile (< md): bottom sheet with a drag handle (drag down to close).
- *  - sets html[data-wz-chat="open"] so the Awwwards ribbon steps aside
- *    (globals.css) and the 3D camera frames Moos (CameraRig).
- *  - the closed launcher floats above the ribbon (fixed 208 px tall iframe).
+ *  - sets html[data-wz-chat="open"] so the 3D camera frames Moos (CameraRig).
  */
 
 const ACTION_LABEL = {
@@ -169,7 +167,7 @@ export default function MoosChat() {
     if (open) setTimeout(() => inputRef.current?.focus(), 250);
   }, [open]);
 
-  // Let the ribbon (globals.css) and the camera rig know the chat is open.
+  // Let the camera rig know the chat is open.
   useEffect(() => {
     const visible = open && !introScreen;
     document.documentElement.dataset.wzChat = visible ? "open" : "closed";

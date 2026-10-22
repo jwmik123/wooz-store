@@ -93,9 +93,7 @@
 html.wz-cinematic .z-wz-chrome,
 html.wz-cinematic .wz-clock,
 html.wz-cinematic .wz-moos-launcher,
-html.wz-cinematic .point,
-html.wz-cinematic #awwwards-embed,
-html.wz-cinematic #awwwards {
+html.wz-cinematic .point {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;

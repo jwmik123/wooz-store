@@ -97,7 +97,7 @@ The WOOZ smiley is the brand mark: use it for delight moments such as add-to-bag
   - `--wz-z-chrome`: 50, for floating Menu and Bag. Tailwind: `z-wz-chrome`.
 - `--wz-panel-width` is `clamp(400px, 34vw, 520px)`. `--wz-panel-inset` is 12px, the gap between floating panels and the viewport edge.
 - Breakpoint: below `md` (768px), panels become bottom sheets. They are 86dvh tall, have a drag handle, and are dismissed by dragging down.
-- While the shop panel is open, `<html data-wz-panel="open">` is set. Use it to move or hide other floating UI. The Awwwards ribbon already does this.
+- While the shop panel is open, `<html data-wz-panel="open">` is set. Use it to move or hide other floating UI.
 
 ## Moos chat checklist
 

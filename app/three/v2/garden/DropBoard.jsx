@@ -762,13 +762,6 @@ export default function DropBoard() {
   }, [tex, locale, flapRow]);
   const colonRef = useRef();
   const sheet = useDropStore((s) => s.sheet);
-  // The Awwwards ribbon (fixed, bottom right) would cover the sheet's options.
-  useEffect(() => {
-    const html = document.documentElement;
-    if (sheet) html.dataset.wzDropSheet = "";
-    else delete html.dataset.wzDropSheet;
-    return () => delete html.dataset.wzDropSheet;
-  }, [sheet]);
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1);

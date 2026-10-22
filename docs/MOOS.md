@@ -50,7 +50,7 @@ The 3D Moos should only *read* this store (and may call `setAnimation` for its o
 
 ## UI `app/components/moos/MoosChat.jsx`
 
-Mounted once in `app/page.js`. Hidden during the intro screen. Launcher sits bottom-right above the Awwwards ribbon and moves to the bottom-left while the product sidebar is open. All colours/radii are CSS variables in the `THEME` object at the top (`--moos-*`), easy to map to `docs/UI-TOKENS.md`. `MoosAvatar` is a placeholder SVG until the 3D/portrait asset exists.
+Mounted once in `app/page.js`. Hidden during the intro screen. Launcher sits bottom-right and moves to the bottom-left while the product sidebar is open. All colours/radii are CSS variables in the `THEME` object at the top (`--moos-*`), easy to map to `docs/UI-TOKENS.md`. `MoosAvatar` is a placeholder SVG until the 3D/portrait asset exists.
 
 ## Cost notes
 
