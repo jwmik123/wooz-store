@@ -551,7 +551,7 @@ function makeMaterials() {
 
   const plank = new MeshStandardNodeMaterial({ roughness: 0.75, metalness: 0 });
   plank.colorNode = lin("#b98a55");
-  plank.emissiveNode = lin("#b98a55").mul(uNightFactor.mul(0.08));
+  plank.emissiveNode = lin("#b98a55").mul(uNightFactor.mul(0.22));
   plank.name = "dropBoardPlank";
 
   const bulb = new MeshBasicNodeMaterial();
@@ -594,7 +594,9 @@ function makeTexturedMaterials(tex) {
     const hover = uniform(0);
     const body = new MeshStandardNodeMaterial({ roughness: 0.38, metalness: 0 });
     body.colorNode = lin("#f6e6c6");
-    body.emissiveNode = lin("#fff1d6").mul(hover.mul(0.35).add(uNightFactor.mul(0.25)));
+    // Backlit at night (like the bulbs), so the buttons read in the dark; the
+    // dark label ink on top keeps its contrast. Stays under the bloom threshold.
+    body.emissiveNode = lin("#fff1d6").mul(hover.mul(0.35).add(uNightFactor.mul(0.85)));
     body.name = `dropBoardButton_${key}`;
     const label = new MeshStandardNodeMaterial({ roughness: 0.4, transparent: true, depthWrite: false });
     const l = texture(tex.labels[key]);
