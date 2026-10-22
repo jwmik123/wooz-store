@@ -45,6 +45,22 @@ import { DOODLE, FOG_MASK_W, getFogDoodleTexture, getFogMaskTexture, uFog, uFogL
  *         visitor's pointer and dried top-down by the sun at T-0.
  *   fade  uniform multiplying the whole layer (the temporary front wall).
  */
+/**
+ * Heavily blurred copy of the scene behind the glass (mip level 4.5), refreshed
+ * only every `every`-th render: copying the frame and building its mip chain is
+ * several full-screen passes, and under this much blur a copy that is a few
+ * frames old is invisible.
+ */
+function throttledViewportMip(every) {
+  const node = viewportMipTexture(screenUV, float(4.5));
+  const copy = node.updateBefore.bind(node);
+  let n = 0;
+  node.updateBefore = (frame) => {
+    if (n++ % every === 0) copy(frame);
+  };
+  return node;
+}
+
 export function createGlassMaterial({ fog = null, fade = null } = {}) {
   const m = new MeshBasicNodeMaterial({
     transparent: true,
@@ -134,7 +150,7 @@ export function createGlassMaterial({ fog = null, fade = null } = {}) {
       .mul(float(1).sub(cleared));
 
     const tint = mix(vec3(0.9, 0.93, 0.92), uLampColor.mul(0.35).add(vec3(0.06, 0.07, 0.08)), uNightFactor);
-    const behind = fog.blur ? viewportMipTexture(screenUV, float(4.5)).rgb : tint.mul(0.55);
+    const behind = fog.blur ? throttledViewportMip(3).rgb : tint.mul(0.55);
     // Dense, milky condensation: the room behind only as soft blurred colour.
     const milk = behind.mul(0.62).add(tint.mul(0.4));
     const fA = density.mul(fog.blur ? 0.96 : 0.78);

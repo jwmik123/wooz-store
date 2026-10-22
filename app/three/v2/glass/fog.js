@@ -89,7 +89,8 @@ export function decayFog(dt) {
 // --- Doodles on the front glass (world space) --------------------------------
 
 /** Canvas size and mapping (the shader maps world x/y on the front → uv). */
-export const DOODLE = { size: 2048, ppm: 2048 / 4.2, x0: -2.1, y0: 2.1 };
+// 1024² is plenty for three hand-sized drawings (2048² cost ~22 MB of GPU memory).
+export const DOODLE = { size: 1024, ppm: 1024 / 4.2, x0: -2.1, y0: 2.1 };
 
 let doodles = null;
 

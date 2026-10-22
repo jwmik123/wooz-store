@@ -417,6 +417,7 @@ class FlapRow {
     this.geometry.boundingSphere = null;
     this.tiles = Array.from({ length: 8 }, (_, i) => ({ cur: "0", next: "0", want: "0", t: -1, x: tileX(i) }));
     this.open = false;
+    this.dirty = true;
   }
 
   /** Target glyph per tile; flips start one by one (never mid-flip). */
@@ -426,6 +427,7 @@ class FlapRow {
 
   update(dt) {
     const FLIP = 0.3;
+    let changed = false;
     for (let i = 0; i < 8; i++) {
       const tile = this.tiles[i];
       if (tile.t >= 0) {
@@ -441,9 +443,17 @@ class FlapRow {
         tile.t = 0;
       }
       const tx = this.open ? openX(i) : tileX(i);
-      tile.x += (tx - tile.x) * (1 - Math.exp(-dt * 4));
-      this.writeTile(i, tile);
+      const moving = Math.abs(tx - tile.x) > 1e-4;
+      if (moving) tile.x += (tx - tile.x) * (1 - Math.exp(-dt * 4));
+      // Only rewrite (and re-upload) while something moves: most frames nothing does.
+      if (tile.t >= 0 || moving || tile.shown !== tile.cur || this.dirty) {
+        this.writeTile(i, tile);
+        tile.shown = tile.t >= 0 ? null : tile.cur;
+        changed = true;
+      }
     }
+    this.dirty = false;
+    if (!changed) return;
     this.geometry.attributes.position.needsUpdate = true;
     this.geometry.attributes.normal.needsUpdate = true;
     this.geometry.attributes.uv.needsUpdate = true;
