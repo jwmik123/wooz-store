@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { AlarmClock, CalendarPlus, X } from "lucide-react";
+import { track } from "@vercel/analytics";
 import { dropLong, googleCalendarUrl, useDropStore } from "@/lib/drop";
 import { useLocale, useT } from "@/lib/i18n";
 
@@ -93,7 +94,10 @@ export default function DropSheet() {
               <a
                 href={o.href}
                 {...(o.external ? { target: "_blank", rel: "noopener" } : {})}
-                onClick={() => setTimeout(close, 300)}
+                onClick={() => {
+                  track("calendar_add", { sheet, option: o.key });
+                  setTimeout(close, 300);
+                }}
                 className="flex items-center gap-3 p-3 transition-colors bg-white/70 rounded-wz-md hover:bg-white wz-focus min-h-[56px]"
               >
                 <span className="grid shrink-0 w-9 h-9 rounded-wz-sm place-items-center bg-[rgb(var(--wz-mint))] text-ink">

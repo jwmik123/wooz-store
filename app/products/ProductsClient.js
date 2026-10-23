@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { track } from "@vercel/analytics";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import useEmblaCarousel from "embla-carousel-react";
@@ -263,6 +264,11 @@ function ProductView({ product, productHandle, active, description }) {
       return;
     }
     setStatus("added");
+    track("add_to_cart", {
+      product: productHandle,
+      color: selectedColor,
+      size: selectedSize,
+    });
     setTimeout(() => setStatus("idle"), 2200);
   };
 
@@ -338,7 +344,10 @@ function ProductView({ product, productHandle, active, description }) {
                         name="wz-color"
                         value={color}
                         checked={checked}
-                        onChange={() => setSelectedColor(color)}
+                        onChange={() => {
+                          setSelectedColor(color);
+                          track("select_color", { product: productHandle, color });
+                        }}
                         className="sr-only peer"
                         aria-label={`${color}${available ? "" : t("product.soldOutSuffix")}`}
                       />
@@ -390,7 +399,10 @@ function ProductView({ product, productHandle, active, description }) {
                         value={size}
                         checked={checked}
                         disabled={!available}
-                        onChange={() => setSelectedSize(size)}
+                        onChange={() => {
+                          setSelectedSize(size);
+                          track("select_size", { product: productHandle, size });
+                        }}
                         className="sr-only peer"
                         aria-label={`${t("product.sizeAria", { size })}${available ? "" : t("product.soldOutSuffix")}`}
                       />

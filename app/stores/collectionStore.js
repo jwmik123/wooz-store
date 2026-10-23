@@ -1,8 +1,13 @@
 import { create } from "zustand";
+import { track } from "@vercel/analytics";
 
 const collectionStore = create((set) => ({
   productHandle: null,
-  setProductHandle: (handle) => set({ productHandle: handle }),
+  setProductHandle: (handle) =>
+    set((s) => {
+      if (handle && handle !== s.productHandle) track("product_view", { product: handle });
+      return { productHandle: handle };
+    }),
   setSelectedCollection: (collection) =>
     set({ selectedCollection: collection }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
