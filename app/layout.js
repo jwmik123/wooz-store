@@ -2,6 +2,7 @@ import { Fraunces, Instrument_Sans, Lobster } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/next";
 import { ToastContainer } from "react-toastify";
 import Sound from "./components/Sound";
 // Type system (see docs/UI-TOKENS.md):
@@ -87,6 +88,7 @@ export default function RootLayout({ children }) {
         <GoogleAnalytics gaId="G-TDKEGF7JZ2" />
         {children}
         <ToastContainer position="bottom-left" />
+        <Analytics />
       </body>
     </html>
   );

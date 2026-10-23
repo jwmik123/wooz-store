@@ -15,6 +15,7 @@
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@shopify/storefront-api-client": "^1.0.4",
+    "@vercel/analytics": "^2.0.1",
     "ai": "^7.0.142",
     "embla-carousel-react": "^8.6.0",
     "gsap": "^3.12.5",
